@@ -575,13 +575,21 @@ function App() {
                           </Typography>
                           <Grid container spacing={2}>
                             {Object.entries(data.features.nonparam).map(([key, value]) => (
-                              <Grid item xs={6} key={key}>
+                              <Grid item xs={12} key={key}>
                                 <Typography variant="subtitle2" color="text.secondary">
                                   {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </Typography>
-                                <Typography variant="body1">
-                                  {typeof value === 'number' ? value.toFixed(4) : value}
-                                </Typography>
+                                {Array.isArray(value) ? (
+                                  value.map((val, index) => (
+                                    <Typography key={index} variant="body2" sx={{ pl: 2 }}>
+                                      Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
+                                    </Typography>
+                                  ))
+                                ) : (
+                                  <Typography variant="body1">
+                                    {typeof value === 'number' ? value.toFixed(4) : value}
+                                  </Typography>
+                                )}
                               </Grid>
                             ))}
                           </Grid>
@@ -598,13 +606,21 @@ function App() {
                           </Typography>
                           <Grid container spacing={2}>
                             {Object.entries(data.features.physical_activity).map(([key, value]) => (
-                              <Grid item xs={6} key={key}>
+                              <Grid item xs={12} key={key}>
                                 <Typography variant="subtitle2" color="text.secondary">
                                   {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </Typography>
-                                <Typography variant="body1">
-                                  {typeof value === 'number' ? value.toFixed(4) : value}
-                                </Typography>
+                                {Array.isArray(value) ? (
+                                  value.map((val, index) => (
+                                    <Typography key={index} variant="body2" sx={{ pl: 2 }}>
+                                      Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
+                                    </Typography>
+                                  ))
+                                ) : (
+                                  <Typography variant="body1">
+                                    {typeof value === 'number' ? value.toFixed(4) : value}
+                                  </Typography>
+                                )}
                               </Grid>
                             ))}
                           </Grid>
@@ -621,13 +637,21 @@ function App() {
                           </Typography>
                           <Grid container spacing={2}>
                             {Object.entries(data.features.sleep).map(([key, value]) => (
-                              <Grid item xs={6} key={key}>
+                              <Grid item xs={12} key={key}>
                                 <Typography variant="subtitle2" color="text.secondary">
                                   {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </Typography>
-                                <Typography variant="body1">
-                                  {typeof value === 'number' ? value.toFixed(4) : value}
-                                </Typography>
+                                {Array.isArray(value) ? (
+                                  value.map((val, index) => (
+                                    <Typography key={index} variant="body2" sx={{ pl: 2 }}>
+                                      Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
+                                    </Typography>
+                                  ))
+                                ) : (
+                                  <Typography variant="body1">
+                                    {typeof value === 'number' ? value.toFixed(4) : value}
+                                  </Typography>
+                                )}
                               </Grid>
                             ))}
                           </Grid>
