@@ -28,7 +28,7 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar, ReferenceLine } from 'recharts';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -39,6 +39,11 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SaveIcon from '@mui/icons-material/Save';
 import { styled } from '@mui/material/styles';
 import UploadIcon from '@mui/icons-material/Upload';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 
 // Create a modern theme
 const theme = createTheme({
@@ -140,6 +145,45 @@ const DirectoryTree = ({ data, onSelect }) => {
     </List>
   );
 };
+
+// Descriptions for each section
+const metricDescriptions = {
+  cosinor: {
+    title: 'Cosinor Analysis',
+    description: 'Cosinor analysis fits a cosine curve to the time series to estimate circadian rhythm parameters.\n\nMesor: Midline Estimating Statistic Of Rhythm (mean value, mg)\nAmplitude: Half the difference between peak and trough (mg)\nAcrophase: Time of peak (radians, minutes)'
+  },
+  nonparam: {
+    title: 'Non-Parametric Analysis',
+    description: 'Non-parametric metrics describe rhythm regularity and fragmentation.\n\nIS: Interdaily Stability (0-1, higher = more stable)\nIV: Intradaily Variability (0-2, higher = more fragmented)\nRA: Relative Amplitude (0-1, higher = more robust)\nSRI: Sleep Regularity Index (0-1, higher = more regular)'
+  },
+  activity: {
+    title: 'Physical Activity Metrics',
+    description: 'Summarizes time spent in different activity levels per day.\n\nSedentary, Light, Moderate, Vigorous: Minutes per day in each category.'
+  },
+  sleep: {
+    title: 'Sleep Metrics',
+    description: 'Sleep metrics per day.\n\nTST: Total Sleep Time (hours)\nWASO: Wake After Sleep Onset (minutes)\nPTA: Percent Time Asleep (%)\nNWB: Number of Wake Bouts\nSOL: Sleep Onset Latency (minutes)\nSRI: Sleep Regularity Index (0-1)'
+  }
+};
+
+function SectionInfoButton({ section }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <>
+      <IconButton size="small" onClick={() => setOpen(true)} aria-label={`Info about ${metricDescriptions[section].title}`}> 
+        <InfoOutlinedIcon fontSize="small" />
+      </IconButton>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>{metricDescriptions[section].title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText style={{ whiteSpace: 'pre-line' }}>
+            {metricDescriptions[section].description}
+          </DialogContentText>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
 
 function App() {
   const [file, setFile] = useState(null);
@@ -294,6 +338,17 @@ function App() {
       }
     };
   }, [timerInterval]);
+
+  // Helper to interpolate between red and green
+  function interpolateColor(wear) {
+    // Linear interpolation between #ff5252 and #4caf50
+    const r0 = 255, g0 = 82, b0 = 82; // red
+    const r1 = 76, g1 = 175, b1 = 80; // green
+    const r = Math.round(r0 + (r1 - r0) * wear);
+    const g = Math.round(g0 + (g1 - g0) * wear);
+    const b = Math.round(b0 + (b1 - b0) * wear);
+    return `rgb(${r},${g},${b})`;
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -484,57 +539,98 @@ function App() {
               </Grid>
             )}
 
-            {data?.data && (
-              <Grid item xs={12}>
-                <Card style={{ marginTop: '20px', padding: '20px' }}>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <LineChart 
-                      data={data.data}
-                      margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                    >
-                      <XAxis 
-                        dataKey="TIMESTAMP" 
-                        label={{ value: 'Time', position: 'insideBottom', offset: -5 }}
-                        tickFormatter={(timestamp) => {
-                          const date = new Date(timestamp);
-                          return date.toLocaleDateString();
-                        }}
-                        interval={0}
-                        tick={(props) => {
-                          const { x, y, payload } = props;
-                          const date = new Date(payload.value);
-                          const isStartOfDay = date.getHours() === 0 && date.getMinutes() === 0;
-                          
-                          return isStartOfDay ? (
-                            <g transform={`translate(${x},${y})`}>
-                              <text x={0} y={0} dy={16} textAnchor="middle" fill="#666">
-                                {date.toLocaleDateString()}
-                              </text>
-                            </g>
-                          ) : null;
-                        }}
-                      />
-                      <YAxis 
-                        label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
-                      />
-                      <Tooltip 
-                        labelFormatter={(timestamp) => {
-                          const date = new Date(timestamp);
-                          return date.toLocaleDateString();
-                        }}
-                      />
-                      <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="ENMO" 
-                        stroke="#8884d8" 
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </Card>
-              </Grid>
-            )}
+            {(() => {
+              if (data?.data) {
+                console.log('[ENMO Plot Debug] Unique wear values:', Array.from(new Set(data.data.map(d => d.wear))));
+              }
+              return data?.data && (
+                <Grid item xs={12}>
+                  <Card style={{ marginTop: '20px', padding: '20px' }}>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <LineChart 
+                        data={data.data}
+                        margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                      >
+                        <XAxis 
+                          dataKey="TIMESTAMP" 
+                          label={{ value: 'Time', position: 'insideBottom', offset: -5 }}
+                          tickFormatter={(timestamp) => {
+                            const date = new Date(timestamp);
+                            return date.toLocaleDateString();
+                          }}
+                          interval={0}
+                          tick={(props) => {
+                            const { x, y, payload } = props;
+                            const date = new Date(payload.value);
+                            const isStartOfDay = date.getHours() === 0 && date.getMinutes() === 0;
+                            return isStartOfDay ? (
+                              <g transform={`translate(${x},${y})`}>
+                                <text x={0} y={0} dy={16} textAnchor="middle" fill="#666">
+                                  {date.toLocaleDateString()}
+                                </text>
+                              </g>
+                            ) : null;
+                          }}
+                        />
+                        <YAxis 
+                          label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
+                        />
+                        <Tooltip 
+                          labelFormatter={(timestamp) => {
+                            const date = new Date(timestamp);
+                            return date.toLocaleDateString();
+                          }}
+                        />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="ENMO" 
+                          stroke="#8884d8" 
+                          dot={false}
+                        />
+                        {/* Shaded background for wear/non-wear segments */}
+                        {(() => {
+                          const areas = [];
+                          let currentWear = data.data[0]?.wear;
+                          let segStart = data.data[0]?.TIMESTAMP;
+                          for (let i = 1; i <= data.data.length; i++) {
+                            const point = data.data[i];
+                            if (i === data.data.length || point?.wear !== currentWear) {
+                              const segEnd = data.data[i - 1]?.TIMESTAMP;
+                              const color = interpolateColor(currentWear);
+                              areas.push(
+                                <ReferenceArea
+                                  key={`wear-seg-${segStart}`}
+                                  x1={segStart}
+                                  x2={segEnd}
+                                  fill={color}
+                                  fillOpacity={0.3}
+                                  stroke={color}
+                                  strokeOpacity={0.5}
+                                  label={null}
+                                />
+                              );
+                              if (i < data.data.length) {
+                                currentWear = point.wear;
+                                segStart = point.TIMESTAMP;
+                              }
+                            }
+                          }
+                          return areas;
+                        })()}
+                        {/* Custom legend for wear/non-wear shading */}
+                        <g>
+                          <rect x={30} y={2} width={18} height={18} fill="#4caf50" fillOpacity={0.3} stroke="#4caf50" strokeOpacity={0.5} />
+                          <text x={55} y={16} fontSize={14} fill="#333">wear</text>
+                          <rect x={110} y={2} width={18} height={18} fill="#ff5252" fillOpacity={0.3} stroke="#ff5252" strokeOpacity={0.5} />
+                          <text x={135} y={16} fontSize={14} fill="#333">non-wear</text>
+                        </g>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </Card>
+                </Grid>
+              );
+            })()}
 
             {data?.features && (
               <Grid item xs={12}>
@@ -547,16 +643,19 @@ function App() {
                     {data.features.cosinor && (
                       <Grid item xs={12}>
                         <Card variant="outlined" sx={{ p: 2 }}>
-                          <Typography variant="subtitle1" gutterBottom>
-                            Cosinor Analysis
-                          </Typography>
-                          <Grid container spacing={2}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="subtitle1" gutterBottom>
+                              Cosinor Analysis
+                            </Typography>
+                            <SectionInfoButton section="cosinor" />
+                          </Box>
+                          <Grid container spacing={2} direction="row" wrap="nowrap">
                             {Object.entries(data.features.cosinor).map(([key, value]) => (
-                              <Grid item xs={6} key={key}>
-                                <Typography variant="subtitle2" color="text.secondary">
+                              <Grid item xs key={key} zeroMinWidth>
+                                <Typography variant="subtitle2" color="text.secondary" noWrap>
                                   {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </Typography>
-                                <Typography variant="body1">
+                                <Typography variant="body1" noWrap>
                                   {typeof value === 'number' ? value.toFixed(4) : value}
                                   {key === 'mesor' || key === 'amplitude' ? ' mg' : 
                                    key === 'acrophase' ? ' radians' :
@@ -573,13 +672,16 @@ function App() {
                     {data.features.nonparam && (
                       <Grid item xs={12}>
                         <Card variant="outlined" sx={{ p: 2 }}>
-                          <Typography variant="subtitle1" gutterBottom>
-                            Non-Parametric Analysis
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="subtitle1" gutterBottom>
+                              Non-Parametric Analysis
+                            </Typography>
+                            <SectionInfoButton section="nonparam" />
+                          </Box>
                           <Grid container spacing={2}>
                             {console.log('Nonparametric feature keys:', Object.keys(data.features.nonparam))}
                             {Object.entries(data.features.nonparam).map(([key, value]) => (
-                              key.toLowerCase() === 'l5' ? null : (
+                              ['l5', 'm10_start', 'l5_start'].includes(key.toLowerCase()) ? null : (
                                 <Grid item xs={12} key={key}>
                                   <Typography variant="subtitle2" color="text.secondary">
                                     {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -626,8 +728,29 @@ function App() {
                                                 const m10Start = data.features.nonparam.M10_start?.[dayIndex];
                                                 const l5Start = data.features.nonparam.L5_start?.[dayIndex];
                                                 if (!m10Start || !l5Start) return null;
-                                                const m10StartDate = new Date(`${dayStr}T${m10Start}`);
-                                                const l5StartDate = new Date(`${dayStr}T${l5Start}`);
+                                                const m10StartDate = m10Start && m10Start.includes('T')
+                                                  ? new Date(m10Start)
+                                                  : new Date(`${dayStr}T${m10Start}`);
+                                                const l5StartDate = l5Start && l5Start.includes('T')
+                                                  ? new Date(l5Start)
+                                                  : new Date(`${dayStr}T${l5Start}`);
+                                                // Add two random reference lines at 10:00 AM and 6:00 PM
+                                                const randomTime1 = new Date(`${dayStr}T10:00:00`).getTime();
+                                                const randomTime2 = new Date(`${dayStr}T18:00:00`).getTime();
+                                                // Reference line at 5:00 AM
+                                                const fiveAM = new Date(`${dayStr}T05:00:00`).getTime();
+                                                // Add a 'timestampNum' property for numeric x-axis
+                                                const dayDataWithNum = dayData.map(item => ({ ...item, timestampNum: new Date(item.TIMESTAMP).getTime() }));
+                                                // Sort by timestampNum
+                                                const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
+                                                // Check if m10StartDate and l5StartDate are valid
+                                                const m10StartValid = m10StartDate instanceof Date && !isNaN(m10StartDate);
+                                                const l5StartValid = l5StartDate instanceof Date && !isNaN(l5StartDate);
+                                                console.log('[ENMO Plot Debug] Day:', dayStr, 'M10 Start:', m10Start, 'M10 Date:', m10StartDate, 'M10 ms:', m10StartDate.getTime());
+                                                console.log('[ENMO Plot Debug] Day:', dayStr, 'L5 Start:', l5Start, 'L5 Date:', l5StartDate, 'L5 ms:', l5StartDate.getTime());
+                                                if (dayIndex === 0) {
+                                                  console.log('[ENMO Plot Debug] dayDataWithNumSorted:', dayDataWithNumSorted);
+                                                }
                                                 return (
                                                   <Grid item xs={12} key={dayStr}>
                                                     <Card variant="outlined" sx={{ p: 2 }}>
@@ -636,21 +759,23 @@ function App() {
                                                       </Typography>
                                                       <ResponsiveContainer width="100%" height={300}>
                                                         <LineChart
-                                                          data={dayData}
+                                                          data={dayDataWithNumSorted}
                                                           margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
                                                         >
                                                           <CartesianGrid strokeDasharray="3 3" />
                                                           <XAxis
-                                                            dataKey="TIMESTAMP"
-                                                            tickFormatter={(timestamp) => {
-                                                              const date = new Date(timestamp);
+                                                            dataKey="timestampNum"
+                                                            type="number"
+                                                            domain={['dataMin', 'dataMax']}
+                                                            tickFormatter={(timestampNum) => {
+                                                              const date = new Date(timestampNum);
                                                               return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                                                             }}
                                                           />
                                                           <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
                                                           <Tooltip
-                                                            labelFormatter={(timestamp) => {
-                                                              const date = new Date(timestamp);
+                                                            labelFormatter={(timestampNum) => {
+                                                              const date = new Date(timestampNum);
                                                               return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                                                             }}
                                                           />
@@ -660,6 +785,7 @@ function App() {
                                                             dataKey="ENMO"
                                                             stroke="#8884d8"
                                                             dot={false}
+                                                            isAnimationActive={false}
                                                           />
                                                           {/* M10 Period Band */}
                                                           <ReferenceArea
@@ -677,6 +803,22 @@ function App() {
                                                             fillOpacity={0.1}
                                                             label="L5"
                                                           />
+                                                          {m10StartValid && (
+                                                            <ReferenceLine
+                                                              x={m10StartDate.getTime()}
+                                                              stroke="#8884d8"
+                                                              strokeDasharray="3 3"
+                                                              label={{ value: 'M10 Start', position: 'top', fill: '#8884d8', fontSize: 12 }}
+                                                            />
+                                                          )}
+                                                          {l5StartValid && (
+                                                            <ReferenceLine
+                                                              x={l5StartDate.getTime()}
+                                                              stroke="#82ca9d"
+                                                              strokeDasharray="3 3"
+                                                              label={{ value: 'L5 Start', position: 'top', fill: '#82ca9d', fontSize: 12 }}
+                                                            />
+                                                          )}
                                                         </LineChart>
                                                       </ResponsiveContainer>
                                                     </Card>
@@ -704,13 +846,8 @@ function App() {
                                             </BarChart>
                                           </ResponsiveContainer>
                                         </Box>
-                                      ) : key.toLowerCase() === 'm10_start' || key.toLowerCase() === 'l5_start' ? (
-                                        value.map((val, index) => (
-                                          <Typography key={index} variant="body2" sx={{ pl: 2 }}>
-                                            Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
-                                          </Typography>
-                                        ))
-                                      ) : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
+                                      ) : key.toLowerCase() === 'm10_start' || key.toLowerCase() === 'l5_start' ? null
+                                      : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
                                         (() => { console.log('RA key:', key, 'RA value:', value); return null; })() ||
                                         <Box sx={{ width: '100%', height: 200, mt: 2 }}>
                                           <ResponsiveContainer width="100%" height="100%">
@@ -805,9 +942,12 @@ function App() {
                     {data.features.physical_activity && (
                       <Grid item xs={12}>
                         <Card variant="outlined" sx={{ p: 2 }}>
-                          <Typography variant="subtitle1" gutterBottom>
-                            Physical Activity Metrics
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="subtitle1" gutterBottom>
+                              Physical Activity Metrics
+                            </Typography>
+                            <SectionInfoButton section="activity" />
+                          </Box>
                           <Grid container spacing={2}>
                             {/* Only show the stacked bar chart for per-day metrics, not the per-day values */}
                             <Grid item xs={12}>
@@ -845,9 +985,12 @@ function App() {
                     {data.features.sleep && (
                       <Grid item xs={12}>
                         <Card variant="outlined" sx={{ p: 2 }}>
-                          <Typography variant="subtitle1" gutterBottom>
-                            Sleep Metrics
-                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="subtitle1" gutterBottom>
+                              Sleep Metrics
+                            </Typography>
+                            <SectionInfoButton section="sleep" />
+                          </Box>
                           <Grid container spacing={2}>
                             {Object.entries(data.features.sleep).map(([key, value]) => (
                               <Grid item xs={12} key={key}>
