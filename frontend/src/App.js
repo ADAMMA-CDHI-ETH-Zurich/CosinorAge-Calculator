@@ -26,7 +26,8 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  TextField
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar, ReferenceLine } from 'recharts';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -165,56 +166,6 @@ const metricDescriptions = {
     description: 'Sleep metrics per day.\n\nTST: Total Sleep Time (hours)\nWASO: Wake After Sleep Onset (minutes)\nPTA: Percent Time Asleep (%)\nNWB: Number of Wake Bouts\nSOL: Sleep Onset Latency (minutes)\nSRI: Sleep Regularity Index (0-1)'
   }
 };
-
-// Add explanations for each metric
-const metricExplanations = {
-  // Cosinor
-  mesor: 'MESOR: Midline Estimating Statistic Of Rhythm (mean value, mg)',
-  amplitude: 'Amplitude: Half the difference between peak and trough (mg)',
-  acrophase: 'Acrophase: Time of peak (radians)',
-  acrophase_time: 'Acrophase Time: Time of peak (minutes)',
-  // Nonparametric
-  is: 'IS: Interdaily Stability (0-1, higher = more stable)',
-  iv: 'IV: Intradaily Variability (0-2, higher = more fragmented)',
-  ra: 'RA: Relative Amplitude (0-1, higher = more robust)',
-  sri: 'SRI: Sleep Regularity Index (0-1, higher = more regular)',
-  m10: 'M10: Mean activity in the 10 most active hours',
-  l5: 'L5: Mean activity in the 5 least active hours',
-  m10_start: 'M10 Start: Start time of the 10 most active hours',
-  l5_start: 'L5 Start: Start time of the 5 least active hours',
-  // Physical Activity
-  sedentary: 'Sedentary: Minutes per day spent sedentary',
-  light: 'Light: Minutes per day spent in light activity',
-  moderate: 'Moderate: Minutes per day spent in moderate activity',
-  vigorous: 'Vigorous: Minutes per day spent in vigorous activity',
-  // Sleep
-  tst: 'TST: Total Sleep Time (hours)',
-  waso: 'WASO: Wake After Sleep Onset (minutes)',
-  pta: 'PTA: Percent Time Asleep (%)',
-  nwb: 'NWB: Number of Wake Bouts',
-  sol: 'SOL: Sleep Onset Latency (minutes)',
-};
-
-// Info button for individual metrics
-function MetricInfoButton({ metric }) {
-  const [open, setOpen] = React.useState(false);
-  if (!metricExplanations[metric.toLowerCase()]) return null;
-  return (
-    <>
-      <IconButton size="small" onClick={() => setOpen(true)} aria-label={`Info about ${metric}`}> 
-        <InfoOutlinedIcon fontSize="small" />
-      </IconButton>
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>{metric.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</DialogTitle>
-        <DialogContent>
-          <DialogContentText style={{ whiteSpace: 'pre-line' }}>
-            {metricExplanations[metric.toLowerCase()]}
-          </DialogContentText>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
 
 function SectionInfoButton({ section }) {
   const [open, setOpen] = React.useState(false);
@@ -355,6 +306,9 @@ function App() {
   const [dataSource, setDataSource] = useState(() => {
     return localStorage.getItem('dataSource') || '';
   });
+  const [chronologicalAge, setChronologicalAge] = useState('');
+  const [gender, setGender] = useState('invariant');
+  const [predictedAge, setPredictedAge] = useState(null);
   const theme = useTheme();
 
   // Save data to localStorage whenever it changes
@@ -501,6 +455,37 @@ function App() {
     const b = Math.round(b0 + (b1 - b0) * wear);
     return `rgb(${r},${g},${b})`;
   }
+
+  const handlePredictAge = async () => {
+    if (!data?.file_id || !chronologicalAge) {
+      setError('Please enter chronological age and ensure data is processed');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/predict_age/${data.file_id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chronological_age: parseFloat(chronologicalAge),
+          gender: gender
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to predict age');
+      }
+
+      const result = await response.json();
+      setPredictedAge(result.predicted_age);
+      setSuccess('Age prediction completed successfully');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -804,17 +789,14 @@ function App() {
                           <Grid container spacing={2} direction="row" wrap="nowrap">
                             {Object.entries(data.features.cosinor).map(([key, value]) => (
                               <Grid item xs key={key} zeroMinWidth>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                  <Typography variant="subtitle2" color="text.secondary" noWrap>
-                                    {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                  </Typography>
-                                  <MetricInfoButton metric={key} />
-                                </Box>
+                                <Typography variant="subtitle2" color="text.secondary" noWrap>
+                                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </Typography>
                                 <Typography variant="body1" noWrap>
                                   {typeof value === 'number' ? value.toFixed(4) : value}
                                   {key === 'mesor' || key === 'amplitude' ? ' mg' : 
-                                    key === 'acrophase' ? ' radians' :
-                                    key === 'acrophase_time' ? ' minutes' : ''}
+                                   key === 'acrophase' ? ' radians' :
+                                   key === 'acrophase_time' ? ' minutes' : ''}
                                 </Typography>
                               </Grid>
                             ))}
@@ -838,12 +820,9 @@ function App() {
                             {Object.entries(data.features.nonparam).map(([key, value]) => (
                               ['l5', 'm10_start', 'l5_start'].includes(key.toLowerCase()) ? null : (
                                 <Grid item xs={12} key={key}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <Typography variant="subtitle2" color="text.secondary">
-                                      {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                    </Typography>
-                                    <MetricInfoButton metric={key} />
-                                  </Box>
+                                  <Typography variant="subtitle2" color="text.secondary">
+                                    {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </Typography>
                                   {/* IS and IV as horizontal scale */}
                                   {(['is', 'iv'].includes(key.toLowerCase()) && typeof value === 'number') ? (
                                     <HorizontalScale
@@ -901,14 +880,20 @@ function App() {
                                                 const l5StartDate = l5Start && l5Start.includes('T')
                                                   ? new Date(l5Start)
                                                   : new Date(`${dayStr}T${l5Start}`);
-                                                // Add two random reference lines at 10:00 AM and 6:00 PM
-                                                const randomTime1 = new Date(`${dayStr}T10:00:00`).getTime();
-                                                const randomTime2 = new Date(`${dayStr}T18:00:00`).getTime();
-                                                // Reference line at 5:00 AM
-                                                const fiveAM = new Date(`${dayStr}T05:00:00`).getTime();
-                                                // Add a 'timestampNum' property for numeric x-axis
-                                                const dayDataWithNum = dayData.map(item => ({ ...item, timestampNum: new Date(item.TIMESTAMP).getTime() }));
-                                                // Sort by timestampNum
+                                                // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
+                                                const dayDataWithNum = dayData.map(item => {
+                                                  const globalIndex = data.data.findIndex(d => d.TIMESTAMP === item.TIMESTAMP);
+                                                  const globalData = globalIndex !== -1 ? data.data[globalIndex] : null;
+                                                  if (dayIndex === 0) {
+                                                    console.log('[Debug] Global data point:', globalData);
+                                                    console.log('[Debug] Cosinor fitted value:', globalData ? globalData.cosinor_fitted : null);
+                                                  }
+                                                  return {
+                                                    ...item,
+                                                    timestampNum: new Date(item.TIMESTAMP).getTime(),
+                                                    cosinor_fitted: globalData ? globalData.cosinor_fitted : null
+                                                  };
+                                                });
                                                 const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
                                                 // Check if m10StartDate and l5StartDate are valid
                                                 const m10StartValid = m10StartDate instanceof Date && !isNaN(m10StartDate);
@@ -939,8 +924,15 @@ function App() {
                                                               return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                                                             }}
                                                           />
-                                                          <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
-                                                          <Tooltip
+                                                          <YAxis 
+                                                            yAxisId="left"
+                                                            label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} 
+                                                          />
+                                                          <YAxis 
+                                                            yAxisId="right"
+                                                            orientation="right"
+                                                            label={{ value: 'Cosinor Fit (mg)', angle: 90, position: 'insideRight' }} 
+                                                          />                                                          <Tooltip
                                                             labelFormatter={(timestampNum) => {
                                                               const date = new Date(timestampNum);
                                                               return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -953,6 +945,16 @@ function App() {
                                                             stroke="#8884d8"
                                                             dot={false}
                                                             isAnimationActive={false}
+                                                            yAxisId="left"
+                                                          />
+                                                          <Line
+                                                            type="monotone"
+                                                            dataKey="cosinor_fitted"
+                                                            stroke="#ff0000"
+                                                            dot={false}
+                                                            isAnimationActive={false}
+                                                            name="Cosinor Fit"
+                                                            yAxisId="left"
                                                           />
                                                           {/* M10 Period Band */}
                                                           <ReferenceArea
@@ -961,6 +963,7 @@ function App() {
                                                             fill="#8884d8"
                                                             fillOpacity={0.1}
                                                             label="M10"
+                                                            yAxisId="left"
                                                           />
                                                           {/* L5 Period Band */}
                                                           <ReferenceArea
@@ -969,6 +972,7 @@ function App() {
                                                             fill="#82ca9d"
                                                             fillOpacity={0.1}
                                                             label="L5"
+                                                            yAxisId="left"
                                                           />
                                                           {m10StartValid && (
                                                             <ReferenceLine
@@ -976,6 +980,7 @@ function App() {
                                                               stroke="#8884d8"
                                                               strokeDasharray="3 3"
                                                               label={{ value: 'M10 Start', position: 'top', fill: '#8884d8', fontSize: 12 }}
+                                                              yAxisId="left"
                                                             />
                                                           )}
                                                           {l5StartValid && (
@@ -984,6 +989,7 @@ function App() {
                                                               stroke="#82ca9d"
                                                               strokeDasharray="3 3"
                                                               label={{ value: 'L5 Start', position: 'top', fill: '#82ca9d', fontSize: 12 }}
+                                                              yAxisId="left"
                                                             />
                                                           )}
                                                         </LineChart>
@@ -1139,10 +1145,10 @@ function App() {
                                     <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
                                     <Tooltip />
                                     <Legend />
-                                    <Bar dataKey="sedentary" stackId="a" fill="#8884d8" name={<><span>Sedentary</span><MetricInfoButton metric="sedentary" /></>} />
-                                    <Bar dataKey="light" stackId="a" fill="#82ca9d" name={<><span>Light</span><MetricInfoButton metric="light" /></>} />
-                                    <Bar dataKey="moderate" stackId="a" fill="#ffc658" name={<><span>Moderate</span><MetricInfoButton metric="moderate" /></>} />
-                                    <Bar dataKey="vigorous" stackId="a" fill="#ff8042" name={<><span>Vigorous</span><MetricInfoButton metric="vigorous" /></>} />
+                                    <Bar dataKey="sedentary" stackId="a" fill="#8884d8" name="Sedentary" />
+                                    <Bar dataKey="light" stackId="a" fill="#82ca9d" name="Light" />
+                                    <Bar dataKey="moderate" stackId="a" fill="#ffc658" name="Moderate" />
+                                    <Bar dataKey="vigorous" stackId="a" fill="#ff8042" name="Vigorous" />
                                   </BarChart>
                                 </ResponsiveContainer>
                               </Box>
@@ -1165,12 +1171,9 @@ function App() {
                           <Grid container spacing={2}>
                             {Object.entries(data.features.sleep).map(([key, value]) => (
                               <Grid item xs={12} key={key}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                  </Typography>
-                                  <MetricInfoButton metric={key} />
-                                </Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </Typography>
                                 {/* SRI as horizontal scale */}
                                 {key.toLowerCase() === 'sri' && typeof value === 'number' ? (
                                   <HorizontalScale
@@ -1243,6 +1246,65 @@ function App() {
                       </Grid>
                     )}
                   </Grid>
+                </Card>
+              </Grid>
+            )}
+
+            {data?.data && (
+              <Grid item xs={12}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Cosinor Age Prediction
+                    </Typography>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          fullWidth
+                          label="Chronological Age"
+                          type="number"
+                          value={chronologicalAge}
+                          onChange={(e) => setChronologicalAge(e.target.value)}
+                          InputProps={{ inputProps: { min: 0, max: 120 } }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <FormControl fullWidth>
+                          <InputLabel>Gender</InputLabel>
+                          <Select
+                            value={gender}
+                            label="Gender"
+                            onChange={(e) => setGender(e.target.value)}
+                          >
+                            <MenuItem value="male">Male</MenuItem>
+                            <MenuItem value="female">Female</MenuItem>
+                            <MenuItem value="invariant">Invariant</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={handlePredictAge}
+                          disabled={!chronologicalAge || !data?.data}
+                          fullWidth
+                        >
+                          Predict Age
+                        </Button>
+                      </Grid>
+                      {predictedAge !== null && (
+                        <Grid item xs={12}>
+                          <Typography variant="h6" color="primary" gutterBottom>
+                            Predicted Cosinor Age: {predictedAge.toFixed(2)} years
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Difference from Chronological Age: {(predictedAge - parseFloat(chronologicalAge)).toFixed(2)} years
+                          </Typography>
+                        </Grid>
+                      )}
+                    </Grid>
+                  </CardContent>
                 </Card>
               </Grid>
             )}

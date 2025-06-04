@@ -15,6 +15,13 @@ import logging
 import zipfile
 from datetime import datetime
 from cosinorage.features.features import WearableFeatures
+from pydantic import BaseModel
+import uuid
+import glob
+import re
+from scipy import signal
+from scipy.optimize import curve_fit
+import math
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -197,15 +204,6 @@ async def process_data(file_id: str) -> Dict[str, Any]:
         # Initialize GalaxyDataHandler with the child directory
         handler = GalaxyDataHandler(galaxy_file_dir=child_dir, preprocess_args=preprocess_args)
         
-        # Get the processed data
-        df = handler.get_ml_data()
-        print(df.head())
-        
-        df = df.reset_index()
-        df.columns = ['TIMESTAMP', 'ENMO', 'wear']
-
-        df_json = df.to_dict(orient='records')
-        
         # Get metadata
         metadata = handler.get_meta_data()
         
@@ -218,13 +216,41 @@ async def process_data(file_id: str) -> Dict[str, Any]:
             'pa_cutpoint_mv': 70,
         }
 
-        features = WearableFeatures(handler, features_args=features_args).get_features()
+        wf = WearableFeatures(handler, features_args=features_args)
+        features = wf.get_features()
+        df = wf.get_ml_data()
+        df = df.reset_index()
+        
+        # Keep all columns as they are, just ensure TIMESTAMP is the index name
+        df = df.rename(columns={'index': 'TIMESTAMP'})
+        
+        print(df.head())
+        df_json = df.to_dict(orient='records')
 
         cosinor_features = features['cosinor']
         non_parametric_features = features['nonparam']
         physical_activity_features = features['physical_activity']
         sleep_features = features['sleep']
 
+        # Store all the processed data in uploaded_data
+        uploaded_data[file_id].update({
+            'handler': handler,
+            'data': df_json,
+            'features': {
+                'cosinor': cosinor_features,
+                'nonparam': non_parametric_features,
+                'physical_activity': physical_activity_features,
+                'sleep': sleep_features
+            },
+            'metadata': {
+                'raw_data_frequency': metadata.get('raw_data_frequency'),
+                'raw_start_datetime': metadata.get('raw_start_datetime'),
+                'raw_end_datetime': metadata.get('raw_end_datetime'),
+                'raw_data_type': metadata.get('raw_data_type'),
+                'raw_data_unit': metadata.get('raw_data_unit'),
+                'raw_n_datapoints': metadata.get('raw_n_datapoints')
+            }
+        })
         
         return {
             "message": "Data processed successfully",
@@ -242,36 +268,7 @@ async def process_data(file_id: str) -> Dict[str, Any]:
                 "raw_data_type": metadata.get('raw_data_type'),
                 "raw_data_unit": metadata.get('raw_data_unit'),
                 "raw_n_datapoints": metadata.get('raw_n_datapoints')
-            },
-            "cosinor_features": {
-                "MESOR": cosinor_features.get('MESOR'),
-                "amplitude": cosinor_features.get('amplitude'),
-                "acrophase": cosinor_features.get('acrophase'),
-                "acrophase_time": cosinor_features.get('acrophase_time')
-            },
-            "non_parametric_features": {
-                "IS": non_parametric_features.get('IS'),
-                "IV": non_parametric_features.get('IV'),
-                "L5": non_parametric_features.get('L5'),
-                "M10": non_parametric_features.get('M10'),
-                "L5_start": non_parametric_features.get('L5_start'),
-                "M10_start": non_parametric_features.get('M10_start')
-            },
-            "physical_activity_features": {
-                "sedentary": physical_activity_features.get('sedentary'),
-                "light": physical_activity_features.get('light'),
-                "moderate": physical_activity_features.get('moderate'),
-                "vigorous": physical_activity_features.get('vigorous')
-            },
-            "sleep_features": {
-                "TST": sleep_features.get('TST'),
-                "WASO": sleep_features.get('WASO'),
-                "PTA": sleep_features.get('PTA'),
-                "NWB": sleep_features.get('NWB'),
-                "SOL": sleep_features.get('SOL'),
-                "SRI": sleep_features.get('SRI')
-            },
-            "rows": len(df)
+            }
         }
     except Exception as e:
         logger.error(f"Error processing data: {str(e)}", exc_info=True)
@@ -300,7 +297,7 @@ async def analyze_data(file_id: str) -> Dict[str, Any]:
         df.set_index('TIMESTAMP', inplace=True)
         
         # Initialize CosinorAge with the data
-        cosinor = CosinorAge(
+        cosinor = CosinorAgePackage(
             time=df.index.values,
             data=df[['ENMO']].values  # Use ENMO data for analysis
         )
@@ -332,8 +329,93 @@ async def health_check():
 @app.on_event("shutdown")
 async def cleanup():
     """
-    Clean up temporary directories when the application shuts down
+    Clean up all temporary and extracted files, and clear in-memory state when the application shuts down
     """
+    # Clean up temporary directories
     for temp_dir in temp_dirs.values():
         if os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir) 
+            shutil.rmtree(temp_dir)
+    
+    # Clean up extracted files directory
+    if os.path.exists(EXTRACTED_FILES_DIR):
+        shutil.rmtree(EXTRACTED_FILES_DIR)
+        os.makedirs(EXTRACTED_FILES_DIR, exist_ok=True)
+    
+    # Clear in-memory state
+    uploaded_data.clear()
+    temp_dirs.clear()
+    
+    logger.info("Application state cleaned up successfully")
+
+class AgePredictionRequest(BaseModel):
+    chronological_age: float
+    gender: str
+
+@app.post("/predict_age/{file_id}")
+async def predict_age(file_id: str, request: AgePredictionRequest):
+    """
+    Predict biological age based on cosinor features and demographic information.
+    """
+    try:
+        # Get the processed data
+        if file_id not in uploaded_data:
+            raise HTTPException(status_code=404, detail="File not found or not processed")
+        
+        data = uploaded_data[file_id]
+        if 'handler' not in data:
+            raise HTTPException(status_code=400, detail="Data handler not available")
+        
+        # Log the data we're working with
+        logging.info(f"Handler type: {type(data['handler'])}")
+        logging.info(f"Age: {request.chronological_age}")
+        logging.info(f"Gender: {request.gender}")
+        
+        # Create record in the correct format
+        record = [{
+            'handler': data['handler'],  # Use the stored GalaxyDataHandler object
+            'age': request.chronological_age,
+            'gender': request.gender
+        }]
+        
+        logging.info(f"Created record: {record}")
+        
+        # Create CosinorAge object and predict
+        try:
+            cosinor_age = CosinorAge(record)
+            logging.info("Successfully created CosinorAge object")
+        except Exception as e:
+            logging.error(f"Error creating CosinorAge object: {str(e)}")
+            raise
+        
+        try:
+            predictions = cosinor_age.get_predictions()
+            logging.info(f"Got predictions: {predictions}")
+        except Exception as e:
+            logging.error(f"Error getting predictions: {str(e)}")
+            raise
+        
+        if not predictions or not isinstance(predictions, list) or len(predictions) == 0:
+            raise HTTPException(status_code=500, detail="Failed to get prediction from CosinorAge")
+        
+        # Get the first prediction result
+        prediction = predictions[0]
+        if 'cosinorage' not in prediction:
+            raise HTTPException(status_code=500, detail="Prediction result missing cosinor age")
+        
+        return {
+            "predicted_age": prediction['cosinorage'],
+            "chronological_age": request.chronological_age,
+            "gender": request.gender,
+            "features": {
+                "mesor": prediction.get('mesor'),
+                "amplitude": prediction.get('amp1'),
+                "acrophase": prediction.get('phi1')
+            }
+        }
+        
+    except ValueError as e:
+        logging.error(f"ValueError in predict_age: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logging.error(f"Error predicting age: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error predicting age: {str(e)}") 
