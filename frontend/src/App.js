@@ -536,44 +536,16 @@ function App() {
               </Grid>
             )}
 
-            {data?.data && (
-              <Grid item xs={12}>
-                <Card style={{ marginTop: '20px', padding: '20px' }}>
-                  <Typography variant="h6" gutterBottom>
-                    M10 and L5 Values by Day
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart
-                      data={data.features.nonparam.M10.map((m10, index) => ({
-                        day: `Day ${index + 1}`,
-                        M10: m10,
-                        L5: data.features.nonparam.L5[index]
-                      }))}
-                      margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="day" />
-                      <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="M10" fill="#8884d8" name="M10" />
-                      <Bar dataKey="L5" fill="#82ca9d" name="L5" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Card>
-              </Grid>
-            )}
-
             {data?.features && (
               <Grid item xs={12}>
                 <Card style={{ marginTop: '20px', padding: '20px' }}>
                   <Typography variant="h6" gutterBottom>
                     Extracted Features
                   </Typography>
-                  <Grid container spacing={3}>
+                  <Grid container spacing={3} direction="column">
                     {/* Cosinor Features */}
                     {data.features.cosinor && (
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12}>
                         <Card variant="outlined" sx={{ p: 2 }}>
                           <Typography variant="subtitle1" gutterBottom>
                             Cosinor Analysis
@@ -599,29 +571,230 @@ function App() {
 
                     {/* Nonparametric Features */}
                     {data.features.nonparam && (
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12}>
                         <Card variant="outlined" sx={{ p: 2 }}>
                           <Typography variant="subtitle1" gutterBottom>
                             Non-Parametric Analysis
                           </Typography>
                           <Grid container spacing={2}>
+                            {console.log('Nonparametric feature keys:', Object.keys(data.features.nonparam))}
                             {Object.entries(data.features.nonparam).map(([key, value]) => (
-                              <Grid item xs={12} key={key}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </Typography>
-                                {Array.isArray(value) ? (
-                                  value.map((val, index) => (
-                                    <Typography key={index} variant="body2" sx={{ pl: 2 }}>
-                                      Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
-                                    </Typography>
-                                  ))
-                                ) : (
-                                  <Typography variant="body1">
-                                    {typeof value === 'number' ? value.toFixed(4) : value}
+                              key.toLowerCase() === 'l5' ? null : (
+                                <Grid item xs={12} key={key}>
+                                  <Typography variant="subtitle2" color="text.secondary">
+                                    {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                   </Typography>
-                                )}
-                              </Grid>
+                                  {Array.isArray(value) ? (
+                                    <>
+                                      {key === 'M10' && data.features.nonparam.M10 && data.features.nonparam.L5 ? (
+                                        <>
+                                          <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                              <BarChart
+                                                data={data.features.nonparam.M10.map((m10, index) => ({
+                                                  day: `Day ${index + 1}`,
+                                                  M10: m10,
+                                                  L5: data.features.nonparam.L5[index]
+                                                }))}
+                                                margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                              >
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="day" />
+                                                <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Bar dataKey="M10" fill="#8884d8" name="M10" />
+                                                <Bar dataKey="L5" fill="#82ca9d" name="L5" />
+                                              </BarChart>
+                                            </ResponsiveContainer>
+                                          </Box>
+                                          {/* Daily ENMO Time Series with M10 and L5 Periods */}
+                                          <Box sx={{ mt: 4 }}>
+                                            <Typography variant="h6" gutterBottom>
+                                              Daily ENMO Time Series with M10 and L5 Periods
+                                            </Typography>
+                                            <Grid container spacing={3}>
+                                              {Array.from(new Set(data.data.map(item => {
+                                                const date = new Date(item.TIMESTAMP);
+                                                return date.toLocaleDateString('en-CA');
+                                              }))).map((dayStr, dayIndex) => {
+                                                const dayData = data.data.filter(item => {
+                                                  const date = new Date(item.TIMESTAMP);
+                                                  return date.toLocaleDateString('en-CA') === dayStr;
+                                                });
+                                                if (dayData.length === 0) return null;
+                                                const m10Start = data.features.nonparam.M10_start?.[dayIndex];
+                                                const l5Start = data.features.nonparam.L5_start?.[dayIndex];
+                                                if (!m10Start || !l5Start) return null;
+                                                const m10StartDate = new Date(`${dayStr}T${m10Start}`);
+                                                const l5StartDate = new Date(`${dayStr}T${l5Start}`);
+                                                return (
+                                                  <Grid item xs={12} key={dayStr}>
+                                                    <Card variant="outlined" sx={{ p: 2 }}>
+                                                      <Typography variant="subtitle1" gutterBottom>
+                                                        {new Date(dayStr).toLocaleDateString()}
+                                                      </Typography>
+                                                      <ResponsiveContainer width="100%" height={300}>
+                                                        <LineChart
+                                                          data={dayData}
+                                                          margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                                        >
+                                                          <CartesianGrid strokeDasharray="3 3" />
+                                                          <XAxis
+                                                            dataKey="TIMESTAMP"
+                                                            tickFormatter={(timestamp) => {
+                                                              const date = new Date(timestamp);
+                                                              return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                                            }}
+                                                          />
+                                                          <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
+                                                          <Tooltip
+                                                            labelFormatter={(timestamp) => {
+                                                              const date = new Date(timestamp);
+                                                              return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                                            }}
+                                                          />
+                                                          <Legend />
+                                                          <Line
+                                                            type="monotone"
+                                                            dataKey="ENMO"
+                                                            stroke="#8884d8"
+                                                            dot={false}
+                                                          />
+                                                          {/* M10 Period Band */}
+                                                          <ReferenceArea
+                                                            x1={m10StartDate.getTime()}
+                                                            x2={new Date(m10StartDate.getTime() + 10 * 60 * 60 * 1000).getTime()}
+                                                            fill="#8884d8"
+                                                            fillOpacity={0.1}
+                                                            label="M10"
+                                                          />
+                                                          {/* L5 Period Band */}
+                                                          <ReferenceArea
+                                                            x1={l5StartDate.getTime()}
+                                                            x2={new Date(l5StartDate.getTime() + 5 * 60 * 60 * 1000).getTime()}
+                                                            fill="#82ca9d"
+                                                            fillOpacity={0.1}
+                                                            label="L5"
+                                                          />
+                                                        </LineChart>
+                                                      </ResponsiveContainer>
+                                                    </Card>
+                                                  </Grid>
+                                                );
+                                              })}
+                                            </Grid>
+                                          </Box>
+                                        </>
+                                      ) : (['is', 'iv'].includes(key.toLowerCase())) ? (
+                                        <Box sx={{ width: '100%', height: 200, mt: 2 }}>
+                                          <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                              data={value.map((v, index) => ({
+                                                day: `Day ${index + 1}`,
+                                                [key]: v
+                                              }))}
+                                              margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                            >
+                                              <CartesianGrid strokeDasharray="3 3" />
+                                              <XAxis dataKey="day" />
+                                              <YAxis label={{ value: key.toUpperCase(), angle: -90, position: 'insideLeft' }} />
+                                              <Tooltip />
+                                              <Bar dataKey={key} fill={key.toLowerCase() === 'is' ? '#8884d8' : '#ffc658'} name={key.toUpperCase()} />
+                                            </BarChart>
+                                          </ResponsiveContainer>
+                                        </Box>
+                                      ) : key.toLowerCase() === 'm10_start' || key.toLowerCase() === 'l5_start' ? (
+                                        value.map((val, index) => (
+                                          <Typography key={index} variant="body2" sx={{ pl: 2 }}>
+                                            Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
+                                          </Typography>
+                                        ))
+                                      ) : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
+                                        (() => { console.log('RA key:', key, 'RA value:', value); return null; })() ||
+                                        <Box sx={{ width: '100%', height: 200, mt: 2 }}>
+                                          <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                              data={value.map((v, index) => ({
+                                                day: `Day ${index + 1}`,
+                                                RA: v
+                                              }))}
+                                              margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                            >
+                                              <CartesianGrid strokeDasharray="3 3" />
+                                              <XAxis dataKey="day" />
+                                              <YAxis label={{ value: 'RA', angle: -90, position: 'insideLeft' }} />
+                                              <Tooltip />
+                                              <Bar dataKey="RA" fill="#0088fe" name="RA" />
+                                            </BarChart>
+                                          </ResponsiveContainer>
+                                        </Box>
+                                      ) : (
+                                        value.map((val, index) => (
+                                          <Typography key={index} variant="body2" sx={{ pl: 2 }}>
+                                            Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
+                                          </Typography>
+                                        ))
+                                      )}
+                                    </>
+                                  ) : (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                      <Typography variant="body1">
+                                        {typeof value === 'number' ? value.toFixed(4) : value}
+                                      </Typography>
+                                      {/* Add bar chart for SRI, IS, IV, RA if present as a summary value */}
+                                      {key.toLowerCase() === 'sri' && (
+                                        <Box sx={{ width: 120, height: 60 }}>
+                                          <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                              data={[{ name: key, value: value }]}
+                                              layout="horizontal"
+                                              margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                                            >
+                                              <XAxis type="category" dataKey="name" hide />
+                                              <YAxis type="number" domain={[0, 1]} hide />
+                                              <Tooltip />
+                                              <Bar dataKey="value" fill="#82ca9d" />
+                                            </BarChart>
+                                          </ResponsiveContainer>
+                                        </Box>
+                                      )}
+                                      {key.toLowerCase() === 'is' && (
+                                        <Box sx={{ width: 60, height: 120 }}>
+                                          <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                              data={[{ name: key, value: value }]}
+                                              layout="vertical"
+                                              margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                                            >
+                                              <XAxis type="number" domain={[0, 1]} hide />
+                                              <YAxis type="category" dataKey="name" hide />
+                                              <Tooltip />
+                                              <Bar dataKey="value" fill="#8884d8" />
+                                            </BarChart>
+                                          </ResponsiveContainer>
+                                        </Box>
+                                      )}
+                                      {key.toLowerCase() === 'iv' && (
+                                        <Box sx={{ width: 60, height: 120 }}>
+                                          <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                              data={[{ name: key, value: value }]}
+                                              layout="vertical"
+                                              margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                                            >
+                                              <XAxis type="number" domain={[0, 2]} hide />
+                                              <YAxis type="category" dataKey="name" hide />
+                                              <Tooltip />
+                                              <Bar dataKey="value" fill="#ffc658" />
+                                            </BarChart>
+                                          </ResponsiveContainer>
+                                        </Box>
+                                      )}
+                                    </Box>
+                                  )}
+                                </Grid>
+                              )
                             ))}
                           </Grid>
                         </Card>
@@ -630,30 +803,39 @@ function App() {
 
                     {/* Physical Activity Features */}
                     {data.features.physical_activity && (
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12}>
                         <Card variant="outlined" sx={{ p: 2 }}>
                           <Typography variant="subtitle1" gutterBottom>
                             Physical Activity Metrics
                           </Typography>
                           <Grid container spacing={2}>
-                            {Object.entries(data.features.physical_activity).map(([key, value]) => (
-                              <Grid item xs={12} key={key}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </Typography>
-                                {Array.isArray(value) ? (
-                                  value.map((val, index) => (
-                                    <Typography key={index} variant="body2" sx={{ pl: 2 }}>
-                                      Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
-                                    </Typography>
-                                  ))
-                                ) : (
-                                  <Typography variant="body1">
-                                    {typeof value === 'number' ? value.toFixed(4) : value}
-                                  </Typography>
-                                )}
-                              </Grid>
-                            ))}
+                            {/* Only show the stacked bar chart for per-day metrics, not the per-day values */}
+                            <Grid item xs={12}>
+                              <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart
+                                    data={data.features.physical_activity.sedentary.map((_, index) => ({
+                                      day: `Day ${index + 1}`,
+                                      sedentary: data.features.physical_activity.sedentary[index],
+                                      light: data.features.physical_activity.light[index],
+                                      moderate: data.features.physical_activity.moderate[index],
+                                      vigorous: data.features.physical_activity.vigorous[index]
+                                    }))}
+                                    margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="day" />
+                                    <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Bar dataKey="sedentary" stackId="a" fill="#8884d8" name="Sedentary" />
+                                    <Bar dataKey="light" stackId="a" fill="#82ca9d" name="Light" />
+                                    <Bar dataKey="moderate" stackId="a" fill="#ffc658" name="Moderate" />
+                                    <Bar dataKey="vigorous" stackId="a" fill="#ff8042" name="Vigorous" />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </Box>
+                            </Grid>
                           </Grid>
                         </Card>
                       </Grid>
@@ -661,7 +843,7 @@ function App() {
 
                     {/* Sleep Features */}
                     {data.features.sleep && (
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12}>
                         <Card variant="outlined" sx={{ p: 2 }}>
                           <Typography variant="subtitle1" gutterBottom>
                             Sleep Metrics
@@ -673,15 +855,63 @@ function App() {
                                   {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </Typography>
                                 {Array.isArray(value) ? (
-                                  value.map((val, index) => (
-                                    <Typography key={index} variant="body2" sx={{ pl: 2 }}>
-                                      Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
-                                    </Typography>
-                                  ))
+                                  <>
+                                    {/* Only show chart for TST, WASO, PTA, NWB, SOL, not the per-day values */}
+                                    {['TST', 'WASO', 'PTA', 'NWB', 'SOL'].includes(key) ? (
+                                      <Box sx={{ width: '100%', height: 200, mt: 2 }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                          <BarChart
+                                            data={value.map((v, index) => ({
+                                              day: `Day ${index + 1}`,
+                                              [key]: key === 'PTA' ? v : key === 'TST' ? v / 60 : v
+                                            }))}
+                                            margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                          >
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="day" />
+                                            <YAxis label={{ value: key === 'TST' ? 'Hours' : key === 'PTA' ? 'Percent' : 'Minutes', angle: -90, position: 'insideLeft' }} />
+                                            <Tooltip />
+                                            <Bar dataKey={key} fill={
+                                              key === 'TST' ? '#8884d8' :
+                                              key === 'WASO' ? '#82ca9d' :
+                                              key === 'PTA' ? '#ffc658' :
+                                              key === 'NWB' ? '#ff8042' :
+                                              '#0088fe'
+                                            } name={key} />
+                                          </BarChart>
+                                        </ResponsiveContainer>
+                                      </Box>
+                                    ) : (
+                                      value.map((val, index) => (
+                                        <Typography key={index} variant="body2" sx={{ pl: 2 }}>
+                                          Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
+                                        </Typography>
+                                      ))
+                                    )}
+                                  </>
                                 ) : (
-                                  <Typography variant="body1">
-                                    {typeof value === 'number' ? value.toFixed(4) : value}
-                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Typography variant="body1">
+                                      {typeof value === 'number' ? value.toFixed(4) : value}
+                                    </Typography>
+                                    {/* Add bar chart for SRI if present as a summary value in sleep metrics */}
+                                    {key.toLowerCase() === 'sri' && (
+                                      <Box sx={{ width: 120, height: 60 }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                          <BarChart
+                                            data={[{ name: key, value: value }]}
+                                            layout="horizontal"
+                                            margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                                          >
+                                            <XAxis type="category" dataKey="name" hide />
+                                            <YAxis type="number" domain={[0, 1]} hide />
+                                            <Tooltip />
+                                            <Bar dataKey="value" fill="#82ca9d" />
+                                          </BarChart>
+                                        </ResponsiveContainer>
+                                      </Box>
+                                    )}
+                                  </Box>
                                 )}
                               </Grid>
                             ))}
@@ -690,279 +920,6 @@ function App() {
                       </Grid>
                     )}
                   </Grid>
-                </Card>
-              </Grid>
-            )}
-
-            {data?.data && data?.features?.sleep && (
-              <Grid item xs={12}>
-                <Card style={{ marginTop: '20px', padding: '20px' }}>
-                  <Typography variant="h6" gutterBottom>
-                    Sleep Metrics
-                  </Typography>
-                  {console.log('Sleep data:', data.features.sleep)}
-                  <Grid container spacing={3}>
-                    {/* Total Sleep Time (TST) */}
-                    {data.features.sleep.TST && (
-                      <Grid item xs={12} md={6}>
-                        <Card variant="outlined" sx={{ p: 2 }}>
-                          <Typography variant="subtitle1" gutterBottom>
-                            Total Sleep Time (hours)
-                          </Typography>
-                          {console.log('TST data:', data.features.sleep.TST)}
-                          <ResponsiveContainer width="100%" height={300}>
-                            <BarChart
-                              data={data.features.sleep.TST.map((tst, index) => ({
-                                day: `Day ${index + 1}`,
-                                tst: tst / 60 // Convert minutes to hours
-                              }))}
-                              margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="day" />
-                              <YAxis label={{ value: 'Hours', angle: -90, position: 'insideLeft' }} />
-                              <Tooltip />
-                              <Bar dataKey="tst" fill="#8884d8" name="Total Sleep Time" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </Card>
-                      </Grid>
-                    )}
-
-                    {/* Wake After Sleep Onset (WASO) */}
-                    {data.features.sleep.WASO && (
-                      <Grid item xs={12} md={6}>
-                        <Card variant="outlined" sx={{ p: 2 }}>
-                          <Typography variant="subtitle1" gutterBottom>
-                            Wake After Sleep Onset (minutes)
-                          </Typography>
-                          {console.log('WASO data:', data.features.sleep.WASO)}
-                          <ResponsiveContainer width="100%" height={300}>
-                            <BarChart
-                              data={data.features.sleep.WASO.map((waso, index) => ({
-                                day: `Day ${index + 1}`,
-                                waso
-                              }))}
-                              margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="day" />
-                              <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
-                              <Tooltip />
-                              <Bar dataKey="waso" fill="#82ca9d" name="Wake After Sleep Onset" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </Card>
-                      </Grid>
-                    )}
-
-                    {/* Percent Time Asleep (PTA) */}
-                    {data.features.sleep.PTA && (
-                      <Grid item xs={12} md={6}>
-                        <Card variant="outlined" sx={{ p: 2 }}>
-                          <Typography variant="subtitle1" gutterBottom>
-                            Percent Time Asleep (%)
-                          </Typography>
-                          <ResponsiveContainer width="100%" height={300}>
-                            <BarChart
-                              data={data.features.sleep.PTA.map((pta, index) => ({
-                                day: `Day ${index + 1}`,
-                                pta: pta
-                              }))}
-                              margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="day" />
-                              <YAxis label={{ value: 'Percentage', angle: -90, position: 'insideLeft' }} />
-                              <Tooltip />
-                              <Bar dataKey="pta" fill="#ffc658" name="Percent Time Asleep" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </Card>
-                      </Grid>
-                    )}
-
-                    {/* Number of Wake Bouts (NWB) */}
-                    {data.features.sleep.NWB && (
-                      <Grid item xs={12} md={6}>
-                        <Card variant="outlined" sx={{ p: 2 }}>
-                          <Typography variant="subtitle1" gutterBottom>
-                            Number of Wake Bouts
-                          </Typography>
-                          {console.log('NWB data:', data.features.sleep.NWB)}
-                          <ResponsiveContainer width="100%" height={300}>
-                            <BarChart
-                              data={data.features.sleep.NWB.map((nwb, index) => ({
-                                day: `Day ${index + 1}`,
-                                nwb
-                              }))}
-                              margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="day" />
-                              <YAxis label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
-                              <Tooltip />
-                              <Bar dataKey="nwb" fill="#ff8042" name="Number of Wake Bouts" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </Card>
-                      </Grid>
-                    )}
-
-                    {/* Sleep Onset Latency (SOL) */}
-                    {data.features.sleep.SOL && (
-                      <Grid item xs={12} md={6}>
-                        <Card variant="outlined" sx={{ p: 2 }}>
-                          <Typography variant="subtitle1" gutterBottom>
-                            Sleep Onset Latency (minutes)
-                          </Typography>
-                          {console.log('SOL data:', data.features.sleep.SOL)}
-                          <ResponsiveContainer width="100%" height={300}>
-                            <BarChart
-                              data={data.features.sleep.SOL.map((sol, index) => ({
-                                day: `Day ${index + 1}`,
-                                sol
-                              }))}
-                              margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="day" />
-                              <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
-                              <Tooltip />
-                              <Bar dataKey="sol" fill="#0088fe" name="Sleep Onset Latency" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </Card>
-                      </Grid>
-                    )}
-                  </Grid>
-                </Card>
-              </Grid>
-            )}
-
-            {data?.data && (
-              <Grid item xs={12}>
-                <Card style={{ marginTop: '20px', padding: '20px' }}>
-                  <Typography variant="h6" gutterBottom>
-                    Daily ENMO Time Series with M10 and L5 Periods
-                  </Typography>
-                  <Grid container spacing={3}>
-                    {data.features.nonparam.M10.map((m10, dayIndex) => {
-                      // Get the date for this index
-                      const firstDate = new Date(data.data[0].TIMESTAMP);
-                      const currentDate = new Date(firstDate);
-                      currentDate.setDate(firstDate.getDate() + dayIndex);
-                      
-                      // Format date in local timezone
-                      const dayStr = currentDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
-
-                      // Filter data for this specific day
-                      const dayData = data.data.filter(item => {
-                        const date = new Date(item.TIMESTAMP);
-                        return date.toLocaleDateString('en-CA') === dayStr;
-                      });
-
-                      // Skip if no data for this day
-                      if (dayData.length === 0) {
-                        return null;
-                      }
-
-                      // Get M10 and L5 start times for this day
-                      const m10Start = data.features.nonparam.M10_start[dayIndex];
-                      const l5Start = data.features.nonparam.L5_start[dayIndex];
-
-                      // Create date objects for M10 and L5 periods in local timezone
-                      const m10StartDate = new Date(`${dayStr}T${m10Start}`);
-                      const l5StartDate = new Date(`${dayStr}T${l5Start}`);
-
-                      return (
-                        <Grid item xs={12} key={dayStr}>
-                          <Card variant="outlined" sx={{ p: 2 }}>
-                            <Typography variant="subtitle1" gutterBottom>
-                              {currentDate.toLocaleDateString()}
-                            </Typography>
-                            <ResponsiveContainer width="100%" height={300}>
-                              <LineChart
-                                data={dayData}
-                                margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                              >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis
-                                  dataKey="TIMESTAMP"
-                                  tickFormatter={(timestamp) => {
-                                    const date = new Date(timestamp);
-                                    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                  }}
-                                />
-                                <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
-                                <Tooltip
-                                  labelFormatter={(timestamp) => {
-                                    const date = new Date(timestamp);
-                                    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                  }}
-                                />
-                                <Legend />
-                                <Line
-                                  type="monotone"
-                                  dataKey="ENMO"
-                                  stroke="#8884d8"
-                                  dot={false}
-                                />
-                                {/* M10 Period Band */}
-                                <ReferenceArea
-                                  x1={m10StartDate.getTime()}
-                                  x2={new Date(m10StartDate.getTime() + 10 * 60 * 60 * 1000).getTime()}
-                                  fill="#8884d8"
-                                  fillOpacity={0.1}
-                                  label="M10"
-                                />
-                                {/* L5 Period Band */}
-                                <ReferenceArea
-                                  x1={l5StartDate.getTime()}
-                                  x2={new Date(l5StartDate.getTime() + 5 * 60 * 60 * 1000).getTime()}
-                                  fill="#82ca9d"
-                                  fillOpacity={0.1}
-                                  label="L5"
-                                />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </Card>
-                        </Grid>
-                      );
-                    })}
-                  </Grid>
-                </Card>
-              </Grid>
-            )}
-
-            {data?.data && data?.features?.physical_activity && (
-              <Grid item xs={12}>
-                <Card style={{ marginTop: '20px', padding: '20px' }}>
-                  <Typography variant="h6" gutterBottom>
-                    Physical Activity Levels
-                  </Typography>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart
-                      data={data.features.physical_activity.sedentary.map((_, index) => ({
-                        day: `Day ${index + 1}`,
-                        sedentary: data.features.physical_activity.sedentary[index],
-                        light: data.features.physical_activity.light[index],
-                        moderate: data.features.physical_activity.moderate[index],
-                        vigorous: data.features.physical_activity.vigorous[index]
-                      }))}
-                      margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="day" />
-                      <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="sedentary" stackId="a" fill="#8884d8" name="Sedentary" />
-                      <Bar dataKey="light" stackId="a" fill="#82ca9d" name="Light" />
-                      <Bar dataKey="moderate" stackId="a" fill="#ffc658" name="Moderate" />
-                      <Bar dataKey="vigorous" stackId="a" fill="#ff8042" name="Vigorous" />
-                    </BarChart>
-                  </ResponsiveContainer>
                 </Card>
               </Grid>
             )}
