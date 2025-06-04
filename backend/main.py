@@ -1,27 +1,17 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import pandas as pd
-import numpy as np
-from typing import Dict, Any, List
+from typing import Dict, Any
 from cosinorage.bioages.cosinorage import CosinorAge
 from cosinorage.datahandlers.galaxydatahandler import GalaxyDataHandler
-import json
-from io import BytesIO
 import os
 import shutil
 import tempfile
-from pathlib import Path
 import logging
 import zipfile
 from datetime import datetime
 from cosinorage.features.features import WearableFeatures
 from pydantic import BaseModel
-import uuid
-import glob
-import re
-from scipy import signal
-from scipy.optimize import curve_fit
-import math
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -224,7 +214,6 @@ async def process_data(file_id: str) -> Dict[str, Any]:
         # Keep all columns as they are, just ensure TIMESTAMP is the index name
         df = df.rename(columns={'index': 'TIMESTAMP'})
         
-        print(df.head())
         df_json = df.to_dict(orient='records')
 
         cosinor_features = features['cosinor']
@@ -272,51 +261,6 @@ async def process_data(file_id: str) -> Dict[str, Any]:
         }
     except Exception as e:
         logger.error(f"Error processing data: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/analyze/{file_id}")
-async def analyze_data(file_id: str) -> Dict[str, Any]:
-    """
-    Run cosinor analysis on processed data
-    """
-    try:
-        if file_id not in uploaded_data:
-            raise HTTPException(status_code=404, detail="File not found")
-        
-        # Get the stored data
-        file_data = uploaded_data[file_id]
-        if "data" not in file_data:
-            raise HTTPException(status_code=400, detail="No processed data found")
-        
-        # Convert the stored data back to a DataFrame
-        raw_data = file_data["data"]["raw_data"]
-        df = pd.DataFrame(raw_data)
-        
-        # Convert timestamp strings back to datetime and set as index
-        df['TIMESTAMP'] = pd.to_datetime(df['TIMESTAMP'])
-        df.set_index('TIMESTAMP', inplace=True)
-        
-        # Initialize CosinorAge with the data
-        cosinor = CosinorAgePackage(
-            time=df.index.values,
-            data=df[['ENMO']].values  # Use ENMO data for analysis
-        )
-        
-        # Perform the analysis
-        results = cosinor.analyze()
-        
-        # Return the analysis results
-        return {
-            "analysis": {
-                "mesor": float(results.mesor),
-                "amplitude": float(results.amplitude),
-                "acrophase": float(results.acrophase),
-                "period": float(results.period),
-                "r_squared": float(results.r_squared)
-            }
-        }
-    except Exception as e:
-        logger.error(f"Error analyzing data: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
