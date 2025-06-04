@@ -210,7 +210,21 @@ async def process_data(file_id: str) -> Dict[str, Any]:
         metadata = handler.get_meta_data()
         
         # Extract features using WearableFeatures
-        features = WearableFeatures(handler).get_features()
+        features_args = {
+            'sleep_ck_sf': 0.01,
+            'sleep_rescore': True,
+            'pa_cutpoint_sl': 15,
+            'pa_cutpoint_lm': 35,
+            'pa_cutpoint_mv': 70,
+        }
+
+        features = WearableFeatures(handler, features_args=features_args).get_features()
+
+        cosinor_features = features['cosinor']
+        non_parametric_features = features['nonparam']
+        physical_activity_features = features['physical_activity']
+        sleep_features = features['sleep']
+
         
         return {
             "message": "Data processed successfully",
@@ -223,7 +237,34 @@ async def process_data(file_id: str) -> Dict[str, Any]:
                 "raw_data_unit": metadata.get('raw_data_unit'),
                 "raw_n_datapoints": metadata.get('raw_n_datapoints')
             },
-            "features": features,
+            "cosinor_features": {
+                "MESOR": cosinor_features.get('MESOR'),
+                "amplitude": cosinor_features.get('amplitude'),
+                "acrophase": cosinor_features.get('acrophase'),
+                "acrophase_time": cosinor_features.get('acrophase_time')
+            },
+            "non_parametric_features": {
+                "IS": non_parametric_features.get('IS'),
+                "IV": non_parametric_features.get('IV'),
+                "L5": non_parametric_features.get('L5'),
+                "M10": non_parametric_features.get('M10'),
+                "L5_start": non_parametric_features.get('L5_start'),
+                "M10_start": non_parametric_features.get('M10_start')
+            },
+            "physical_activity_features": {
+                "sedentary": physical_activity_features.get('sedentary'),
+                "light": physical_activity_features.get('light'),
+                "moderate": physical_activity_features.get('moderate'),
+                "vigorous": physical_activity_features.get('vigorous')
+            },
+            "sleep_features": {
+                "TST": sleep_features.get('TST'),
+                "WASO": sleep_features.get('WASO'),
+                "PTA": sleep_features.get('PTA'),
+                "NWB": sleep_features.get('NWB'),
+                "SOL": sleep_features.get('SOL'),
+                "SRI": sleep_features.get('SRI')
+            },
             "rows": len(df)
         }
     except Exception as e:

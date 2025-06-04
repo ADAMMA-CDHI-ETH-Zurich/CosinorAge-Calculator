@@ -185,6 +185,108 @@ function SectionInfoButton({ section }) {
   );
 }
 
+// HorizontalScale component for IS and IV
+function HorizontalScale({ value, min, max, color = '#1976d2', label }) {
+  // Clamp value to [min, max]
+  const clamped = Math.max(min, Math.min(max, value));
+  const percent = ((clamped - min) / (max - min)) * 100;
+  // For IV, add a red marker at value 2
+  const showRedMarker = label === 'Intradaily Variability (IV)';
+  const markerLinePercent = showRedMarker ? ((2 - min) / (max - min)) * 100 : null;
+  return (
+    <Box sx={{ width: '100%', mt: 2, mb: 2 }}>
+      {label && (
+        <Typography variant="subtitle2" align="center" sx={{ mb: 1 }}>{label}</Typography>
+      )}
+      <Box sx={{ position: 'relative', height: 48, width: '100%' }}>
+        {/* Value above marker */}
+        <Box sx={{
+          position: 'absolute',
+          left: `calc(${percent}% - 20px)`,
+          top: 0,
+          width: 40,
+          textAlign: 'center',
+          zIndex: 3,
+        }}>
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>{clamped.toFixed(2)}</Typography>
+        </Box>
+        {/* Red marker line for IV at value 2 */}
+        {showRedMarker && (
+          <Box sx={{
+            position: 'absolute',
+            top: 16,
+            left: `calc(${markerLinePercent}% - 2px)`,
+            width: 4,
+            height: 32,
+            bgcolor: 'red',
+            zIndex: 3,
+            borderRadius: 1,
+          }} />
+        )}
+        {/* Horizontal line */}
+        <Box sx={{ position: 'absolute', top: 32, left: 0, right: 0, height: 4, bgcolor: '#ccc', borderRadius: 2 }} />
+        {/* Marker */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 24,
+            left: `calc(${percent}% - 10px)`,
+            width: 20,
+            height: 20,
+            bgcolor: color,
+            borderRadius: '50%',
+            border: '2px solid #fff',
+            boxShadow: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2,
+          }}
+        />
+        {/* Min label */}
+        <Typography variant="caption" sx={{ position: 'absolute', left: 0, top: 40 }}>{min}</Typography>
+        {/* Max label */}
+        <Typography variant="caption" sx={{ position: 'absolute', right: 0, top: 40 }}>{max}</Typography>
+      </Box>
+    </Box>
+  );
+}
+
+// Helper function to get the first date in YYYY-MM-DD from data.data
+function getFirstDate(data) {
+  if (data.data && data.data.length > 0 && data.data[0].TIMESTAMP) {
+    const d = new Date(data.data[0].TIMESTAMP);
+    // Use the local date string as base, then parse back to Date to avoid timezone issues
+    const dateStr = d.toLocaleDateString('en-CA');
+    return new Date(dateStr);
+  }
+  return null;
+}
+
+function getDateForIndex(key, index, data) {
+  if (key === 'M10' && data.features.nonparam.M10_start && data.features.nonparam.M10_start[index]) {
+    return data.features.nonparam.M10_start[index].split('T')[0];
+  }
+  if (key === 'L5' && data.features.nonparam.L5_start && data.features.nonparam.L5_start[index]) {
+    return data.features.nonparam.L5_start[index].split('T')[0];
+  }
+  // For sleep features and RA, generate sequential dates if possible
+  if ([
+    'TST', 'WASO', 'PTA', 'NWB', 'SOL', 'RA'
+  ].includes(key.toUpperCase())) {
+    const firstDate = getFirstDate(data);
+    if (firstDate) {
+      const d = new Date(firstDate);
+      d.setDate(d.getDate() + index);
+      return d.toLocaleDateString('en-CA');
+    }
+  }
+  if (data.data && data.data[index] && data.data[index].TIMESTAMP) {
+    return new Date(data.data[index].TIMESTAMP).toLocaleDateString('en-CA');
+  }
+  return `Day ${index + 1}`;
+}
+
 function App() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -686,7 +788,16 @@ function App() {
                                   <Typography variant="subtitle2" color="text.secondary">
                                     {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                   </Typography>
-                                  {Array.isArray(value) ? (
+                                  {/* IS and IV as horizontal scale */}
+                                  {(['is', 'iv'].includes(key.toLowerCase()) && typeof value === 'number') ? (
+                                    <HorizontalScale
+                                      value={value}
+                                      min={key.toLowerCase() === 'is' ? 0 : 0}
+                                      max={key.toLowerCase() === 'is' ? 1 : 3}
+                                      color={key.toLowerCase() === 'is' ? '#1976d2' : '#388e3c'}
+                                      label={key.toLowerCase() === 'is' ? 'IS Value' : 'Intradaily Variability (IV)'}
+                                    />
+                                  ) : Array.isArray(value) ? (
                                     <>
                                       {key === 'M10' && data.features.nonparam.M10 && data.features.nonparam.L5 ? (
                                         <>
@@ -694,7 +805,7 @@ function App() {
                                             <ResponsiveContainer width="100%" height="100%">
                                               <BarChart
                                                 data={data.features.nonparam.M10.map((m10, index) => ({
-                                                  day: `Day ${index + 1}`,
+                                                  day: getDateForIndex('M10', index, data),
                                                   M10: m10,
                                                   L5: data.features.nonparam.L5[index]
                                                 }))}
@@ -755,7 +866,7 @@ function App() {
                                                   <Grid item xs={12} key={dayStr}>
                                                     <Card variant="outlined" sx={{ p: 2 }}>
                                                       <Typography variant="subtitle1" gutterBottom>
-                                                        {new Date(dayStr).toLocaleDateString()}
+                                                        {getDateForIndex('M10', dayIndex, data)}
                                                       </Typography>
                                                       <ResponsiveContainer width="100%" height={300}>
                                                         <LineChart
@@ -833,7 +944,7 @@ function App() {
                                           <ResponsiveContainer width="100%" height="100%">
                                             <BarChart
                                               data={value.map((v, index) => ({
-                                                day: `Day ${index + 1}`,
+                                                day: getDateForIndex(key, index, data),
                                                 [key]: v
                                               }))}
                                               margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
@@ -853,7 +964,7 @@ function App() {
                                           <ResponsiveContainer width="100%" height="100%">
                                             <BarChart
                                               data={value.map((v, index) => ({
-                                                day: `Day ${index + 1}`,
+                                                day: getDateForIndex('RA', index, data),
                                                 RA: v
                                               }))}
                                               margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
@@ -869,16 +980,13 @@ function App() {
                                       ) : (
                                         value.map((val, index) => (
                                           <Typography key={index} variant="body2" sx={{ pl: 2 }}>
-                                            Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
+                                            {getDateForIndex(key, index, data)}: {typeof val === 'number' ? val.toFixed(4) : val}
                                           </Typography>
                                         ))
                                       )}
                                     </>
                                   ) : (
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                      <Typography variant="body1">
-                                        {typeof value === 'number' ? value.toFixed(4) : value}
-                                      </Typography>
                                       {/* Add bar chart for SRI, IS, IV, RA if present as a summary value */}
                                       {key.toLowerCase() === 'sri' && (
                                         <Box sx={{ width: 120, height: 60 }}>
@@ -955,11 +1063,11 @@ function App() {
                                 <ResponsiveContainer width="100%" height="100%">
                                   <BarChart
                                     data={data.features.physical_activity.sedentary.map((_, index) => ({
-                                      day: `Day ${index + 1}`,
+                                      day: getDateForIndex('activity', index, data),
                                       sedentary: data.features.physical_activity.sedentary[index],
                                       light: data.features.physical_activity.light[index],
                                       moderate: data.features.physical_activity.moderate[index],
-                                      vigorous: data.features.physical_activity.vigorous[index]
+                                      vigorous: data.features.physical_activity.vigorous[index],
                                     }))}
                                     margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
                                   >
@@ -997,7 +1105,16 @@ function App() {
                                 <Typography variant="subtitle2" color="text.secondary">
                                   {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </Typography>
-                                {Array.isArray(value) ? (
+                                {/* SRI as horizontal scale */}
+                                {key.toLowerCase() === 'sri' && typeof value === 'number' ? (
+                                  <HorizontalScale
+                                    value={value / 100}
+                                    min={0}
+                                    max={1}
+                                    color="#82ca9d"
+                                    label="Sleep Regularity Index (SRI)"
+                                  />
+                                ) : Array.isArray(value) ? (
                                   <>
                                     {/* Only show chart for TST, WASO, PTA, NWB, SOL, not the per-day values */}
                                     {['TST', 'WASO', 'PTA', 'NWB', 'SOL'].includes(key) ? (
@@ -1005,8 +1122,8 @@ function App() {
                                         <ResponsiveContainer width="100%" height="100%">
                                           <BarChart
                                             data={value.map((v, index) => ({
-                                              day: `Day ${index + 1}`,
-                                              [key]: key === 'PTA' ? v : key === 'TST' ? v / 60 : v
+                                              day: getDateForIndex(key, index, data),
+                                              [key]: v
                                             }))}
                                             margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
                                           >
@@ -1027,16 +1144,13 @@ function App() {
                                     ) : (
                                       value.map((val, index) => (
                                         <Typography key={index} variant="body2" sx={{ pl: 2 }}>
-                                          Day {index + 1}: {typeof val === 'number' ? val.toFixed(4) : val}
+                                          {getDateForIndex(key, index, data)}: {typeof val === 'number' ? val.toFixed(4) : val}
                                         </Typography>
                                       ))
                                     )}
                                   </>
                                 ) : (
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Typography variant="body1">
-                                      {typeof value === 'number' ? value.toFixed(4) : value}
-                                    </Typography>
                                     {/* Add bar chart for SRI if present as a summary value in sleep metrics */}
                                     {key.toLowerCase() === 'sri' && (
                                       <Box sx={{ width: 120, height: 60 }}>
