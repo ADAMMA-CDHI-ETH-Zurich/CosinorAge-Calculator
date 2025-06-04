@@ -166,6 +166,56 @@ const metricDescriptions = {
   }
 };
 
+// Add explanations for each metric
+const metricExplanations = {
+  // Cosinor
+  mesor: 'MESOR: Midline Estimating Statistic Of Rhythm (mean value, mg)',
+  amplitude: 'Amplitude: Half the difference between peak and trough (mg)',
+  acrophase: 'Acrophase: Time of peak (radians)',
+  acrophase_time: 'Acrophase Time: Time of peak (minutes)',
+  // Nonparametric
+  is: 'IS: Interdaily Stability (0-1, higher = more stable)',
+  iv: 'IV: Intradaily Variability (0-2, higher = more fragmented)',
+  ra: 'RA: Relative Amplitude (0-1, higher = more robust)',
+  sri: 'SRI: Sleep Regularity Index (0-1, higher = more regular)',
+  m10: 'M10: Mean activity in the 10 most active hours',
+  l5: 'L5: Mean activity in the 5 least active hours',
+  m10_start: 'M10 Start: Start time of the 10 most active hours',
+  l5_start: 'L5 Start: Start time of the 5 least active hours',
+  // Physical Activity
+  sedentary: 'Sedentary: Minutes per day spent sedentary',
+  light: 'Light: Minutes per day spent in light activity',
+  moderate: 'Moderate: Minutes per day spent in moderate activity',
+  vigorous: 'Vigorous: Minutes per day spent in vigorous activity',
+  // Sleep
+  tst: 'TST: Total Sleep Time (hours)',
+  waso: 'WASO: Wake After Sleep Onset (minutes)',
+  pta: 'PTA: Percent Time Asleep (%)',
+  nwb: 'NWB: Number of Wake Bouts',
+  sol: 'SOL: Sleep Onset Latency (minutes)',
+};
+
+// Info button for individual metrics
+function MetricInfoButton({ metric }) {
+  const [open, setOpen] = React.useState(false);
+  if (!metricExplanations[metric.toLowerCase()]) return null;
+  return (
+    <>
+      <IconButton size="small" onClick={() => setOpen(true)} aria-label={`Info about ${metric}`}> 
+        <InfoOutlinedIcon fontSize="small" />
+      </IconButton>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>{metric.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</DialogTitle>
+        <DialogContent>
+          <DialogContentText style={{ whiteSpace: 'pre-line' }}>
+            {metricExplanations[metric.toLowerCase()]}
+          </DialogContentText>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 function SectionInfoButton({ section }) {
   const [open, setOpen] = React.useState(false);
   return (
@@ -754,14 +804,17 @@ function App() {
                           <Grid container spacing={2} direction="row" wrap="nowrap">
                             {Object.entries(data.features.cosinor).map(([key, value]) => (
                               <Grid item xs key={key} zeroMinWidth>
-                                <Typography variant="subtitle2" color="text.secondary" noWrap>
-                                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <Typography variant="subtitle2" color="text.secondary" noWrap>
+                                    {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </Typography>
+                                  <MetricInfoButton metric={key} />
+                                </Box>
                                 <Typography variant="body1" noWrap>
                                   {typeof value === 'number' ? value.toFixed(4) : value}
                                   {key === 'mesor' || key === 'amplitude' ? ' mg' : 
-                                   key === 'acrophase' ? ' radians' :
-                                   key === 'acrophase_time' ? ' minutes' : ''}
+                                    key === 'acrophase' ? ' radians' :
+                                    key === 'acrophase_time' ? ' minutes' : ''}
                                 </Typography>
                               </Grid>
                             ))}
@@ -785,9 +838,12 @@ function App() {
                             {Object.entries(data.features.nonparam).map(([key, value]) => (
                               ['l5', 'm10_start', 'l5_start'].includes(key.toLowerCase()) ? null : (
                                 <Grid item xs={12} key={key}>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                      {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                    </Typography>
+                                    <MetricInfoButton metric={key} />
+                                  </Box>
                                   {/* IS and IV as horizontal scale */}
                                   {(['is', 'iv'].includes(key.toLowerCase()) && typeof value === 'number') ? (
                                     <HorizontalScale
@@ -1062,13 +1118,20 @@ function App() {
                               <Box sx={{ width: '100%', height: 300, mt: 2 }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                   <BarChart
-                                    data={data.features.physical_activity.sedentary.map((_, index) => ({
-                                      day: getDateForIndex('activity', index, data),
-                                      sedentary: data.features.physical_activity.sedentary[index],
-                                      light: data.features.physical_activity.light[index],
-                                      moderate: data.features.physical_activity.moderate[index],
-                                      vigorous: data.features.physical_activity.vigorous[index],
-                                    }))}
+                                    data={(() => {
+                                      // Extract unique days from data.data
+                                      const uniqueDays = Array.from(new Set(data.data.map(item => {
+                                        const date = new Date(item.TIMESTAMP);
+                                        return date.toLocaleDateString('en-CA');
+                                      })));
+                                      return uniqueDays.map((dayStr, index) => ({
+                                        day: dayStr,
+                                        sedentary: data.features.physical_activity.sedentary[index],
+                                        light: data.features.physical_activity.light[index],
+                                        moderate: data.features.physical_activity.moderate[index],
+                                        vigorous: data.features.physical_activity.vigorous[index],
+                                      }));
+                                    })()}
                                     margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
                                   >
                                     <CartesianGrid strokeDasharray="3 3" />
@@ -1076,10 +1139,10 @@ function App() {
                                     <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
                                     <Tooltip />
                                     <Legend />
-                                    <Bar dataKey="sedentary" stackId="a" fill="#8884d8" name="Sedentary" />
-                                    <Bar dataKey="light" stackId="a" fill="#82ca9d" name="Light" />
-                                    <Bar dataKey="moderate" stackId="a" fill="#ffc658" name="Moderate" />
-                                    <Bar dataKey="vigorous" stackId="a" fill="#ff8042" name="Vigorous" />
+                                    <Bar dataKey="sedentary" stackId="a" fill="#8884d8" name={<><span>Sedentary</span><MetricInfoButton metric="sedentary" /></>} />
+                                    <Bar dataKey="light" stackId="a" fill="#82ca9d" name={<><span>Light</span><MetricInfoButton metric="light" /></>} />
+                                    <Bar dataKey="moderate" stackId="a" fill="#ffc658" name={<><span>Moderate</span><MetricInfoButton metric="moderate" /></>} />
+                                    <Bar dataKey="vigorous" stackId="a" fill="#ff8042" name={<><span>Vigorous</span><MetricInfoButton metric="vigorous" /></>} />
                                   </BarChart>
                                 </ResponsiveContainer>
                               </Box>
@@ -1102,9 +1165,12 @@ function App() {
                           <Grid container spacing={2}>
                             {Object.entries(data.features.sleep).map(([key, value]) => (
                               <Grid item xs={12} key={key}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <Typography variant="subtitle2" color="text.secondary">
+                                    {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </Typography>
+                                  <MetricInfoButton metric={key} />
+                                </Box>
                                 {/* SRI as horizontal scale */}
                                 {key.toLowerCase() === 'sri' && typeof value === 'number' ? (
                                   <HorizontalScale
