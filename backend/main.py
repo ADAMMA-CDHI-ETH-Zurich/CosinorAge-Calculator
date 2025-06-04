@@ -211,8 +211,8 @@ async def process_data(file_id: str) -> Dict[str, Any]:
         
         # Extract features using WearableFeatures
         features_args = {
-            'sleep_ck_sf': 0.01,
-            'sleep_rescore': True,
+            #'sleep_ck_sf': 0.01,
+            #'sleep_rescore': True,
             'pa_cutpoint_sl': 15,
             'pa_cutpoint_lm': 35,
             'pa_cutpoint_mv': 70,
@@ -229,6 +229,12 @@ async def process_data(file_id: str) -> Dict[str, Any]:
         return {
             "message": "Data processed successfully",
             "data": df_json,
+            "features": {
+                "cosinor": cosinor_features,
+                "nonparam": non_parametric_features,
+                "physical_activity": physical_activity_features,
+                "sleep": sleep_features
+            },
             "metadata": {
                 "raw_data_frequency": metadata.get('raw_data_frequency'),
                 "raw_start_datetime": metadata.get('raw_start_datetime'),
