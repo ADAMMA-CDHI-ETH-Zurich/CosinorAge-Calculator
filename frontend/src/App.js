@@ -538,8 +538,8 @@ function App() {
 
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           <Grid container spacing={3}>
-            {!data?.file_id && (
-              <Grid item xs={12}>
+            <Grid item xs={12}>
+              <Box sx={{ position: 'relative' }}>
                 <Paper 
                   elevation={3} 
                   sx={{ 
@@ -563,6 +563,7 @@ function App() {
                       label="Data Source"
                       onChange={(e) => setDataSource(e.target.value)}
                       sx={{ minWidth: 300 }}
+                      disabled={!!data?.file_id}
                     >
                       <MenuItem value="samsung_galaxy">Samsung Galaxy Smartwatch - Binary (Zipped)</MenuItem>
                     </Select>
@@ -582,6 +583,7 @@ function App() {
                           px: 3,
                           borderRadius: 2
                         }}
+                        disabled={!!data?.file_id}
                       >
                         Upload File
                         <input
@@ -594,8 +596,8 @@ function App() {
                     </>
                   )}
                 </Paper>
-              </Grid>
-            )}
+              </Box>
+            </Grid>
 
             {error && (
               <Grid item xs={12}>
