@@ -564,110 +564,107 @@ function App() {
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Box 
-                sx={{ position: 'relative' }}
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  alignItems: 'center',
+                  maxWidth: 600,
+                  mx: 'auto',
+                  border: dragActive ? '2px dashed #2196f3' : 'none',
+                  background: dragActive ? 'rgba(33,150,243,0.05)' : undefined,
+                  position: 'relative',
+                }}
                 onDragEnter={handleDrag}
                 onDragOver={handleDrag}
                 onDragLeave={handleDrag}
                 onDrop={handleDrop}
               >
-                <Paper 
-                  elevation={3} 
-                  sx={{ 
-                    p: 3,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 2,
-                    alignItems: 'center',
-                    maxWidth: 600,
-                    mx: 'auto',
-                    border: dragActive ? '2px dashed #2196f3' : 'none',
-                    background: dragActive ? 'rgba(33,150,243,0.05)' : undefined
-                  }}
-                >
-                  <Typography variant="h6" gutterBottom>
-                    Select Data Source
-                  </Typography>
-                  <FormControl fullWidth sx={{ mb: 2 }}>
-                    <InputLabel id="data-source-label">Data Source</InputLabel>
-                    <Select
-                      labelId="data-source-label"
-                      value={dataSource}
-                      label="Data Source"
-                      onChange={(e) => setDataSource(e.target.value)}
-                      sx={{ minWidth: 300 }}
+                <Typography variant="h6" gutterBottom>
+                  Select Data Source
+                </Typography>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel id="data-source-label">Data Source</InputLabel>
+                  <Select
+                    labelId="data-source-label"
+                    value={dataSource}
+                    label="Data Source"
+                    onChange={(e) => setDataSource(e.target.value)}
+                    sx={{ minWidth: 300 }}
+                    disabled={!!data?.file_id}
+                  >
+                    <MenuItem value="samsung_galaxy">Samsung Galaxy Smartwatch - Binary (Zipped)</MenuItem>
+                  </Select>
+                </FormControl>
+                {dataSource && (
+                  <>
+                    <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+                      Upload your ZIP file containing the Samsung Galaxy Smartwatch data
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      component="label"
+                      startIcon={<UploadIcon />}
+                      sx={{ 
+                        minWidth: 200,
+                        py: 1,
+                        px: 3,
+                        borderRadius: 2
+                      }}
                       disabled={!!data?.file_id}
+                      tabIndex={-1}
                     >
-                      <MenuItem value="samsung_galaxy">Samsung Galaxy Smartwatch - Binary (Zipped)</MenuItem>
-                    </Select>
-                  </FormControl>
-                  {dataSource && (
-                    <>
-                      <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
-                        Upload your ZIP file containing the Samsung Galaxy Smartwatch data
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        component="label"
-                        startIcon={<UploadIcon />}
+                      Upload File
+                      <input
+                        type="file"
+                        hidden
+                        accept=".zip"
+                        onChange={handleFileUpload}
+                        ref={fileInputRef}
+                      />
+                    </Button>
+                    {data?.file_id && (
+                      <Typography 
+                        variant="body2" 
+                        color="success.main" 
                         sx={{ 
-                          minWidth: 200,
-                          py: 1,
-                          px: 3,
-                          borderRadius: 2
+                          mt: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1
                         }}
-                        disabled={!!data?.file_id}
-                        tabIndex={-1}
                       >
-                        Upload File
-                        <input
-                          type="file"
-                          hidden
-                          accept=".zip"
-                          onChange={handleFileUpload}
-                          ref={fileInputRef}
-                        />
-                      </Button>
-                      {data?.file_id && (
-                        <Typography 
-                          variant="body2" 
-                          color="success.main" 
-                          sx={{ 
-                            mt: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                          }}
-                        >
-                          <CheckCircleIcon fontSize="small" />
-                          Successfully uploaded: {data.filename}
-                        </Typography>
-                      )}
-                      {dragActive && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            zIndex: 10,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#2196f3',
-                            fontSize: 24,
-                            pointerEvents: 'none',
-                            background: 'rgba(255,255,255,0.5)'
-                          }}
-                        >
-                          Drop file to upload
-                        </Box>
-                      )}
-                    </>
-                  )}
-                </Paper>
-              </Box>
+                        <CheckCircleIcon fontSize="small" />
+                        Successfully uploaded: {data.filename}
+                      </Typography>
+                    )}
+                    {dragActive && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          zIndex: 10,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#2196f3',
+                          fontSize: 24,
+                          pointerEvents: 'none',
+                          background: 'rgba(255,255,255,0.5)'
+                        }}
+                      >
+                        Drop file to upload
+                      </Box>
+                    )}
+                  </>
+                )}
+              </Paper>
             </Grid>
 
             {error && (
