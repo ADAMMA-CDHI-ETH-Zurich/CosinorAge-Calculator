@@ -114,47 +114,42 @@ async def upload_file(file: UploadFile = File(...)) -> Dict[str, Any]:
 @app.post("/extract/{file_id}")
 async def extract_files(file_id: str) -> Dict[str, Any]:
     """
-    Extract files from the uploaded ZIP to a permanent directory
+    Extract files from the uploaded ZIP file
     """
     try:
         if file_id not in uploaded_data:
             raise HTTPException(status_code=404, detail="File not found")
-        
+
         file_data = uploaded_data[file_id]
-        if "extracted_dir" not in file_data:
-            raise HTTPException(status_code=400, detail="No extracted directory found")
-        
-        # Create a new directory with timestamp
+        temp_dir = file_data["temp_dir"]
+        zip_path = os.path.join(temp_dir, file_data["filename"])
+
+        # Create a permanent directory for extracted files
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        new_dir = os.path.join(EXTRACTED_FILES_DIR, f"extracted_{timestamp}")
-        os.makedirs(new_dir, exist_ok=True)
+        extracted_dir = os.path.join("extracted_files", f"extracted_{timestamp}")
+        os.makedirs(extracted_dir, exist_ok=True)
+
+        # Extract the ZIP file
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extracted_dir)
+
+        # Find the actual data directory (skip __MACOSX)
+        child_dirs = [d for d in os.listdir(extracted_dir) 
+                     if os.path.isdir(os.path.join(extracted_dir, d)) 
+                     and not d.startswith('__MACOSX')]
         
-        # Copy files from temporary directory to permanent directory
-        shutil.copytree(file_data["extracted_dir"], new_dir, dirs_exist_ok=True)
-        
-        # Find the child directory (first subdirectory)
-        child_dirs = [d for d in os.listdir(new_dir) if os.path.isdir(os.path.join(new_dir, d))]
         if not child_dirs:
-            raise HTTPException(status_code=400, detail="No subdirectories found in extracted files")
+            raise HTTPException(status_code=400, detail="No valid data directory found in ZIP file")
         
-        child_dir = os.path.join(new_dir, child_dirs[0])
+        child_dir = os.path.join(extracted_dir, child_dirs[0])
+        
+        # Update the uploaded_data with the permanent directory
+        uploaded_data[file_id]["permanent_dir"] = extracted_dir
+        uploaded_data[file_id]["child_dir"] = child_dir
+
         logger.info(f"Files extracted successfully. Child directory for processing: {child_dir}")
-        
-        # Store the directory information
-        file_data.update({
-            "permanent_dir": new_dir,
-            "child_dir": child_dir + '/'
-        })
-        
-        # Clean up the temporary directory
-        if file_data.get("temp_dir") and os.path.exists(file_data["temp_dir"]):
-            shutil.rmtree(file_data["temp_dir"])
-            del temp_dirs[file_id]
-        
-        return {
-            "message": "Files extracted successfully",
-            "directory": new_dir
-        }
+        return {"message": "Files extracted successfully", "child_dir": child_dir}
+
     except Exception as e:
         logger.error(f"Error extracting files: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
@@ -200,7 +195,7 @@ async def process_data(file_id: str) -> Dict[str, Any]:
         # Extract features using WearableFeatures
         features_args = {
             #'sleep_ck_sf': 0.01,
-            #'sleep_rescore': True,
+            'sleep_rescore': True,
             'pa_cutpoint_sl': 15,
             'pa_cutpoint_lm': 35,
             'pa_cutpoint_mv': 70,

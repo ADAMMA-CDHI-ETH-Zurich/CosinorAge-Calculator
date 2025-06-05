@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Box, 
   Container, 
@@ -27,9 +27,14 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  TextField
+  TextField,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText
 } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -41,10 +46,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import { styled } from '@mui/material/styles';
 import UploadIcon from '@mui/icons-material/Upload';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 // Create a modern theme
 const theme = createTheme({
@@ -310,6 +312,9 @@ function App() {
   const [gender, setGender] = useState('invariant');
   const [predictedAge, setPredictedAge] = useState(null);
   const theme = useTheme();
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef(null);
+  const [preprocessDialogOpen, setPreprocessDialogOpen] = useState(false);
 
   // Save data to localStorage whenever it changes
   useEffect(() => {
@@ -515,6 +520,26 @@ function App() {
     }
   };
 
+  // Drag and drop handlers
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload({ target: { files: e.dataTransfer.files } });
+    }
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -539,7 +564,13 @@ function App() {
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Box sx={{ position: 'relative' }}>
+              <Box 
+                sx={{ position: 'relative' }}
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+              >
                 <Paper 
                   elevation={3} 
                   sx={{ 
@@ -549,7 +580,9 @@ function App() {
                     gap: 2,
                     alignItems: 'center',
                     maxWidth: 600,
-                    mx: 'auto'
+                    mx: 'auto',
+                    border: dragActive ? '2px dashed #2196f3' : 'none',
+                    background: dragActive ? 'rgba(33,150,243,0.05)' : undefined
                   }}
                 >
                   <Typography variant="h6" gutterBottom>
@@ -584,6 +617,7 @@ function App() {
                           borderRadius: 2
                         }}
                         disabled={!!data?.file_id}
+                        tabIndex={-1}
                       >
                         Upload File
                         <input
@@ -591,8 +625,45 @@ function App() {
                           hidden
                           accept=".zip"
                           onChange={handleFileUpload}
+                          ref={fileInputRef}
                         />
                       </Button>
+                      {data?.file_id && (
+                        <Typography 
+                          variant="body2" 
+                          color="success.main" 
+                          sx={{ 
+                            mt: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                          }}
+                        >
+                          <CheckCircleIcon fontSize="small" />
+                          Successfully uploaded: {data.filename}
+                        </Typography>
+                      )}
+                      {dragActive && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 10,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#2196f3',
+                            fontSize: 24,
+                            pointerEvents: 'none',
+                            background: 'rgba(255,255,255,0.5)'
+                          }}
+                        >
+                          Drop file to upload
+                        </Box>
+                      )}
                     </>
                   )}
                 </Paper>
@@ -633,26 +704,6 @@ function App() {
                 <Paper sx={{ p: 2, bgcolor: 'success.light' }}>
                   <Typography color="success">{success}</Typography>
                 </Paper>
-              </Grid>
-            )}
-
-            {data?.data && (
-              <Grid item xs={12}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      GalaxyWatch Data Information
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Data Source
-                        </Typography>
-                        <Typography variant="body1">{data.filename || 'N/A'}</Typography>
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
               </Grid>
             )}
 
@@ -705,6 +756,46 @@ function App() {
                 </Card>
               </Grid>
             )}
+            {/* Disclaimer below Raw Data Information */}
+            {data?.data && (
+              <Grid item xs={12}>
+                <Box sx={{ mt: 1, mb: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                  <React.Fragment>
+                    <Typography
+                      variant="body2"
+                      color="success.main"
+                      sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(76, 175, 80, 0.08)', px: 2, py: 1, borderRadius: 2, cursor: 'pointer' }}
+                      onClick={() => setPreprocessDialogOpen(true)}
+                      tabIndex={0}
+                      role="button"
+                      aria-label="Show preprocessing explanation"
+                    >
+                      <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
+                      Data was successfully preprocessed.
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="success.main"
+                      sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(76, 175, 80, 0.08)', px: 2, py: 1, borderRadius: 2 }}
+                    >
+                      <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
+                      Features were successfully computed.
+                    </Typography>
+                    <Dialog open={preprocessDialogOpen} onClose={() => setPreprocessDialogOpen(false)}>
+                      <DialogTitle>Preprocessing Steps</DialogTitle>
+                      <DialogContent>
+                        <DialogContentText style={{ whiteSpace: 'pre-line' }}>
+                          The preprocessing of your data includes:
+                          {'\n'}• Resampling to minute-level time grid
+                          {'\n'}• Selection of the longest consecutive valid timeframe
+                          {'\n'}• Calibration of raw accelerometer data
+                        </DialogContentText>
+                      </DialogContent>
+                    </Dialog>
+                  </React.Fragment>
+                </Box>
+              </Grid>
+            )}
 
             {(() => {
               if (data?.data) {
@@ -713,6 +804,16 @@ function App() {
               return data?.data && (
                 <Grid item xs={12}>
                   <Card style={{ marginTop: '20px', padding: '20px' }}>
+                    <Typography variant="h6" gutterBottom>
+                      ENMO Time Series
+                    </Typography>
+                    {/* Custom legend for wear/non-wear */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 1 }}>
+                      <Box sx={{ width: 18, height: 18, bgcolor: '#4caf50', opacity: 0.3, border: '1px solid #4caf50', mr: 1 }} />
+                      <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>wear</Typography>
+                      <Box sx={{ width: 18, height: 18, bgcolor: '#ff5252', opacity: 0.3, border: '1px solid #ff5252', mr: 1 }} />
+                      <Typography variant="body2" color="text.secondary">non-wear</Typography>
+                    </Box>
                     <ResponsiveContainer width="100%" height={400}>
                       <LineChart 
                         data={data.data}
@@ -742,10 +843,28 @@ function App() {
                         <YAxis 
                           label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
                         />
-                        <Tooltip 
-                          labelFormatter={(timestamp) => {
-                            const date = new Date(timestamp);
-                            return date.toLocaleDateString();
+                        <RechartsTooltip 
+                          active={true}
+                          cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                          content={({ active, payload, label }) => {
+                            if (active && payload && payload.length) {
+                              return (
+                                <div style={{ 
+                                  backgroundColor: 'white', 
+                                  padding: '10px', 
+                                  border: '1px solid #ccc',
+                                  borderRadius: '4px'
+                                }}>
+                                  <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                  {payload.map((entry, index) => (
+                                    <p key={index} style={{ margin: '0', color: entry.color }}>
+                                      {`${entry.name}: ${entry.value.toFixed(2)} mg`}
+                                    </p>
+                                  ))}
+                                </div>
+                              );
+                            }
+                            return null;
                           }}
                         />
                         <Legend />
@@ -785,13 +904,6 @@ function App() {
                           }
                           return areas;
                         })()}
-                        {/* Custom legend for wear/non-wear shading */}
-                        <g>
-                          <rect x={30} y={2} width={18} height={18} fill="#4caf50" fillOpacity={0.3} stroke="#4caf50" strokeOpacity={0.5} />
-                          <text x={55} y={16} fontSize={14} fill="#333">wear</text>
-                          <rect x={110} y={2} width={18} height={18} fill="#ff5252" fillOpacity={0.3} stroke="#ff5252" strokeOpacity={0.5} />
-                          <text x={135} y={16} fontSize={14} fill="#333">non-wear</text>
-                        </g>
                       </LineChart>
                     </ResponsiveContainer>
                   </Card>
@@ -879,7 +991,50 @@ function App() {
                                                 <CartesianGrid strokeDasharray="3 3" />
                                                 <XAxis dataKey="day" />
                                                 <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
-                                                <Tooltip />
+                                                <RechartsTooltip 
+                                                  active={true}
+                                                  cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                                  content={({ active, payload, label }) => {
+                                                    if (active && payload && payload.length) {
+                                                      return (
+                                                        <div style={{ 
+                                                          backgroundColor: 'white', 
+                                                          padding: '10px', 
+                                                          border: '1px solid #ccc',
+                                                          borderRadius: '4px'
+                                                        }}>
+                                                          <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                          {payload.map((entry, index) => {
+                                                            let value = entry.value;
+                                                            let unit = '';
+                                                            if (entry.name === 'TST') {
+                                                              value = value.toFixed(1);
+                                                              unit = ' hours';
+                                                            } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                              value = value.toFixed(0);
+                                                              unit = ' minutes';
+                                                            } else if (entry.name === 'PTA') {
+                                                              value = value.toFixed(1);
+                                                              unit = '%';
+                                                            } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                              value = value.toFixed(2);
+                                                              unit = ' mg';
+                                                            } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                              value = value.toFixed(0);
+                                                              unit = ' minutes';
+                                                            }
+                                                            return (
+                                                              <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                                {`${entry.name}: ${value}${unit}`}
+                                                              </p>
+                                                            );
+                                                          })}
+                                                        </div>
+                                                      );
+                                                    }
+                                                    return null;
+                                                  }}
+                                                />
                                                 <Legend />
                                                 <Bar dataKey="M10" fill="#8884d8" name="M10" />
                                                 <Bar dataKey="L5" fill="#82ca9d" name="L5" />
@@ -962,10 +1117,48 @@ function App() {
                                                             yAxisId="right"
                                                             orientation="right"
                                                             label={{ value: 'Cosinor Fit (mg)', angle: 90, position: 'insideRight' }} 
-                                                          />                                                          <Tooltip
-                                                            labelFormatter={(timestampNum) => {
-                                                              const date = new Date(timestampNum);
-                                                              return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                                          />                                                          <RechartsTooltip
+                                                            active={true}
+                                                            cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                                            content={({ active, payload, label }) => {
+                                                              if (active && payload && payload.length) {
+                                                                return (
+                                                                  <div style={{ 
+                                                                    backgroundColor: 'white',
+                                                                    padding: '10px', 
+                                                                    border: '1px solid #ccc',
+                                                                    borderRadius: '4px'
+                                                                  }}>
+                                                                    <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                                                    {payload.map((entry, index) => {
+                                                                      let value = entry.value;
+                                                                      let unit = '';
+                                                                      if (entry.name === 'TST') {
+                                                                        value = value.toFixed(1);
+                                                                        unit = ' hours';
+                                                                      } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                                        value = value.toFixed(0);
+                                                                        unit = ' minutes';
+                                                                      } else if (entry.name === 'PTA') {
+                                                                        value = value.toFixed(1);
+                                                                        unit = '%';
+                                                                      } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                                        value = value.toFixed(2);
+                                                                        unit = ' mg';
+                                                                      } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                                        value = value.toFixed(0);
+                                                                        unit = ' minutes';
+                                                                      }
+                                                                      return (
+                                                                        <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                                          {`${entry.name}: ${value}${unit}`}
+                                                                        </p>
+                                                                      );
+                                                                    })}
+                                                                  </div>
+                                                                );
+                                                              }
+                                                              return null;
                                                             }}
                                                           />
                                                           <Legend />
@@ -1004,24 +1197,6 @@ function App() {
                                                             label="L5"
                                                             yAxisId="left"
                                                           />
-                                                          {m10StartValid && (
-                                                            <ReferenceLine
-                                                              x={m10StartDate.getTime()}
-                                                              stroke="#8884d8"
-                                                              strokeDasharray="3 3"
-                                                              label={{ value: 'M10 Start', position: 'top', fill: '#8884d8', fontSize: 12 }}
-                                                              yAxisId="left"
-                                                            />
-                                                          )}
-                                                          {l5StartValid && (
-                                                            <ReferenceLine
-                                                              x={l5StartDate.getTime()}
-                                                              stroke="#82ca9d"
-                                                              strokeDasharray="3 3"
-                                                              label={{ value: 'L5 Start', position: 'top', fill: '#82ca9d', fontSize: 12 }}
-                                                              yAxisId="left"
-                                                            />
-                                                          )}
                                                         </LineChart>
                                                       </ResponsiveContainer>
                                                     </Card>
@@ -1044,7 +1219,50 @@ function App() {
                                               <CartesianGrid strokeDasharray="3 3" />
                                               <XAxis dataKey="day" />
                                               <YAxis label={{ value: key.toUpperCase(), angle: -90, position: 'insideLeft' }} />
-                                              <Tooltip />
+                                              <RechartsTooltip 
+                                                active={true}
+                                                cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                                content={({ active, payload, label }) => {
+                                                  if (active && payload && payload.length) {
+                                                    return (
+                                                      <div style={{ 
+                                                        backgroundColor: 'white', 
+                                                        padding: '10px', 
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '4px'
+                                                      }}>
+                                                        <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                        {payload.map((entry, index) => {
+                                                          let value = entry.value;
+                                                          let unit = '';
+                                                          if (entry.name === 'TST') {
+                                                            value = value.toFixed(1);
+                                                            unit = ' hours';
+                                                          } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                            value = value.toFixed(0);
+                                                            unit = ' minutes';
+                                                          } else if (entry.name === 'PTA') {
+                                                            value = value.toFixed(1);
+                                                            unit = '%';
+                                                          } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                            value = value.toFixed(2);
+                                                            unit = ' mg';
+                                                          } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                            value = value.toFixed(0);
+                                                            unit = ' minutes';
+                                                          }
+                                                          return (
+                                                            <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                              {`${entry.name}: ${value}${unit}`}
+                                                            </p>
+                                                          );
+                                                        })}
+                                                      </div>
+                                                    );
+                                                  }
+                                                  return null;
+                                                }}
+                                              />
                                               <Bar dataKey={key} fill={key.toLowerCase() === 'is' ? '#8884d8' : '#ffc658'} name={key.toUpperCase()} />
                                             </BarChart>
                                           </ResponsiveContainer>
@@ -1064,7 +1282,50 @@ function App() {
                                               <CartesianGrid strokeDasharray="3 3" />
                                               <XAxis dataKey="day" />
                                               <YAxis label={{ value: 'RA', angle: -90, position: 'insideLeft' }} />
-                                              <Tooltip />
+                                              <RechartsTooltip 
+                                                active={true}
+                                                cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                                content={({ active, payload, label }) => {
+                                                  if (active && payload && payload.length) {
+                                                    return (
+                                                      <div style={{ 
+                                                        backgroundColor: 'white', 
+                                                        padding: '10px', 
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '4px'
+                                                      }}>
+                                                        <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                        {payload.map((entry, index) => {
+                                                          let value = entry.value;
+                                                          let unit = '';
+                                                          if (entry.name === 'TST') {
+                                                            value = value.toFixed(1);
+                                                            unit = ' hours';
+                                                          } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                            value = value.toFixed(0);
+                                                            unit = ' minutes';
+                                                          } else if (entry.name === 'PTA') {
+                                                            value = value.toFixed(1);
+                                                            unit = '%';
+                                                          } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                            value = value.toFixed(2);
+                                                            unit = ' mg';
+                                                          } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                            value = value.toFixed(0);
+                                                            unit = ' minutes';
+                                                          }
+                                                          return (
+                                                            <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                              {`${entry.name}: ${value}${unit}`}
+                                                            </p>
+                                                          );
+                                                        })}
+                                                      </div>
+                                                    );
+                                                  }
+                                                  return null;
+                                                }}
+                                              />
                                               <Bar dataKey="RA" fill="#0088fe" name="RA" />
                                             </BarChart>
                                           </ResponsiveContainer>
@@ -1090,7 +1351,50 @@ function App() {
                                             >
                                               <XAxis type="category" dataKey="name" hide />
                                               <YAxis type="number" domain={[0, 1]} hide />
-                                              <Tooltip />
+                                              <RechartsTooltip 
+                                                active={true}
+                                                cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                                content={({ active, payload, label }) => {
+                                                  if (active && payload && payload.length) {
+                                                    return (
+                                                      <div style={{ 
+                                                        backgroundColor: 'white', 
+                                                        padding: '10px', 
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '4px'
+                                                      }}>
+                                                        <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                        {payload.map((entry, index) => {
+                                                          let value = entry.value;
+                                                          let unit = '';
+                                                          if (entry.name === 'TST') {
+                                                            value = value.toFixed(1);
+                                                            unit = ' hours';
+                                                          } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                            value = value.toFixed(0);
+                                                            unit = ' minutes';
+                                                          } else if (entry.name === 'PTA') {
+                                                            value = value.toFixed(1);
+                                                            unit = '%';
+                                                          } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                            value = value.toFixed(2);
+                                                            unit = ' mg';
+                                                          } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                            value = value.toFixed(0);
+                                                            unit = ' minutes';
+                                                          }
+                                                          return (
+                                                            <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                              {`${entry.name}: ${value}${unit}`}
+                                                            </p>
+                                                          );
+                                                        })}
+                                                      </div>
+                                                    );
+                                                  }
+                                                  return null;
+                                                }}
+                                              />
                                               <Bar dataKey="value" fill="#82ca9d" />
                                             </BarChart>
                                           </ResponsiveContainer>
@@ -1106,7 +1410,50 @@ function App() {
                                             >
                                               <XAxis type="number" domain={[0, 1]} hide />
                                               <YAxis type="category" dataKey="name" hide />
-                                              <Tooltip />
+                                              <RechartsTooltip 
+                                                active={true}
+                                                cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                                content={({ active, payload, label }) => {
+                                                  if (active && payload && payload.length) {
+                                                    return (
+                                                      <div style={{ 
+                                                        backgroundColor: 'white', 
+                                                        padding: '10px', 
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '4px'
+                                                      }}>
+                                                        <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                        {payload.map((entry, index) => {
+                                                          let value = entry.value;
+                                                          let unit = '';
+                                                          if (entry.name === 'TST') {
+                                                            value = value.toFixed(1);
+                                                            unit = ' hours';
+                                                          } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                            value = value.toFixed(0);
+                                                            unit = ' minutes';
+                                                          } else if (entry.name === 'PTA') {
+                                                            value = value.toFixed(1);
+                                                            unit = '%';
+                                                          } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                            value = value.toFixed(2);
+                                                            unit = ' mg';
+                                                          } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                            value = value.toFixed(0);
+                                                            unit = ' minutes';
+                                                          }
+                                                          return (
+                                                            <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                              {`${entry.name}: ${value}${unit}`}
+                                                            </p>
+                                                          );
+                                                        })}
+                                                      </div>
+                                                    );
+                                                  }
+                                                  return null;
+                                                }}
+                                              />
                                               <Bar dataKey="value" fill="#8884d8" />
                                             </BarChart>
                                           </ResponsiveContainer>
@@ -1122,7 +1469,50 @@ function App() {
                                             >
                                               <XAxis type="number" domain={[0, 2]} hide />
                                               <YAxis type="category" dataKey="name" hide />
-                                              <Tooltip />
+                                              <RechartsTooltip 
+                                                active={true}
+                                                cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                                content={({ active, payload, label }) => {
+                                                  if (active && payload && payload.length) {
+                                                    return (
+                                                      <div style={{ 
+                                                        backgroundColor: 'white', 
+                                                        padding: '10px', 
+                                                        border: '1px solid #ccc',
+                                                        borderRadius: '4px'
+                                                      }}>
+                                                        <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                        {payload.map((entry, index) => {
+                                                          let value = entry.value;
+                                                          let unit = '';
+                                                          if (entry.name === 'TST') {
+                                                            value = value.toFixed(1);
+                                                            unit = ' hours';
+                                                          } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                            value = value.toFixed(0);
+                                                            unit = ' minutes';
+                                                          } else if (entry.name === 'PTA') {
+                                                            value = value.toFixed(1);
+                                                            unit = '%';
+                                                          } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                            value = value.toFixed(2);
+                                                            unit = ' mg';
+                                                          } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                            value = value.toFixed(0);
+                                                            unit = ' minutes';
+                                                          }
+                                                          return (
+                                                            <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                              {`${entry.name}: ${value}${unit}`}
+                                                            </p>
+                                                          );
+                                                        })}
+                                                      </div>
+                                                    );
+                                                  }
+                                                  return null;
+                                                }}
+                                              />
                                               <Bar dataKey="value" fill="#ffc658" />
                                             </BarChart>
                                           </ResponsiveContainer>
@@ -1173,7 +1563,50 @@ function App() {
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="day" />
                                     <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
-                                    <Tooltip />
+                                    <RechartsTooltip 
+                                      active={true}
+                                      cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                      content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                          return (
+                                            <div style={{ 
+                                              backgroundColor: 'white', 
+                                              padding: '10px', 
+                                              border: '1px solid #ccc',
+                                              borderRadius: '4px'
+                                            }}>
+                                              <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                              {payload.map((entry, index) => {
+                                                let value = entry.value;
+                                                let unit = '';
+                                                if (entry.name === 'TST') {
+                                                  value = value.toFixed(1);
+                                                  unit = ' hours';
+                                                } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                  value = value.toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'PTA') {
+                                                  value = value.toFixed(1);
+                                                  unit = '%';
+                                                } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                  value = value.toFixed(2);
+                                                  unit = ' mg';
+                                                } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                  value = value.toFixed(0);
+                                                  unit = ' minutes';
+                                                }
+                                                return (
+                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                    {`${entry.name}: ${value}${unit}`}
+                                                  </p>
+                                                );
+                                              })}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      }}
+                                    />
                                     <Legend />
                                     <Bar dataKey="sedentary" stackId="a" fill="#8884d8" name="Sedentary" />
                                     <Bar dataKey="light" stackId="a" fill="#82ca9d" name="Light" />
@@ -1197,6 +1630,142 @@ function App() {
                               Sleep Metrics
                             </Typography>
                             <SectionInfoButton section="sleep" />
+                          </Box>
+                          {/* Daily ENMO Time Series with Sleep Bands */}
+                          <Box sx={{ mt: 4 }}>
+                            <Typography variant="h6" gutterBottom>
+                              Daily ENMO Time Series with Sleep Periods
+                            </Typography>
+                            {/* Custom legend for sleep periods */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 1 }}>
+                              <Box sx={{ width: 18, height: 18, bgcolor: '#2196f3', opacity: 0.15, border: '1px solid #2196f3', mr: 1 }} />
+                              <Typography variant="body2" color="text.secondary">Sleep Period</Typography>
+                            </Box>
+                            <Grid container spacing={3}>
+                              {Array.from(new Set(data.data.map(item => {
+                                const date = new Date(item.TIMESTAMP);
+                                return date.toLocaleDateString('en-CA');
+                              }))).map((dayStr, dayIndex) => {
+                                const dayData = data.data.filter(item => {
+                                  const date = new Date(item.TIMESTAMP);
+                                  return date.toLocaleDateString('en-CA') === dayStr;
+                                });
+                                if (dayData.length === 0) return null;
+                                // Add a 'timestampNum' property for numeric x-axis
+                                const dayDataWithNum = dayData.map(item => ({
+                                  ...item,
+                                  timestampNum: new Date(item.TIMESTAMP).getTime(),
+                                }));
+                                const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
+                                // Find sleep=1 intervals
+                                const sleepBands = [];
+                                let bandStart = null;
+                                for (let i = 0; i < dayDataWithNumSorted.length; i++) {
+                                  if (dayDataWithNumSorted[i].sleep === 1 && bandStart === null) {
+                                    bandStart = dayDataWithNumSorted[i].timestampNum;
+                                  }
+                                  if ((dayDataWithNumSorted[i].sleep !== 1 || i === dayDataWithNumSorted.length - 1) && bandStart !== null) {
+                                    const bandEnd = dayDataWithNumSorted[i - 1].timestampNum;
+                                    sleepBands.push({ start: bandStart, end: bandEnd });
+                                    bandStart = null;
+                                  }
+                                }
+                                return (
+                                  <Grid item xs={12} key={dayStr}>
+                                    <Card variant="outlined" sx={{ p: 2 }}>
+                                      <Typography variant="subtitle1" gutterBottom>
+                                        {dayStr}
+                                      </Typography>
+                                      <ResponsiveContainer width="100%" height={300}>
+                                        <LineChart
+                                          data={dayDataWithNumSorted}
+                                          margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                        >
+                                          <CartesianGrid strokeDasharray="3 3" />
+                                          <XAxis
+                                            dataKey="timestampNum"
+                                            type="number"
+                                            domain={['dataMin', 'dataMax']}
+                                            tickFormatter={(timestampNum) => {
+                                              const date = new Date(timestampNum);
+                                              return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                            }}
+                                          />
+                                          <YAxis
+                                            yAxisId="left"
+                                            label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
+                                          />
+                                          <RechartsTooltip
+                                            active={true}
+                                            cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                            content={({ active, payload, label }) => {
+                                              if (active && payload && payload.length) {
+                                                return (
+                                                  <div style={{ 
+                                                    backgroundColor: 'white', 
+                                                    padding: '10px', 
+                                                    border: '1px solid #ccc',
+                                                    borderRadius: '4px'
+                                                  }}>
+                                                    <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                                    {payload.map((entry, index) => {
+                                                      let value = entry.value;
+                                                      let unit = '';
+                                                      if (entry.name === 'TST') {
+                                                        value = value.toFixed(1);
+                                                        unit = ' hours';
+                                                      } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                        value = value.toFixed(0);
+                                                        unit = ' minutes';
+                                                      } else if (entry.name === 'PTA') {
+                                                        value = value.toFixed(1);
+                                                        unit = '%';
+                                                      } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                        value = value.toFixed(2);
+                                                        unit = ' mg';
+                                                      } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                        value = value.toFixed(0);
+                                                        unit = ' minutes';
+                                                      }
+                                                      return (
+                                                        <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                          {`${entry.name}: ${value}${unit}`}
+                                                        </p>
+                                                      );
+                                                    })}
+                                                  </div>
+                                                );
+                                              }
+                                              return null;
+                                            }}
+                                          />
+                                          <Legend />
+                                          <Line
+                                            type="monotone"
+                                            dataKey="ENMO"
+                                            stroke="#8884d8"
+                                            dot={false}
+                                            isAnimationActive={false}
+                                            yAxisId="left"
+                                          />
+                                          {/* Blue bands for sleep=1 */}
+                                          {sleepBands.map((band, idx) => (
+                                            <ReferenceArea
+                                              key={`sleep-band-${idx}`}
+                                              x1={band.start}
+                                              x2={band.end}
+                                              fill="#2196f3"
+                                              fillOpacity={0.15}
+                                              yAxisId="left"
+                                            />
+                                          ))}
+                                        </LineChart>
+                                      </ResponsiveContainer>
+                                    </Card>
+                                  </Grid>
+                                );
+                              })}
+                            </Grid>
                           </Box>
                           <Grid container spacing={2}>
                             {Object.entries(data.features.sleep).map(([key, value]) => (
@@ -1229,7 +1798,50 @@ function App() {
                                             <CartesianGrid strokeDasharray="3 3" />
                                             <XAxis dataKey="day" />
                                             <YAxis label={{ value: key === 'TST' ? 'Hours' : key === 'PTA' ? 'Percent' : 'Minutes', angle: -90, position: 'insideLeft' }} />
-                                            <Tooltip />
+                                            <RechartsTooltip 
+                                              active={true}
+                                              cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                              content={({ active, payload, label }) => {
+                                                if (active && payload && payload.length) {
+                                                  return (
+                                                    <div style={{ 
+                                                      backgroundColor: 'white', 
+                                                      padding: '10px', 
+                                                      border: '1px solid #ccc',
+                                                      borderRadius: '4px'
+                                                    }}>
+                                                      <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                      {payload.map((entry, index) => {
+                                                        let value = entry.value;
+                                                        let unit = '';
+                                                        if (entry.name === 'TST') {
+                                                          value = value.toFixed(1);
+                                                          unit = ' hours';
+                                                        } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                          value = value.toFixed(0);
+                                                          unit = ' minutes';
+                                                        } else if (entry.name === 'PTA') {
+                                                          value = value.toFixed(1);
+                                                          unit = '%';
+                                                        } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                          value = value.toFixed(2);
+                                                          unit = ' mg';
+                                                        } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                          value = value.toFixed(0);
+                                                          unit = ' minutes';
+                                                        }
+                                                        return (
+                                                          <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                            {`${entry.name}: ${value}${unit}`}
+                                                          </p>
+                                                        );
+                                                      })}
+                                                    </div>
+                                                  );
+                                                }
+                                                return null;
+                                              }}
+                                            />
                                             <Bar dataKey={key} fill={
                                               key === 'TST' ? '#8884d8' :
                                               key === 'WASO' ? '#82ca9d' :
@@ -1261,7 +1873,50 @@ function App() {
                                           >
                                             <XAxis type="category" dataKey="name" hide />
                                             <YAxis type="number" domain={[0, 1]} hide />
-                                            <Tooltip />
+                                            <RechartsTooltip 
+                                              active={true}
+                                              cursor={{ stroke: '#ccc', strokeWidth: 1 }}
+                                              content={({ active, payload, label }) => {
+                                                if (active && payload && payload.length) {
+                                                  return (
+                                                    <div style={{ 
+                                                      backgroundColor: 'white', 
+                                                      padding: '10px', 
+                                                      border: '1px solid #ccc',
+                                                      borderRadius: '4px'
+                                                    }}>
+                                                      <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                      {payload.map((entry, index) => {
+                                                        let value = entry.value;
+                                                        let unit = '';
+                                                        if (entry.name === 'TST') {
+                                                          value = value.toFixed(1);
+                                                          unit = ' hours';
+                                                        } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                          value = value.toFixed(0);
+                                                          unit = ' minutes';
+                                                        } else if (entry.name === 'PTA') {
+                                                          value = value.toFixed(1);
+                                                          unit = '%';
+                                                        } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                          value = value.toFixed(2);
+                                                          unit = ' mg';
+                                                        } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                          value = value.toFixed(0);
+                                                          unit = ' minutes';
+                                                        }
+                                                        return (
+                                                          <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                            {`${entry.name}: ${value}${unit}`}
+                                                          </p>
+                                                        );
+                                                      })}
+                                                    </div>
+                                                  );
+                                                }
+                                                return null;
+                                              }}
+                                            />
                                             <Bar dataKey="value" fill="#82ca9d" />
                                           </BarChart>
                                         </ResponsiveContainer>
