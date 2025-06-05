@@ -362,4 +362,32 @@ async def predict_age(file_id: str, request: AgePredictionRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logging.error(f"Error predicting age: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error predicting age: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Error predicting age: {str(e)}")
+
+@app.post("/clear_state/{file_id}")
+async def clear_state(file_id: str):
+    """
+    Clear state for a specific file_id
+    """
+    try:
+        if file_id in uploaded_data:
+            # Clean up any temporary directories
+            if file_id in temp_dirs and os.path.exists(temp_dirs[file_id]):
+                shutil.rmtree(temp_dirs[file_id])
+                del temp_dirs[file_id]
+            
+            # Clean up any permanent directories
+            file_data = uploaded_data[file_id]
+            if "permanent_dir" in file_data and os.path.exists(file_data["permanent_dir"]):
+                shutil.rmtree(file_data["permanent_dir"])
+            
+            # Remove from uploaded_data
+            del uploaded_data[file_id]
+            
+            logger.info(f"Cleared state for file_id: {file_id}")
+            return {"message": "State cleared successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="File not found")
+    except Exception as e:
+        logger.error(f"Error clearing state: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e)) 

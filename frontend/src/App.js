@@ -324,11 +324,39 @@ function App() {
   }, [dataSource]);
 
   // Clear localStorage when file is removed
-  const clearState = () => {
-    localStorage.removeItem('appData');
-    localStorage.removeItem('dataSource');
-    setData(null);
-    setDataSource('');
+  const clearState = async () => {
+    try {
+      // Clear frontend state
+      localStorage.removeItem('appData');
+      localStorage.removeItem('dataSource');
+      setData(null);
+      setDataSource('');
+      setPredictedAge(null);
+      setChronologicalAge('');
+      setGender('invariant');
+      setError(null);
+      setSuccess(null);
+      setDirectoryTree(null);
+      setSelectedDirectory(null);
+      setProcessing(false);
+      setProcessingTime(0);
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        setTimerInterval(null);
+      }
+
+      // Clear backend state if we have a file_id
+      if (data?.file_id) {
+        const response = await fetch(`http://localhost:8000/clear_state/${data.file_id}`, {
+          method: 'POST',
+        });
+        if (!response.ok) {
+          console.error('Failed to clear backend state');
+        }
+      }
+    } catch (error) {
+      console.error('Error clearing state:', error);
+    }
   };
 
   // Function to start the timer
