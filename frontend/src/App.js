@@ -918,8 +918,6 @@ function App() {
                           label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
                         />
                         <RechartsTooltip 
-                          active={true}
-                          cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                           content={({ active, payload, label }) => {
                             if (active && payload && payload.length) {
                               return (
@@ -1062,8 +1060,6 @@ function App() {
                                         <XAxis dataKey="day" />
                                         <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
                                         <RechartsTooltip 
-                                          active={true}
-                                          cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                                           content={({ active, payload, label }) => {
                                             if (active && payload && payload.length) {
                                               return (
@@ -1188,8 +1184,6 @@ function App() {
                                                     orientation="right"
                                                     label={{ value: 'Cosinor Fit (mg)', angle: 90, position: 'insideRight' }} 
                                                   />                                                          <RechartsTooltip
-                                                    active={true}
-                                                    cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                                                     content={({ active, payload, label }) => {
                                                       if (active && payload && payload.length) {
                                                         return (
@@ -1290,8 +1284,6 @@ function App() {
                                       <XAxis dataKey="day" />
                                       <YAxis label={{ value: key.toUpperCase(), angle: -90, position: 'insideLeft' }} />
                                       <RechartsTooltip 
-                                        active={true}
-                                        cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                                         content={({ active, payload, label }) => {
                                           if (active && payload && payload.length) {
                                             return (
@@ -1353,8 +1345,6 @@ function App() {
                                       <XAxis dataKey="day" />
                                       <YAxis label={{ value: 'RA', angle: -90, position: 'insideLeft' }} />
                                       <RechartsTooltip 
-                                        active={true}
-                                        cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                                         content={({ active, payload, label }) => {
                                           if (active && payload && payload.length) {
                                             return (
@@ -1422,8 +1412,6 @@ function App() {
                                       <XAxis type="category" dataKey="name" hide />
                                       <YAxis type="number" domain={[0, 1]} hide />
                                       <RechartsTooltip 
-                                        active={true}
-                                        cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                                         content={({ active, payload, label }) => {
                                           if (active && payload && payload.length) {
                                             return (
@@ -1481,8 +1469,6 @@ function App() {
                                       <XAxis type="number" domain={[0, 1]} hide />
                                       <YAxis type="category" dataKey="name" hide />
                                       <RechartsTooltip 
-                                        active={true}
-                                        cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                                         content={({ active, payload, label }) => {
                                           if (active && payload && payload.length) {
                                             return (
@@ -1540,8 +1526,6 @@ function App() {
                                       <XAxis type="number" domain={[0, 2]} hide />
                                       <YAxis type="category" dataKey="name" hide />
                                       <RechartsTooltip 
-                                        active={true}
-                                        cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                                         content={({ active, payload, label }) => {
                                           if (active && payload && payload.length) {
                                             return (
@@ -1633,8 +1617,6 @@ function App() {
                             <XAxis dataKey="day" />
                             <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
                             <RechartsTooltip 
-                              active={true}
-                              cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                               content={({ active, payload, label }) => {
                                 if (active && payload && payload.length) {
                                   return (
@@ -1764,8 +1746,6 @@ function App() {
                                     label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
                                   />
                                   <RechartsTooltip
-                                    active={true}
-                                    cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                                     content={({ active, payload, label }) => {
                                       if (active && payload && payload.length) {
                                         return (
@@ -1870,8 +1850,6 @@ function App() {
                                     <XAxis dataKey="day" />
                                     <YAxis label={{ value: key === 'TST' ? 'Hours' : key === 'PTA' ? 'Percent' : 'Minutes', angle: -90, position: 'insideLeft' }} />
                                     <RechartsTooltip 
-                                      active={true}
-                                      cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                                       content={({ active, payload, label }) => {
                                         if (active && payload && payload.length) {
                                           return (
@@ -1945,8 +1923,6 @@ function App() {
                                     <XAxis type="category" dataKey="name" hide />
                                     <YAxis type="number" domain={[0, 1]} hide />
                                     <RechartsTooltip 
-                                      active={true}
-                                      cursor={{ stroke: '#ccc', strokeWidth: 1 }}
                                       content={({ active, payload, label }) => {
                                         if (active && payload && payload.length) {
                                           return (
