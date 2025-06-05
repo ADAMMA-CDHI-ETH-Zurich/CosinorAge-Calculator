@@ -524,6 +524,7 @@ function App() {
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!dataSource) return; // Only allow drag if dataSource is selected
     if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
     } else if (e.type === 'dragleave') {
@@ -534,6 +535,7 @@ function App() {
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!dataSource) return; // Only allow drop if dataSource is selected
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload({ target: { files: e.dataTransfer.files } });
@@ -578,10 +580,10 @@ function App() {
                   background: dragActive ? 'rgba(33,150,243,0.05)' : undefined,
                   position: 'relative',
                 }}
-                onDragEnter={handleDrag}
-                onDragOver={handleDrag}
-                onDragLeave={handleDrag}
-                onDrop={handleDrop}
+                onDragEnter={dataSource ? handleDrag : undefined}
+                onDragOver={dataSource ? handleDrag : undefined}
+                onDragLeave={dataSource ? handleDrag : undefined}
+                onDrop={dataSource ? handleDrop : undefined}
               >
                 <Typography variant="h6" gutterBottom>
                   Select Data Source
