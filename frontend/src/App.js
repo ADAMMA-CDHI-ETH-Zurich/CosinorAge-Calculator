@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Box, 
   Container, 
@@ -300,6 +300,20 @@ function App() {
   const fileInputRef = useRef(null);
   const [preprocessDialogOpen, setPreprocessDialogOpen] = useState(false);
 
+  // Log when component re-renders
+  useEffect(() => {
+    console.log('App component re-rendered at:', new Date().toISOString());
+  });
+
+  // Prevent unnecessary re-renders on initial load
+  useEffect(() => {
+    if (data?.features && !localStorage.getItem('featuresLoaded')) {
+      localStorage.setItem('featuresLoaded', 'true');
+      // Instead of reloading, just update the state
+      //setData(prev => ({ ...prev }));
+    }
+  }, [data?.features]);
+
   // Save data to localStorage whenever it changes
   useEffect(() => {
     if (data) {
@@ -318,6 +332,7 @@ function App() {
       // Clear frontend state
       localStorage.removeItem('appData');
       localStorage.removeItem('dataSource');
+      localStorage.removeItem('featuresLoaded');
       setData(null);
       setDataSource('');
       setPredictedAge(null);
@@ -348,6 +363,10 @@ function App() {
 
   // Function to start the timer
   const startTimer = () => {
+    // Clear any existing timer first
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
     setProcessingTime(0);
     const interval = setInterval(() => {
       setProcessingTime(prev => prev + 1);
@@ -356,12 +375,24 @@ function App() {
   };
 
   // Function to stop the timer
-  const stopTimer = () => {
+  const stopTimer = useCallback(() => {
     if (timerInterval) {
       clearInterval(timerInterval);
       setTimerInterval(null);
     }
-  };
+  }, [timerInterval]);
+
+  // Clean up timer on component unmount and when processing state changes
+  useEffect(() => {
+    if (!processing && timerInterval) {
+      stopTimer();
+    }
+    return () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    };
+  }, [processing, timerInterval, stopTimer]);
 
   // Format time in MM:SS
   const formatTime = (seconds) => {
@@ -406,6 +437,12 @@ function App() {
       return;
     }
 
+    // If data is already processed, don't process again
+    if (data.data && data.features) {
+      setSuccess('Data is already processed.');
+      return;
+    }
+
     setProcessing(true);
     setError(null);
     setSuccess(null);
@@ -435,13 +472,18 @@ function App() {
       }
 
       const processResult = await processResponse.json();
+      
+      // Update state with both extract and process results
       setData(prev => ({ 
         ...prev, 
         ...extractResult,
         ...processResult,
         data: processResult.data,
-        extracted: true
+        features: processResult.features,
+        extracted: true,
+        processed: true  // Add a flag to indicate processing is complete
       }));
+      
       setSuccess('Data processed successfully. Plot is now available.');
     } catch (err) {
       setError(err.message);
@@ -450,15 +492,6 @@ function App() {
       stopTimer(); // Stop the timer
     }
   };
-
-  // Clean up timer on component unmount
-  useEffect(() => {
-    return () => {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-      }
-    };
-  }, [timerInterval]);
 
   // Helper to interpolate between red and green
   function interpolateColor(wear) {
@@ -779,9 +812,6 @@ function App() {
             )}
 
             {(() => {
-              if (data?.data) {
-                console.log('[ENMO Plot Debug] Unique wear values:', Array.from(new Set(data.data.map(d => d.wear))));
-              }
               return data?.data && (
                 <Grid item xs={12}>
                   <Card style={{ marginTop: '20px', padding: '20px' }}>
@@ -930,7 +960,6 @@ function App() {
                     <SectionInfoButton section="nonparam" />
                   </Box>
                   <Grid container spacing={2}>
-                    {console.log('Nonparametric feature keys:', Object.keys(data.features.nonparam))}
                     {Object.entries(data.features.nonparam).map(([key, value]) => (
                       ['l5', 'm10_start', 'l5_start'].includes(key.toLowerCase()) ? null : (
                         <Grid item xs={12} key={key}>
@@ -1036,13 +1065,9 @@ function App() {
                                         const dayDataWithNum = dayData.map(item => {
                                           const globalIndex = data.data.findIndex(d => d.TIMESTAMP === item.TIMESTAMP);
                                           const globalData = globalIndex !== -1 ? data.data[globalIndex] : null;
-                                          if (dayIndex === 0) {
-                                            console.log('[Debug] Global data point:', globalData);
-                                            console.log('[Debug] Cosinor fitted value:', globalData ? globalData.cosinor_fitted : null);
-                                          }
                                           return {
-                                            ...item,
-                                            timestampNum: new Date(item.TIMESTAMP).getTime(),
+      ...item,
+      timestampNum: new Date(item.TIMESTAMP).getTime(),
                                             cosinor_fitted: globalData ? globalData.cosinor_fitted : null
                                           };
                                         });
@@ -1054,11 +1079,6 @@ function App() {
                                         const l5StartDate = l5Start && l5Start.includes('T')
                                           ? new Date(l5Start)
                                           : new Date(`${dayStr}T${l5Start}`);
-                                        console.log('[ENMO Plot Debug] Day:', dayStr, 'M10 Start:', m10Start, 'M10 Date:', m10StartDate);
-                                        console.log('[ENMO Plot Debug] Day:', dayStr, 'L5 Start:', l5Start, 'L5 Date:', l5StartDate);
-                                        if (dayIndex === 0) {
-                                          console.log('[ENMO Plot Debug] dayDataWithNumSorted:', dayDataWithNumSorted);
-                                        }
                                         return (
                                           <Grid item xs={12} key={dayStr}>
                                             <Card variant="outlined" sx={{ p: 2 }}>
@@ -1236,7 +1256,7 @@ function App() {
                                 </Box>
                               ) : key.toLowerCase() === 'm10_start' || key.toLowerCase() === 'l5_start' ? null
                               : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
-                                (() => { console.log('RA key:', key, 'RA value:', value); return null; })() ||
+                                (() => {})() ||
                                 <Box sx={{ width: '100%', height: 200, mt: 2 }}>
                                   <ResponsiveContainer width="100%" height="100%">
                                     <BarChart
@@ -1625,7 +1645,7 @@ function App() {
                             bandStart = null;
                           }
                         }
-                        return (
+    return (
                           <Grid item xs={12} key={dayStr}>
                             <Card variant="outlined" sx={{ p: 2 }}>
                               <Typography variant="subtitle1" gutterBottom align="center">
@@ -1720,7 +1740,7 @@ function App() {
                       })}
                     </Grid>
                   </Box>
-                  <Grid container spacing={2}>
+      <Grid container spacing={2}>
                     {Object.entries(data.features.sleep).map(([key, value]) => (
                       <Grid item xs={12} key={key}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
