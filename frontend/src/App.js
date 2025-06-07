@@ -284,21 +284,79 @@ function App() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [processing, setProcessing] = useState(false);
-  const [data, setData] = useState(() => {
-    const savedData = localStorage.getItem('appData');
-    return savedData ? JSON.parse(savedData) : null;
-  });
+  const [data, setData] = useState(null);  // Initialize as null
   const [processingTime, setProcessingTime] = useState(0);
   const [timerInterval, setTimerInterval] = useState(null);
-  const [dataSource, setDataSource] = useState(() => {
-    return localStorage.getItem('dataSource') || '';
-  });
+  const [dataSource, setDataSource] = useState('');  // Initialize as empty string
   const [chronologicalAge, setChronologicalAge] = useState('');
   const [gender, setGender] = useState('invariant');
   const [predictedAge, setPredictedAge] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
   const [preprocessDialogOpen, setPreprocessDialogOpen] = useState(false);
+
+  // Clear all state on mount
+  useEffect(() => {
+    // Clear localStorage
+    localStorage.clear();
+    
+    // Reset all state
+    setData(null);
+    setDataSource('');
+    setPredictedAge(null);
+    setChronologicalAge('');
+    setGender('invariant');
+    setError(null);
+    setSuccess(null);
+    setProcessing(false);
+    setProcessingTime(0);
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      setTimerInterval(null);
+    }
+  }, []);
+
+  // Check server status periodically
+  useEffect(() => {
+    const checkServerStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/health');
+        if (!response.ok) {
+          console.log('Server not responding, clearing state');
+          localStorage.clear();
+          setData(null);
+          setDataSource('');
+          setPredictedAge(null);
+          setChronologicalAge('');
+          setGender('invariant');
+          setError(null);
+          setSuccess(null);
+          setProcessing(false);
+          setProcessingTime(0);
+        }
+      } catch (error) {
+        console.log('Server not reachable, clearing state');
+        localStorage.clear();
+        setData(null);
+        setDataSource('');
+        setPredictedAge(null);
+        setChronologicalAge('');
+        setGender('invariant');
+        setError(null);
+        setSuccess(null);
+        setProcessing(false);
+        setProcessingTime(0);
+      }
+    };
+
+    // Check immediately
+    checkServerStatus();
+
+    // Then check every 5 seconds
+    const interval = setInterval(checkServerStatus, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Log when component re-renders
   useEffect(() => {
@@ -329,7 +387,7 @@ function App() {
   // Clear localStorage when file is removed
   const clearState = async () => {
     try {
-      // Clear frontend state
+      // Clear frontend state first
       localStorage.removeItem('appData');
       localStorage.removeItem('dataSource');
       localStorage.removeItem('featuresLoaded');
@@ -347,13 +405,17 @@ function App() {
         setTimerInterval(null);
       }
 
-      // Clear backend state if we have a file_id
+      // Try to clear backend state if we have a file_id
       if (data?.file_id) {
-        const response = await fetch(`http://localhost:8000/clear_state/${data.file_id}`, {
-          method: 'POST',
-        });
-        if (!response.ok) {
-          console.error('Failed to clear backend state');
+        try {
+          const response = await fetch(`http://localhost:8000/clear_state/${data.file_id}`, {
+            method: 'POST',
+          });
+          if (!response.ok) {
+            console.log('Backend state already cleared');
+          }
+        } catch (error) {
+          console.log('Backend not reachable or already cleared');
         }
       }
     } catch (error) {

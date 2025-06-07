@@ -36,6 +36,22 @@ app.add_middleware(
 uploaded_data = {}
 temp_dirs = {}  # Store temporary directories
 
+@app.on_event("startup")
+async def startup_event():
+    """
+    Clear all state when the server starts
+    """
+    # Clear in-memory state
+    uploaded_data.clear()
+    temp_dirs.clear()
+    
+    # Clean up extracted files directory
+    if os.path.exists(EXTRACTED_FILES_DIR):
+        shutil.rmtree(EXTRACTED_FILES_DIR)
+        os.makedirs(EXTRACTED_FILES_DIR, exist_ok=True)
+    
+    logger.info("Server started - all state cleared")
+
 def create_directory_tree(path: str) -> Dict[str, Any]:
     """Create a tree structure of the directory contents."""
     result = {
