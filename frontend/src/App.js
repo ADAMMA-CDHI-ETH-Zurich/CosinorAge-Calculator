@@ -9,47 +9,30 @@ import {
   CssBaseline,
   ThemeProvider,
   createTheme,
-  useTheme,
   Grid,
   Card,
   CardContent,
-  Divider,
   Button,
   CircularProgress,
-  Alert,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Collapse,
-  IconButton,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
   TextField,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText
+  DialogContentText,
+  IconButton
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import AnalyticsIcon from '@mui/icons-material/Analytics';
-import FolderIcon from '@mui/icons-material/Folder';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import SaveIcon from '@mui/icons-material/Save';
-import { styled } from '@mui/material/styles';
 import UploadIcon from '@mui/icons-material/Upload';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 // Create a modern theme
-const theme = createTheme({
+const appTheme = createTheme({
   palette: {
     primary: {
       main: '#2196f3',
@@ -80,74 +63,6 @@ const theme = createTheme({
     },
   },
 });
-
-const VisuallyHiddenInput = styled('input')`
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  height: 1px;
-  overflow: hidden;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  white-space: nowrap;
-  width: 1px;
-`;
-
-const DirectoryTree = ({ data, onSelect }) => {
-  const [expanded, setExpanded] = useState({});
-
-  const toggleExpand = (path) => {
-    setExpanded(prev => ({
-      ...prev,
-      [path]: !prev[path]
-    }));
-  };
-
-  const renderTree = (node, path = '') => {
-    const currentPath = path ? `${path}/${node.name}` : node.name;
-    
-    if (node.type === 'file') {
-      return (
-        <ListItem
-          key={currentPath}
-          sx={{ pl: path.split('/').length * 2 }}
-        >
-          <ListItemIcon>
-            <InsertDriveFileIcon />
-          </ListItemIcon>
-          <ListItemText primary={node.name} />
-        </ListItem>
-      );
-    }
-
-    return (
-      <React.Fragment key={currentPath}>
-        <ListItem
-          sx={{ pl: path.split('/').length * 2 }}
-        >
-          <ListItemIcon>
-            <FolderIcon />
-          </ListItemIcon>
-          <ListItemText primary={node.name} />
-          <IconButton onClick={() => toggleExpand(currentPath)}>
-            {expanded[currentPath] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </IconButton>
-        </ListItem>
-        <Collapse in={expanded[currentPath]} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {node.children.map(child => renderTree(child, currentPath))}
-          </List>
-        </Collapse>
-      </React.Fragment>
-    );
-  };
-
-  return (
-    <List>
-      {renderTree(data)}
-    </List>
-  );
-};
 
 // Descriptions for each section
 const metricDescriptions = {
@@ -366,18 +281,13 @@ function getDateForIndex(key, index, data) {
 }
 
 function App() {
-  const [file, setFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [directoryTree, setDirectoryTree] = useState(null);
-  const [selectedDirectory, setSelectedDirectory] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [data, setData] = useState(() => {
     const savedData = localStorage.getItem('appData');
     return savedData ? JSON.parse(savedData) : null;
   });
-  const [extracting, setExtracting] = useState(false);
   const [processingTime, setProcessingTime] = useState(0);
   const [timerInterval, setTimerInterval] = useState(null);
   const [dataSource, setDataSource] = useState(() => {
@@ -386,7 +296,6 @@ function App() {
   const [chronologicalAge, setChronologicalAge] = useState('');
   const [gender, setGender] = useState('invariant');
   const [predictedAge, setPredictedAge] = useState(null);
-  const theme = useTheme();
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
   const [preprocessDialogOpen, setPreprocessDialogOpen] = useState(false);
@@ -416,8 +325,6 @@ function App() {
       setGender('invariant');
       setError(null);
       setSuccess(null);
-      setDirectoryTree(null);
-      setSelectedDirectory(null);
       setProcessing(false);
       setProcessingTime(0);
       if (timerInterval) {
@@ -618,7 +525,7 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: 'background.default' }}>
         <AppBar position="static" elevation={0}>
@@ -1125,12 +1032,6 @@ function App() {
                                         const m10Start = data.features.nonparam.M10_start?.[dayIndex];
                                         const l5Start = data.features.nonparam.L5_start?.[dayIndex];
                                         if (!m10Start || !l5Start) return null;
-                                        const m10StartDate = m10Start && m10Start.includes('T')
-                                          ? new Date(m10Start)
-                                          : new Date(`${dayStr}T${m10Start}`);
-                                        const l5StartDate = l5Start && l5Start.includes('T')
-                                          ? new Date(l5Start)
-                                          : new Date(`${dayStr}T${l5Start}`);
                                         // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
                                         const dayDataWithNum = dayData.map(item => {
                                           const globalIndex = data.data.findIndex(d => d.TIMESTAMP === item.TIMESTAMP);
@@ -1147,10 +1048,14 @@ function App() {
                                         });
                                         const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
                                         // Check if m10StartDate and l5StartDate are valid
-                                        const m10StartValid = m10StartDate instanceof Date && !isNaN(m10StartDate);
-                                        const l5StartValid = l5StartDate instanceof Date && !isNaN(l5StartDate);
-                                        console.log('[ENMO Plot Debug] Day:', dayStr, 'M10 Start:', m10Start, 'M10 Date:', m10StartDate, 'M10 ms:', m10StartDate.getTime());
-                                        console.log('[ENMO Plot Debug] Day:', dayStr, 'L5 Start:', l5Start, 'L5 Date:', l5StartDate, 'L5 ms:', l5StartDate.getTime());
+                                        const m10StartDate = m10Start && m10Start.includes('T')
+                                          ? new Date(m10Start)
+                                          : new Date(`${dayStr}T${m10Start}`);
+                                        const l5StartDate = l5Start && l5Start.includes('T')
+                                          ? new Date(l5Start)
+                                          : new Date(`${dayStr}T${l5Start}`);
+                                        console.log('[ENMO Plot Debug] Day:', dayStr, 'M10 Start:', m10Start, 'M10 Date:', m10StartDate);
+                                        console.log('[ENMO Plot Debug] Day:', dayStr, 'L5 Start:', l5Start, 'L5 Date:', l5StartDate);
                                         if (dayIndex === 0) {
                                           console.log('[ENMO Plot Debug] dayDataWithNumSorted:', dayDataWithNumSorted);
                                         }
