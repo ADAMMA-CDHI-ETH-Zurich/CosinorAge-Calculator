@@ -155,7 +155,7 @@ const metricDescriptions = {
   },
   iv: {
     title: 'Intradaily Variability (IV)',
-    description: 'A measure of fragmentation of activity within a day. It is greater than 0 - values close to 0 reflect a smooth pattern whereas greater values indicate more transitions between rest and activity. Vlaues below 2 are considered as being acceptable.'
+    description: 'A measure of fragmentation of activity within a day. It is greater than 0 - values close to 0 reflect a smooth pattern whereas greater values indicate more transitions between rest and activity. Values below 2 are considered as being acceptable.'
   },
   ra: {
     title: 'Relative Amplitude (RA)',
@@ -248,9 +248,6 @@ function HorizontalScale({ value, min, max, color = '#1976d2', label }) {
   // Clamp value to [min, max]
   const clamped = Math.max(min, Math.min(max, value));
   const percent = ((clamped - min) / (max - min)) * 100;
-  // For IV, add a red marker at value 2
-  const showRedMarker = label === 'Intradaily Variability (IV)';
-  const markerLinePercent = showRedMarker ? ((2 - min) / (max - min)) * 100 : null;
   return (
     <Box sx={{ width: '100%', mt: 2, mb: 2 }}>
       {label && (
@@ -268,19 +265,6 @@ function HorizontalScale({ value, min, max, color = '#1976d2', label }) {
         }}>
           <Typography variant="body2" sx={{ fontWeight: 700 }}>{clamped.toFixed(2)}</Typography>
         </Box>
-        {/* Red marker line for IV at value 2 */}
-        {showRedMarker && (
-          <Box sx={{
-            position: 'absolute',
-            top: 16,
-            left: `calc(${markerLinePercent}% - 2px)`,
-            width: 4,
-            height: 32,
-            bgcolor: 'red',
-            zIndex: 3,
-            borderRadius: 1,
-          }} />
-        )}
         {/* Horizontal line */}
         <Box sx={{ position: 'absolute', top: 32, left: 0, right: 0, height: 4, bgcolor: '#ccc', borderRadius: 2 }} />
         {/* Marker */}
@@ -1147,7 +1131,11 @@ function App() {
                         <Grid item xs={12} key={key}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Typography variant="subtitle2" color="text.secondary">
-                              {key === 'RA' ? 'Relative Amplitude (RA)' : key === 'M10' || key === 'L5' ? 'L5 & M10' : key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              {key === 'RA' ? 'Relative Amplitude (RA)' : 
+                               key === 'M10' || key === 'L5' ? 'L5 & M10' : 
+                               key === 'IV' ? 'Intradaily Variability (IV)' :
+                               key === 'IS' ? 'Interdaily Stability (IS)' :
+                               key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                             </Typography>
                             <SectionInfoButton metric={key} />
                           </Box>
@@ -1156,9 +1144,8 @@ function App() {
                             <HorizontalScale
                               value={value}
                               min={key.toLowerCase() === 'is' ? 0 : 0}
-                              max={key.toLowerCase() === 'is' ? 1 : 3}
+                              max={key.toLowerCase() === 'is' ? 1 : 2}
                               color={key.toLowerCase() === 'is' ? '#1976d2' : '#388e3c'}
-                              label={key.toLowerCase() === 'is' ? 'IS Value' : 'Intradaily Variability (IV)'}
                             />
                           ) : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
                             <Box sx={{ width: '100%', height: 200, mt: 2 }}>
