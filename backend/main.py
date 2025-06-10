@@ -378,10 +378,27 @@ async def predict_age(file_id: str, request: AgePredictionRequest):
 @app.post("/clear_state/{file_id}")
 async def clear_state(file_id: str):
     """
-    Clear state for a specific file_id
+    Clear state for a specific file_id or all files if file_id is 'all'
     """
     try:
-        if file_id in uploaded_data:
+        if file_id == "all":
+            # Clean up all temporary directories
+            for temp_dir in temp_dirs.values():
+                if os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+            temp_dirs.clear()
+            
+            # Clean up all permanent directories
+            for file_data in uploaded_data.values():
+                if "permanent_dir" in file_data and os.path.exists(file_data["permanent_dir"]):
+                    shutil.rmtree(file_data["permanent_dir"])
+            
+            # Clear all uploaded data
+            uploaded_data.clear()
+            
+            logger.info("Cleared all state")
+            return {"message": "All state cleared successfully"}
+        elif file_id in uploaded_data:
             # Clean up any temporary directories
             if file_id in temp_dirs and os.path.exists(temp_dirs[file_id]):
                 shutil.rmtree(temp_dirs[file_id])
@@ -398,7 +415,9 @@ async def clear_state(file_id: str):
             logger.info(f"Cleared state for file_id: {file_id}")
             return {"message": "State cleared successfully"}
         else:
-            raise HTTPException(status_code=404, detail="File not found")
+            # Instead of raising an error, just return success if the file doesn't exist
+            logger.info(f"File {file_id} not found, but clearing state anyway")
+            return {"message": "State cleared successfully"}
     except Exception as e:
         logger.error(f"Error clearing state: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e)) 

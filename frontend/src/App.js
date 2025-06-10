@@ -700,9 +700,10 @@ function App() {
               CosinorLab
             </Typography>
             <Box
-              component="img"
-              src={logo}
-              alt="Logo"
+              component="a"
+              href="https://ethz.ch"
+              target="_blank"
+              rel="noopener noreferrer"
               sx={{
                 height: 40,
                 marginRight: 2,
@@ -713,7 +714,14 @@ function App() {
                   opacity: 1,
                 }
               }}
-            />
+            >
+              <Box
+                component="img"
+                src={logo}
+                alt="Logo"
+                sx={{ height: 40 }}
+              />
+            </Box>
             {data && (
               <Button 
                 color="inherit" 
