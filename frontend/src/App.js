@@ -23,7 +23,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  IconButton
+  IconButton,
+  LinearProgress
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -145,7 +146,7 @@ const metricDescriptions = {
   },
   acrophase_time: {
     title: 'Acrophase Time',
-    description: 'The time of day (in minutes) when the peak of the fitted cosine curve occurs.'
+    description: 'The time of day (in HH:MM format) when the peak of the fitted cosine curve occurs.'
   },
   // Nonparametric
   is: {
@@ -200,7 +201,7 @@ const metricDescriptions = {
   // Sleep
   tst: {
     title: 'Total Sleep Time (TST)',
-    description: 'Total hours of sleep obtained per night.'
+    description: 'Total minutes of sleep obtained per night.'
   },
   waso: {
     title: 'Wake After Sleep Onset (WASO)',
@@ -345,38 +346,47 @@ function getDateForIndex(key, index, data) {
 }
 
 function App() {
+  const [data, setData] = useState(() => {
+    const savedData = localStorage.getItem('cosinorData');
+    return savedData ? JSON.parse(savedData) : null;
+  });
+  const [dataSource, setDataSource] = useState(() => localStorage.getItem('dataSource') || '');
+  const [predictedAge, setPredictedAge] = useState(() => {
+    const savedAge = localStorage.getItem('predictedAge');
+    return savedAge ? parseFloat(savedAge) : null;
+  });
+  const [chronologicalAge, setChronologicalAge] = useState(() => localStorage.getItem('chronologicalAge') || '');
+  const [gender, setGender] = useState(() => localStorage.getItem('gender') || 'invariant');
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [processing, setProcessing] = useState(false);
-  const [data, setData] = useState(null);  // Initialize as null
   const [processingTime, setProcessingTime] = useState(0);
   const [timerInterval, setTimerInterval] = useState(null);
-  const [dataSource, setDataSource] = useState('');  // Initialize as empty string
-  const [chronologicalAge, setChronologicalAge] = useState('');
-  const [gender, setGender] = useState('invariant');
-  const [predictedAge, setPredictedAge] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
   const [preprocessDialogOpen, setPreprocessDialogOpen] = useState(false);
 
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    if (data) {
+      localStorage.setItem('cosinorData', JSON.stringify(data));
+    }
+    localStorage.setItem('dataSource', dataSource);
+    if (predictedAge !== null) {
+      localStorage.setItem('predictedAge', predictedAge.toString());
+    }
+    localStorage.setItem('chronologicalAge', chronologicalAge);
+    localStorage.setItem('gender', gender);
+  }, [data, dataSource, predictedAge, chronologicalAge, gender]);
+
   // Clear all state on mount
   useEffect(() => {
-    // Clear localStorage
-    localStorage.clear();
-    
-    // Reset all state
-    setData(null);
-    setDataSource('');
-    setPredictedAge(null);
-    setChronologicalAge('');
-    setGender('invariant');
-    setError(null);
-    setSuccess(null);
-    setProcessing(false);
-    setProcessingTime(0);
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      setTimerInterval(null);
+    // Only clear if explicitly requested
+    const shouldClear = localStorage.getItem('shouldClear');
+    if (shouldClear === 'true') {
+      localStorage.clear();
+      localStorage.setItem('shouldClear', 'false');
     }
   }, []);
 
@@ -387,7 +397,7 @@ function App() {
         const response = await fetch('http://localhost:8000/health');
         if (!response.ok) {
           console.log('Server not responding, clearing state');
-          localStorage.clear();
+          localStorage.setItem('shouldClear', 'true');
           setData(null);
           setDataSource('');
           setPredictedAge(null);
@@ -399,26 +409,11 @@ function App() {
           setProcessingTime(0);
         }
       } catch (error) {
-        console.log('Server not reachable, clearing state');
-        localStorage.clear();
-        setData(null);
-        setDataSource('');
-        setPredictedAge(null);
-        setChronologicalAge('');
-        setGender('invariant');
-        setError(null);
-        setSuccess(null);
-        setProcessing(false);
-        setProcessingTime(0);
+        console.error('Error checking server status:', error);
       }
     };
 
-    // Check immediately
-    checkServerStatus();
-
-    // Then check every 5 seconds
     const interval = setInterval(checkServerStatus, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -436,25 +431,19 @@ function App() {
     }
   }, [data?.features]);
 
-  // Save data to localStorage whenever it changes
-  useEffect(() => {
-    if (data) {
-      localStorage.setItem('appData', JSON.stringify(data));
-    }
-  }, [data]);
-
-  // Save dataSource to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('dataSource', dataSource);
-  }, [dataSource]);
-
-  // Clear localStorage when file is removed
   const clearState = async () => {
     try {
-      // Clear frontend state first
-      localStorage.removeItem('appData');
-      localStorage.removeItem('dataSource');
-      localStorage.removeItem('featuresLoaded');
+      if (data?.file_id) {
+        const response = await fetch(`http://localhost:8000/clear_state/${data.file_id}`, {
+          method: 'POST'
+        });
+        if (!response.ok) {
+          throw new Error('Failed to clear server state');
+        }
+      }
+      
+      // Clear all state
+      localStorage.setItem('shouldClear', 'true');
       setData(null);
       setDataSource('');
       setPredictedAge(null);
@@ -468,22 +457,9 @@ function App() {
         clearInterval(timerInterval);
         setTimerInterval(null);
       }
-
-      // Try to clear backend state if we have a file_id
-      if (data?.file_id) {
-        try {
-          const response = await fetch(`http://localhost:8000/clear_state/${data.file_id}`, {
-            method: 'POST',
-          });
-          if (!response.ok) {
-            console.log('Backend state already cleared');
-          }
-        } catch (error) {
-          console.log('Backend not reachable or already cleared');
-        }
-      }
     } catch (error) {
       console.error('Error clearing state:', error);
+      setError('Failed to clear state. Please try again.');
     }
   };
 
@@ -534,26 +510,42 @@ function App() {
     setError(null);
     setSuccess(null);
     setData(null);
+    setUploadProgress(0);
 
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:8000/upload', {
-        method: 'POST',
-        body: formData,
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = (event.loaded / event.total) * 100;
+          setUploadProgress(progress);
+        }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to upload file');
-      }
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const result = JSON.parse(xhr.responseText);
+          setData(result);
+          setSuccess('File uploaded successfully. Click "Process Data" to continue.');
+          setUploadProgress(100);
+        } else {
+          const errorData = JSON.parse(xhr.responseText);
+          throw new Error(errorData.detail || 'Failed to upload file');
+        }
+      });
 
-      const result = await response.json();
-      setData(result);
-      setSuccess('File uploaded successfully. Click "Process Data" to continue.');
+      xhr.addEventListener('error', () => {
+        throw new Error('Network error occurred during upload');
+      });
+
+      xhr.open('POST', 'http://localhost:8000/upload');
+      xhr.send(formData);
     } catch (err) {
       setError(err.message);
+      setUploadProgress(0);
     }
   };
 
@@ -598,6 +590,10 @@ function App() {
       }
 
       const processResult = await processResponse.json();
+      
+      // Debug logging
+      console.log('Processed data:', processResult);
+      console.log('Non-parametric features:', processResult.features?.nonparam);
       
       // Update state with both extract and process results
       setData(prev => ({ 
@@ -701,7 +697,7 @@ function App() {
                 alignItems: 'center'
               }}
             >
-              CosinorAge UI
+              CosinorLab
             </Typography>
             <Box
               component="img"
@@ -795,6 +791,14 @@ function App() {
                         ref={fileInputRef}
                       />
                     </Button>
+                    {uploadProgress > 0 && uploadProgress < 100 && (
+                      <Box sx={{ width: '100%', mt: 2 }}>
+                        <LinearProgress variant="determinate" value={uploadProgress} />
+                        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+                          Uploading: {Math.round(uploadProgress)}%
+                        </Typography>
+                      </Box>
+                    )}
                     {data?.file_id && (
                       <Typography 
                         variant="body2" 
@@ -1091,10 +1095,15 @@ function App() {
                           <SectionInfoButton metric={key} />
                         </Box>
                         <Typography variant="body1" noWrap>
-                          {typeof value === 'number' ? value.toFixed(4) : value}
+                          {typeof value === 'number' ? 
+                            key === 'acrophase_time' ? (() => {
+                              const minutes = value;
+                              const hours = Math.floor(minutes / 60);
+                              const mins = Math.round(minutes % 60);
+                              return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+                            })() : value.toFixed(4) : value}
                           {key === 'mesor' || key === 'amplitude' ? ' mg' : 
-                            key === 'acrophase' ? ' radians' :
-                            key === 'acrophase_time' ? ' minutes' : ''}
+                            key === 'acrophase' ? ' radians' : ''}
                         </Typography>
                       </Grid>
                     ))}
@@ -1112,12 +1121,25 @@ function App() {
                     <SectionInfoButton section="nonparam" />
                   </Box>
                   <Grid container spacing={2}>
-                    {Object.entries(data.features.nonparam).map(([key, value]) => (
+                    {Object.entries(data.features.nonparam)
+                      .sort(([keyA], [keyB]) => {
+                        // Define the desired order
+                        const order = {
+                          'is': 1,
+                          'iv': 2,
+                          'm10': 3,
+                          'ra': 4
+                        };
+                        const orderA = order[keyA.toLowerCase()] || 5;
+                        const orderB = order[keyB.toLowerCase()] || 5;
+                        return orderA - orderB;
+                      })
+                      .map(([key, value]) => (
                       ['l5', 'm10_start', 'l5_start'].includes(key.toLowerCase()) ? null : (
                         <Grid item xs={12} key={key}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Typography variant="subtitle2" color="text.secondary">
-                              {key === 'M10' ? 'L5 & M10' : key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              {key === 'RA' ? 'Relative Amplitude (RA)' : key === 'M10' || key === 'L5' ? 'L5 & M10' : key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                             </Typography>
                             <SectionInfoButton metric={key} />
                           </Box>
@@ -1130,531 +1152,348 @@ function App() {
                               color={key.toLowerCase() === 'is' ? '#1976d2' : '#388e3c'}
                               label={key.toLowerCase() === 'is' ? 'IS Value' : 'Intradaily Variability (IV)'}
                             />
-                          ) : Array.isArray(value) ? (
-                            <>
-                              {key === 'M10' && data.features.nonparam.M10 && data.features.nonparam.L5 ? (
-                                <>
-                                  <Box sx={{ width: '100%', height: 300, mt: 2 }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                      <BarChart
-                                        data={data.features.nonparam.M10.map((m10, index) => ({
-                                          day: getDateForIndex('M10', index, data),
-                                          M10: m10,
-                                          L5: data.features.nonparam.L5[index]
-                                        }))}
-                                        margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                      >
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="day" />
-                                        <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
-                                        <RechartsTooltip 
-                                          content={({ active, payload, label }) => {
-                                            if (active && payload && payload.length) {
-                                              return (
-                                                <div style={{ 
-                                                  backgroundColor: 'white', 
-                                                  padding: '10px', 
-                                                  border: '1px solid #ccc',
-                                                  borderRadius: '4px'
-                                                }}>
-                                                  <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                                  {payload.map((entry, index) => {
-                                                    let value = entry.value;
-                                                    let unit = '';
-                                                    if (entry.name === 'TST') {
-                                                      value = value.toFixed(1);
-                                                      unit = ' hours';
-                                                    } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                      value = value.toFixed(0);
-                                                      unit = ' minutes';
-                                                    } else if (entry.name === 'PTA') {
-                                                      value = value.toFixed(1);
-                                                      unit = '%';
-                                                    } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                      value = value.toFixed(2);
-                                                      unit = ' mg';
-                                                    } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                      value = value.toFixed(0);
-                                                      unit = ' minutes';
-                                                    }
-                                                    return (
-                                                      <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                        {`${entry.name}: ${value}${unit}`}
-                                                      </p>
-                                                    );
-                                                  })}
-                                                </div>
-                                              );
-                                            }
-                                            return null;
-                                          }}
-                                        />
-                                        <Legend />
-                                        <Bar dataKey="M10" fill="#8884d8" name="M10" />
-                                        <Bar dataKey="L5" fill="#82ca9d" name="L5" />
-                                      </BarChart>
-                                    </ResponsiveContainer>
-                                  </Box>
-                                  {/* Daily ENMO Time Series with M10 and L5 Periods */}
-                                  <Box sx={{ mt: 4 }}>
-                                    <Typography variant="subtitle2" gutterBottom>
-                                      Daily ENMO Time Series with M10 and L5 Periods
-                                    </Typography>
-                                    <Grid container spacing={3}>
-                                      {Array.from(new Set(data.data.map(item => {
-                                        const date = new Date(item.TIMESTAMP);
-                                        return date.toLocaleDateString('en-CA');
-                                      }))).map((dayStr, dayIndex) => {
-                                        const dayData = data.data.filter(item => {
-                                          const date = new Date(item.TIMESTAMP);
-                                          return date.toLocaleDateString('en-CA') === dayStr;
-                                        });
-                                        if (dayData.length === 0) return null;
-                                        const m10Start = data.features.nonparam.M10_start?.[dayIndex];
-                                        const l5Start = data.features.nonparam.L5_start?.[dayIndex];
-                                        if (!m10Start || !l5Start) return null;
-                                        // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
-                                        const dayDataWithNum = dayData.map(item => {
-                                          const globalIndex = data.data.findIndex(d => d.TIMESTAMP === item.TIMESTAMP);
-                                          const globalData = globalIndex !== -1 ? data.data[globalIndex] : null;
-                                          return {
-      ...item,
-      timestampNum: new Date(item.TIMESTAMP).getTime(),
-                                            cosinor_fitted: globalData ? globalData.cosinor_fitted : null
-                                          };
-                                        });
-                                        const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
-                                        // Check if m10StartDate and l5StartDate are valid
-                                        const m10StartDate = m10Start && m10Start.includes('T')
-                                          ? new Date(m10Start)
-                                          : new Date(`${dayStr}T${m10Start}`);
-                                        const l5StartDate = l5Start && l5Start.includes('T')
-                                          ? new Date(l5Start)
-                                          : new Date(`${dayStr}T${l5Start}`);
+                          ) : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
+                            <Box sx={{ width: '100%', height: 200, mt: 2 }}>
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                  data={value.map((v, index) => ({
+                                    day: getDateForIndex('RA', index, data),
+                                    RA: v
+                                  }))}
+                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                >
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="day" />
+                                  <YAxis label={{ value: 'RA', angle: -90, position: 'insideLeft' }} />
+                                  <RechartsTooltip 
+                                    content={({ active, payload, label }) => {
+                                      if (active && payload && payload.length) {
                                         return (
-                                          <Grid item xs={12} key={dayStr}>
-                                            <Card variant="outlined" sx={{ p: 2 }}>
-                                              <Typography variant="subtitle1" gutterBottom align="center">
-                                                {dayStr}
-                                              </Typography>
-                                              <ResponsiveContainer width="100%" height={300}>
-                                                <LineChart
-                                                  data={dayDataWithNumSorted}
-                                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                                >
-                                                  <CartesianGrid strokeDasharray="3 3" />
-                                                  <XAxis
-                                                    dataKey="timestampNum"
-                                                    type="number"
-                                                    domain={['dataMin', 'dataMax']}
-                                                    tickFormatter={(timestampNum) => {
-                                                      const date = new Date(timestampNum);
-                                                      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                                    }}
-                                                  />
-                                                  <YAxis 
-                                                    yAxisId="left"
-                                                    label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} 
-                                                  />
-                                                  <YAxis 
-                                                    yAxisId="right"
-                                                    orientation="right"
-                                                    label={{ value: 'Cosinor Fit (mg)', angle: 90, position: 'insideRight' }} 
-                                                  />                                                          <RechartsTooltip
-                                                    content={({ active, payload, label }) => {
-                                                      if (active && payload && payload.length) {
-                                                        return (
-                                                          <div style={{ 
-                                                            backgroundColor: 'white',
-                                                            padding: '10px', 
-                                                            border: '1px solid #ccc',
-                                                            borderRadius: '4px'
-                                                          }}>
-                                                            <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
-                                                            {payload.map((entry, index) => {
-                                                              let value = entry.value;
-                                                              let unit = '';
-                                                              if (entry.name === 'TST') {
-                                                                value = value.toFixed(1);
-                                                                unit = ' hours';
-                                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                                value = value.toFixed(0);
-                                                                unit = ' minutes';
-                                                              } else if (entry.name === 'PTA') {
-                                                                value = value.toFixed(1);
-                                                                unit = '%';
-                                                              } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                                value = value.toFixed(2);
-                                                                unit = ' mg';
-                                                              } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                                value = value.toFixed(0);
-                                                                unit = ' minutes';
-                                                              }
-                                                              return (
-                                                                <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                                  {`${entry.name}: ${value}${unit}`}
-                                                                </p>
-                                                              );
-                                                            })}
-                                                          </div>
-                                                        );
-                                                      }
-                                                      return null;
-                                                    }}
-                                                  />
-                                                  <Legend />
-                                                  <Line
-                                                    type="monotone"
-                                                    dataKey="ENMO"
-                                                    stroke="#8884d8"
-                                                    dot={false}
-                                                    isAnimationActive={false}
-                                                    yAxisId="left"
-                                                  />
-                                                  <Line
-                                                    type="monotone"
-                                                    dataKey="cosinor_fitted"
-                                                    stroke="#ff0000"
-                                                    dot={false}
-                                                    isAnimationActive={false}
-                                                    name="Cosinor Fit"
-                                                    yAxisId="left"
-                                                  />
-                                                  {/* M10 Period Band */}
-                                                  <ReferenceArea
-                                                    x1={m10StartDate.getTime()}
-                                                    x2={new Date(m10StartDate.getTime() + 10 * 60 * 60 * 1000).getTime()}
-                                                    fill="#8884d8"
-                                                    fillOpacity={0.1}
-                                                    label="M10"
-                                                    yAxisId="left"
-                                                  />
-                                                  {/* L5 Period Band */}
-                                                  <ReferenceArea
-                                                    x1={l5StartDate.getTime()}
-                                                    x2={new Date(l5StartDate.getTime() + 5 * 60 * 60 * 1000).getTime()}
-                                                    fill="#82ca9d"
-                                                    fillOpacity={0.1}
-                                                    label="L5"
-                                                    yAxisId="left"
-                                                  />
-                                                </LineChart>
-                                              </ResponsiveContainer>
-                                            </Card>
-                                          </Grid>
+                                          <div style={{ 
+                                            backgroundColor: 'white', 
+                                            padding: '10px', 
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px'
+                                          }}>
+                                            <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                            {payload.map((entry, index) => {
+                                              let value = entry.value;
+                                              let unit = '';
+                                              if (entry.name === 'TST') {
+                                                value = Math.round(value).toFixed(0);
+                                                unit = ' minutes';
+                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                value = value.toFixed(0);
+                                                unit = ' minutes';
+                                              } else if (entry.name === 'PTA') {
+                                                value = value.toFixed(1);
+                                                unit = '%';
+                                              } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                value = value.toFixed(2);
+                                                unit = ' mg';
+                                              }
+                                              return (
+                                                <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                  {`${entry.name}: ${value}${unit}`}
+                                                </p>
+                                              );
+                                            })}
+                                          </div>
                                         );
-                                      })}
-                                    </Grid>
-                                  </Box>
-                                </>
-                              ) : (['is', 'iv'].includes(key.toLowerCase())) ? (
-                                <Box sx={{ width: '100%', height: 200, mt: 2 }}>
-                                  <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart
-                                      data={value.map((v, index) => ({
-                                        day: getDateForIndex(key, index, data),
-                                        [key]: v
-                                      }))}
-                                      margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                    >
-                                      <CartesianGrid strokeDasharray="3 3" />
-                                      <XAxis dataKey="day" />
-                                      <YAxis label={{ value: key.toUpperCase(), angle: -90, position: 'insideLeft' }} />
-                                      <RechartsTooltip 
-                                        content={({ active, payload, label }) => {
-                                          if (active && payload && payload.length) {
-                                            return (
-                                              <div style={{ 
-                                                backgroundColor: 'white', 
-                                                padding: '10px', 
-                                                border: '1px solid #ccc',
-                                                borderRadius: '4px'
-                                              }}>
-                                                <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                                {payload.map((entry, index) => {
-                                                  let value = entry.value;
-                                                  let unit = '';
-                                                  if (entry.name === 'TST') {
-                                                    value = value.toFixed(1);
-                                                    unit = ' hours';
-                                                  } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                    value = value.toFixed(0);
-                                                    unit = ' minutes';
-                                                  } else if (entry.name === 'PTA') {
-                                                    value = value.toFixed(1);
-                                                    unit = '%';
-                                                  } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                    value = value.toFixed(2);
-                                                    unit = ' mg';
-                                                  } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                    value = value.toFixed(0);
-                                                    unit = ' minutes';
-                                                  }
-                                                  return (
-                                                    <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                      {`${entry.name}: ${value}${unit}`}
-                                                    </p>
-                                                  );
-                                                })}
-                                              </div>
-                                            );
-                                          }
-                                          return null;
-                                        }}
-                                      />
-                                      <Bar dataKey={key} fill={key.toLowerCase() === 'is' ? '#8884d8' : '#ffc658'} name={key.toUpperCase()} />
-                                    </BarChart>
-                                  </ResponsiveContainer>
-                                </Box>
-                              ) : key.toLowerCase() === 'm10_start' || key.toLowerCase() === 'l5_start' ? null
-                              : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
-                                (() => {})() ||
-                                <Box sx={{ width: '100%', height: 200, mt: 2 }}>
-                                  <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart
-                                      data={value.map((v, index) => ({
-                                        day: getDateForIndex('RA', index, data),
-                                        RA: v
-                                      }))}
-                                      margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                    >
-                                      <CartesianGrid strokeDasharray="3 3" />
-                                      <XAxis dataKey="day" />
-                                      <YAxis label={{ value: 'RA', angle: -90, position: 'insideLeft' }} />
-                                      <RechartsTooltip 
-                                        content={({ active, payload, label }) => {
-                                          if (active && payload && payload.length) {
-                                            return (
-                                              <div style={{ 
-                                                backgroundColor: 'white', 
-                                                padding: '10px', 
-                                                border: '1px solid #ccc',
-                                                borderRadius: '4px'
-                                              }}>
-                                                <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                                {payload.map((entry, index) => {
-                                                  let value = entry.value;
-                                                  let unit = '';
-                                                  if (entry.name === 'TST') {
-                                                    value = value.toFixed(1);
-                                                    unit = ' hours';
-                                                  } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                    value = value.toFixed(0);
-                                                    unit = ' minutes';
-                                                  } else if (entry.name === 'PTA') {
-                                                    value = value.toFixed(1);
-                                                    unit = '%';
-                                                  } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                    value = value.toFixed(2);
-                                                    unit = ' mg';
-                                                  } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                    value = value.toFixed(0);
-                                                    unit = ' minutes';
-                                                  }
-                                                  return (
-                                                    <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                      {`${entry.name}: ${value}${unit}`}
-                                                    </p>
-                                                  );
-                                                })}
-                                              </div>
-                                            );
-                                          }
-                                          return null;
-                                        }}
-                                      />
-                                      <Bar dataKey="RA" fill="#0088fe" name="RA" />
-                                    </BarChart>
-                                  </ResponsiveContainer>
-                                </Box>
-                              ) : (
-                                value.map((val, index) => (
-                                  <Typography key={index} variant="body2" sx={{ pl: 2 }}>
-                                    {getDateForIndex(key, index, data)}: {typeof val === 'number' ? val.toFixed(4) : val}
-                                  </Typography>
-                                ))
-                              )}
-                            </>
-                          ) : (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              {/* Add bar chart for SRI, IS, IV, RA if present as a summary value */}
-                              {key.toLowerCase() === 'sri' && (
-                                <Box sx={{ width: 120, height: 60 }}>
-                                  <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart
-                                      data={[{ name: key, value: value }]}
-                                      layout="horizontal"
-                                      margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
-                                    >
-                                      <XAxis type="category" dataKey="name" hide />
-                                      <YAxis type="number" domain={[0, 1]} hide />
-                                      <RechartsTooltip 
-                                        content={({ active, payload, label }) => {
-                                          if (active && payload && payload.length) {
-                                            return (
-                                              <div style={{ 
-                                                backgroundColor: 'white', 
-                                                padding: '10px', 
-                                                border: '1px solid #ccc',
-                                                borderRadius: '4px'
-                                              }}>
-                                                <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                                {payload.map((entry, index) => {
-                                                  let value = entry.value;
-                                                  let unit = '';
-                                                  if (entry.name === 'TST') {
-                                                    value = value.toFixed(1);
-                                                    unit = ' hours';
-                                                  } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                    value = value.toFixed(0);
-                                                    unit = ' minutes';
-                                                  } else if (entry.name === 'PTA') {
-                                                    value = value.toFixed(1);
-                                                    unit = '%';
-                                                  } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                    value = value.toFixed(2);
-                                                    unit = ' mg';
-                                                  } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                    value = value.toFixed(0);
-                                                    unit = ' minutes';
-                                                  }
-                                                  return (
-                                                    <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                      {`${entry.name}: ${value}${unit}`}
-                                                    </p>
-                                                  );
-                                                })}
-                                              </div>
-                                            );
-                                          }
-                                          return null;
-                                        }}
-                                      />
-                                      <Bar dataKey="value" fill="#82ca9d" />
-                                    </BarChart>
-                                  </ResponsiveContainer>
-                                </Box>
-                              )}
-                              {key.toLowerCase() === 'is' && (
-                                <Box sx={{ width: 60, height: 120 }}>
-                                  <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart
-                                      data={[{ name: key, value: value }]}
-                                      layout="vertical"
-                                      margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
-                                    >
-                                      <XAxis type="number" domain={[0, 1]} hide />
-                                      <YAxis type="category" dataKey="name" hide />
-                                      <RechartsTooltip 
-                                        content={({ active, payload, label }) => {
-                                          if (active && payload && payload.length) {
-                                            return (
-                                              <div style={{ 
-                                                backgroundColor: 'white', 
-                                                padding: '10px', 
-                                                border: '1px solid #ccc',
-                                                borderRadius: '4px'
-                                              }}>
-                                                <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                                {payload.map((entry, index) => {
-                                                  let value = entry.value;
-                                                  let unit = '';
-                                                  if (entry.name === 'TST') {
-                                                    value = value.toFixed(1);
-                                                    unit = ' hours';
-                                                  } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                    value = value.toFixed(0);
-                                                    unit = ' minutes';
-                                                  } else if (entry.name === 'PTA') {
-                                                    value = value.toFixed(1);
-                                                    unit = '%';
-                                                  } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                    value = value.toFixed(2);
-                                                    unit = ' mg';
-                                                  } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                    value = value.toFixed(0);
-                                                    unit = ' minutes';
-                                                  }
-                                                  return (
-                                                    <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                      {`${entry.name}: ${value}${unit}`}
-                                                    </p>
-                                                  );
-                                                })}
-                                              </div>
-                                            );
-                                          }
-                                          return null;
-                                        }}
-                                      />
-                                      <Bar dataKey="value" fill="#8884d8" />
-                                    </BarChart>
-                                  </ResponsiveContainer>
-                                </Box>
-                              )}
-                              {key.toLowerCase() === 'iv' && (
-                                <Box sx={{ width: 60, height: 120 }}>
-                                  <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart
-                                      data={[{ name: key, value: value }]}
-                                      layout="vertical"
-                                      margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
-                                    >
-                                      <XAxis type="number" domain={[0, 2]} hide />
-                                      <YAxis type="category" dataKey="name" hide />
-                                      <RechartsTooltip 
-                                        content={({ active, payload, label }) => {
-                                          if (active && payload && payload.length) {
-                                            return (
-                                              <div style={{ 
-                                                backgroundColor: 'white', 
-                                                padding: '10px', 
-                                                border: '1px solid #ccc',
-                                                borderRadius: '4px'
-                                              }}>
-                                                <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                                {payload.map((entry, index) => {
-                                                  let value = entry.value;
-                                                  let unit = '';
-                                                  if (entry.name === 'TST') {
-                                                    value = value.toFixed(1);
-                                                    unit = ' hours';
-                                                  } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                    value = value.toFixed(0);
-                                                    unit = ' minutes';
-                                                  } else if (entry.name === 'PTA') {
-                                                    value = value.toFixed(1);
-                                                    unit = '%';
-                                                  } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                    value = value.toFixed(2);
-                                                    unit = ' mg';
-                                                  } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                    value = value.toFixed(0);
-                                                    unit = ' minutes';
-                                                  }
-                                                  return (
-                                                    <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                      {`${entry.name}: ${value}${unit}`}
-                                                    </p>
-                                                  );
-                                                })}
-                                              </div>
-                                            );
-                                          }
-                                          return null;
-                                        }}
-                                      />
-                                      <Bar dataKey="value" fill="#ffc658" />
-                                    </BarChart>
-                                  </ResponsiveContainer>
-                                </Box>
-                              )}
+                                      }
+                                      return null;
+                                    }}
+                                  />
+                                  <Bar dataKey="RA" fill="#0088fe" name="RA" />
+                                </BarChart>
+                              </ResponsiveContainer>
                             </Box>
+                          ) : key === 'M10' && data.features.nonparam.M10 && data.features.nonparam.L5 ? (
+                            <>
+                              <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart
+                                    data={data.features.nonparam.M10.map((m10, index) => ({
+                                      day: getDateForIndex('M10', index, data),
+                                      M10: m10,
+                                      L5: data.features.nonparam.L5[index]
+                                    }))}
+                                    margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="day" />
+                                    <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
+                                    <RechartsTooltip 
+                                      content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                          return (
+                                            <div style={{ 
+                                              backgroundColor: 'white', 
+                                              padding: '10px', 
+                                              border: '1px solid #ccc',
+                                              borderRadius: '4px'
+                                            }}>
+                                              <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                              {payload.map((entry, index) => {
+                                                let value = entry.value;
+                                                let unit = '';
+                                                if (entry.name === 'TST') {
+                                                  value = Math.round(value).toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                  value = value.toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'PTA') {
+                                                  value = value.toFixed(1);
+                                                  unit = '%';
+                                                } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                  value = value.toFixed(2);
+                                                  unit = ' mg';
+                                                } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                  value = value.toFixed(0);
+                                                  unit = ' minutes';
+                                                }
+                                                return (
+                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                    {`${entry.name}: ${value}${unit}`}
+                                                  </p>
+                                                );
+                                              })}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      }}
+                                    />
+                                    <Legend />
+                                    <Bar dataKey="M10" fill="#8884d8" name="M10" />
+                                    <Bar dataKey="L5" fill="#82ca9d" name="L5" />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </Box>
+                            </>
+                          ) : key === 'TST' || key === 'WASO' || key === 'SOL' || key === 'PTA' ? (
+                            <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                  data={value.map((v, index) => ({
+                                    day: getDateForIndex(key, index, data),
+                                    [key]: v
+                                  }))}
+                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                >
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="day" />
+                                  <YAxis label={{ 
+                                    value: key === 'PTA' ? 'Percentage (%)' : key === 'NWB' ? 'Number of Bouts' : 'Minutes', 
+                                    angle: -90, 
+                                    position: 'insideLeft' 
+                                  }} />
+                                  <RechartsTooltip 
+                                    content={({ active, payload, label }) => {
+                                      if (active && payload && payload.length) {
+                                        return (
+                                          <div style={{ 
+                                            backgroundColor: 'white', 
+                                            padding: '10px', 
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px'
+                                          }}>
+                                            <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                            {payload.map((entry, index) => {
+                                              let value = entry.value;
+                                              let unit = '';
+                                              if (entry.name === 'TST') {
+                                                value = Math.round(value).toFixed(0);
+                                                unit = ' minutes';
+                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                value = value.toFixed(0);
+                                                unit = ' minutes';
+                                              } else if (entry.name === 'PTA') {
+                                                value = value.toFixed(1);
+                                                unit = '%';
+                                              } else if (entry.name === 'NWB') {
+                                                value = value.toFixed(0);
+                                                unit = ' bouts';
+                                              }
+                                              return (
+                                                <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                  {`${entry.name}: ${value}${unit}`}
+                                                </p>
+                                              );
+                                            })}
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    }}
+                                  />
+                                  <Legend />
+                                  <Bar dataKey={key} fill="#8884d8" name={key} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </Box>
+                          ) : (
+                            <Typography variant="body1">
+                              {Array.isArray(value) ? value.join(', ') : value}
+                            </Typography>
                           )}
                         </Grid>
                       )
                     ))}
                   </Grid>
+                  {/* Daily ENMO Time Series with M10 and L5 Periods */}
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Daily ENMO Time Series with M10 and L5 Periods (incl. multiday Cosinor Fits)
+                    </Typography>
+                    <Grid container spacing={3}>
+                      {Array.from(new Set(data.data.map(item => {
+                        const date = new Date(item.TIMESTAMP);
+                        return date.toLocaleDateString('en-CA');
+                      }))).map((dayStr, dayIndex) => {
+                        const dayData = data.data.filter(item => {
+                          const date = new Date(item.TIMESTAMP);
+                          return date.toLocaleDateString('en-CA') === dayStr;
+                        });
+                        if (dayData.length === 0) return null;
+                        const m10Start = data.features.nonparam.M10_start?.[dayIndex];
+                        const l5Start = data.features.nonparam.L5_start?.[dayIndex];
+                        if (!m10Start || !l5Start) return null;
+                        // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
+                        const dayDataWithNum = dayData.map(item => {
+                          const globalIndex = data.data.findIndex(d => d.TIMESTAMP === item.TIMESTAMP);
+                          const globalData = globalIndex !== -1 ? data.data[globalIndex] : null;
+                          return {
+                            ...item,
+                            timestampNum: new Date(item.TIMESTAMP).getTime(),
+                            cosinor_fitted: globalData ? globalData.cosinor_fitted : null
+                          };
+                        });
+                        const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
+                        // Check if m10StartDate and l5StartDate are valid
+                        const m10StartDate = m10Start && m10Start.includes('T')
+                          ? new Date(m10Start)
+                          : new Date(`${dayStr}T${m10Start}`);
+                        const l5StartDate = l5Start && l5Start.includes('T')
+                          ? new Date(l5Start)
+                          : new Date(`${dayStr}T${l5Start}`);
+                        return (
+                          <Grid item xs={12} key={dayStr}>
+                            <Card variant="outlined" sx={{ p: 2 }}>
+                              <Typography variant="subtitle1" gutterBottom align="center">
+                                {dayStr}
+                              </Typography>
+                              <ResponsiveContainer width="100%" height={300}>
+                                <LineChart
+                                  data={dayDataWithNumSorted}
+                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                >
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis
+                                    dataKey="timestampNum"
+                                    type="number"
+                                    domain={['dataMin', 'dataMax']}
+                                    tickFormatter={(timestampNum) => {
+                                      const date = new Date(timestampNum);
+                                      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                    }}
+                                  />
+                                  <YAxis 
+                                    yAxisId="left"
+                                    label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} 
+                                  />
+                                  <YAxis 
+                                    yAxisId="right"
+                                    orientation="right"
+                                    label={{ value: 'Cosinor Fit (mg)', angle: 90, position: 'insideRight' }} 
+                                  />
+                                  <RechartsTooltip
+                                    content={({ active, payload, label }) => {
+                                      if (active && payload && payload.length) {
+                                        return (
+                                          <div style={{ 
+                                            backgroundColor: 'white',
+                                            padding: '10px', 
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px'
+                                          }}>
+                                            <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                            {payload.map((entry, index) => {
+                                              let value = entry.value;
+                                              let unit = '';
+                                              if (entry.name === 'TST') {
+                                                value = Math.round(value).toFixed(0);
+                                                unit = ' minutes';
+                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                value = value.toFixed(0);
+                                                unit = ' minutes';
+                                              } else if (entry.name === 'PTA') {
+                                                value = value.toFixed(1);
+                                                unit = '%';
+                                              } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                value = value.toFixed(2);
+                                                unit = ' mg';
+                                              } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                value = value.toFixed(0);
+                                                unit = ' minutes';
+                                              }
+                                              return (
+                                                <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                  {`${entry.name}: ${value}${unit}`}
+                                                </p>
+                                              );
+                                            })}
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    }}
+                                  />
+                                  <Legend />
+                                  <Line
+                                    type="monotone"
+                                    dataKey="ENMO"
+                                    stroke="#8884d8"
+                                    dot={false}
+                                    isAnimationActive={false}
+                                    yAxisId="left"
+                                  />
+                                  <Line
+                                    type="monotone"
+                                    dataKey="cosinor_fitted"
+                                    stroke="#ff0000"
+                                    dot={false}
+                                    isAnimationActive={false}
+                                    name="Cosinor Fit"
+                                    yAxisId="left"
+                                  />
+                                  {/* M10 Period Band */}
+                                  <ReferenceArea
+                                    x1={m10StartDate.getTime()}
+                                    x2={new Date(m10StartDate.getTime() + 10 * 60 * 60 * 1000).getTime()}
+                                    fill="#8884d8"
+                                    fillOpacity={0.1}
+                                    label="M10"
+                                    yAxisId="left"
+                                  />
+                                  {/* L5 Period Band */}
+                                  <ReferenceArea
+                                    x1={l5StartDate.getTime()}
+                                    x2={new Date(l5StartDate.getTime() + 5 * 60 * 60 * 1000).getTime()}
+                                    fill="#82ca9d"
+                                    fillOpacity={0.1}
+                                    label="L5"
+                                    yAxisId="left"
+                                  />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </Card>
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
+                  </Box>
                 </Card>
               </Grid>
             )}
@@ -1708,20 +1547,14 @@ function App() {
                                         let value = entry.value;
                                         let unit = '';
                                         if (entry.name === 'TST') {
-                                          value = value.toFixed(1);
-                                          unit = ' hours';
+                                          value = Math.round(value).toFixed(0);
+                                          unit = ' minutes';
                                         } else if (entry.name === 'WASO' || entry.name === 'SOL') {
                                           value = value.toFixed(0);
                                           unit = ' minutes';
                                         } else if (entry.name === 'PTA') {
                                           value = value.toFixed(1);
                                           unit = '%';
-                                        } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                          value = value.toFixed(2);
-                                          unit = ' mg';
-                                        } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                          value = value.toFixed(0);
-                                          unit = ' minutes';
                                         }
                                         return (
                                           <p key={index} style={{ margin: '0', color: entry.color }}>
@@ -1749,7 +1582,7 @@ function App() {
               </Grid>
             )}
 
-            {data?.features && data.features.sleep && (
+            {data?.features && data.features.nonparam && (
               <Grid item xs={12}>
                 <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1758,6 +1591,95 @@ function App() {
                     </Typography>
                     <SectionInfoButton section="sleep" />
                   </Box>
+                  {/* Debug logging */}
+                  {console.log('Non-parametric features:', data.features.nonparam)}
+                  {/* Sleep Metrics Bar Charts */}
+                  <Grid container spacing={3}>
+                    {['TST', 'WASO', 'PTA', 'NWB', 'SOL', 'SRI'].map((metric) => {
+                      // Try to get the value from sleep, then nonparam
+                      const value = (data.features.sleep && data.features.sleep[metric]) || (data.features.nonparam && data.features.nonparam[metric]);
+                      if (!value || !Array.isArray(value)) return null;
+                      return (
+                        <Grid item xs={12} key={metric}>
+                          <Card variant="outlined" sx={{ p: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                              <Typography variant="subtitle1">
+                                {metricDescriptions[metric.toLowerCase()]?.title || metric}
+                              </Typography>
+                              <SectionInfoButton metric={metric} />
+                            </Box>
+                            <Box sx={{ width: '100%', height: 300 }}>
+                              <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                  data={value.map((v, index) => ({
+                                    day: getDateForIndex(metric, index, data),
+                                    [metric]: v
+                                  }))}
+                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                >
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="day" />
+                                  <YAxis label={{
+                                    value:
+                                      metric === 'PTA' ? 'Percentage (%)' :
+                                      metric === 'NWB' ? 'Number of Bouts' :
+                                      metric === 'SRI' ? 'Index' :
+                                      'Minutes',
+                                    angle: -90,
+                                    position: 'insideLeft'
+                                  }} />
+                                  <RechartsTooltip
+                                    content={({ active, payload, label }) => {
+                                      if (active && payload && payload.length) {
+                                        return (
+                                          <div style={{
+                                            backgroundColor: 'white',
+                                            padding: '10px',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px'
+                                          }}>
+                                            <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                            {payload.map((entry, index) => {
+                                              let value = entry.value;
+                                              let unit = '';
+                                              if (entry.name === 'TST') {
+                                                value = Math.round(value).toFixed(0);
+                                                unit = ' minutes';
+                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                value = value.toFixed(0);
+                                                unit = ' minutes';
+                                              } else if (entry.name === 'PTA') {
+                                                value = value.toFixed(1);
+                                                unit = '%';
+                                              } else if (entry.name === 'NWB') {
+                                                value = value.toFixed(0);
+                                                unit = ' bouts';
+                                              } else if (entry.name === 'SRI') {
+                                                value = value.toFixed(2);
+                                                unit = '';
+                                              }
+                                              return (
+                                                <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                  {`${entry.name}: ${value}${unit}`}
+                                                </p>
+                                              );
+                                            })}
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    }}
+                                  />
+                                  <Legend />
+                                  <Bar dataKey={metric} fill="#8884d8" name={metric} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </Box>
+                          </Card>
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
                   {/* Daily ENMO Time Series with Sleep Bands */}
                   <Box sx={{ mt: 4 }}>
                     <Typography variant="subtitle2" gutterBottom>
@@ -1797,7 +1719,7 @@ function App() {
                             bandStart = null;
                           }
                         }
-    return (
+                        return (
                           <Grid item xs={12} key={dayStr}>
                             <Card variant="outlined" sx={{ p: 2 }}>
                               <Typography variant="subtitle1" gutterBottom align="center">
@@ -1837,20 +1759,14 @@ function App() {
                                               let value = entry.value;
                                               let unit = '';
                                               if (entry.name === 'TST') {
-                                                value = value.toFixed(1);
-                                                unit = ' hours';
+                                                value = Math.round(value).toFixed(0);
+                                                unit = ' minutes';
                                               } else if (entry.name === 'WASO' || entry.name === 'SOL') {
                                                 value = value.toFixed(0);
                                                 unit = ' minutes';
                                               } else if (entry.name === 'PTA') {
                                                 value = value.toFixed(1);
                                                 unit = '%';
-                                              } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                value = value.toFixed(2);
-                                                unit = ' mg';
-                                              } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                value = value.toFixed(0);
-                                                unit = ' minutes';
                                               }
                                               return (
                                                 <p key={index} style={{ margin: '0', color: entry.color }}>
@@ -1892,165 +1808,6 @@ function App() {
                       })}
                     </Grid>
                   </Box>
-      <Grid container spacing={2}>
-                    {Object.entries(data.features.sleep).map(([key, value]) => (
-                      <Grid item xs={12} key={key}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="subtitle2" color="text.secondary">
-                            {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                          </Typography>
-                          <SectionInfoButton metric={key} />
-                        </Box>
-                        {/* SRI as horizontal scale */}
-                        {key.toLowerCase() === 'sri' && typeof value === 'number' ? (
-                          <HorizontalScale
-                            value={value / 100}
-                            min={0}
-                            max={1}
-                            color="#82ca9d"
-                            label="Sleep Regularity Index (SRI)"
-                          />
-                        ) : Array.isArray(value) ? (
-                          <>
-                            {/* Only show chart for TST, WASO, PTA, NWB, SOL, not the per-day values */}
-                            {['TST', 'WASO', 'PTA', 'NWB', 'SOL'].includes(key) ? (
-                              <Box sx={{ width: '100%', height: 200, mt: 2 }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <BarChart
-                                    data={value.map((v, index) => ({
-                                      day: getDateForIndex(key, index, data),
-                                      [key]: v
-                                    }))}
-                                    margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                  >
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="day" />
-                                    <YAxis label={{ value: key === 'TST' ? 'Hours' : key === 'PTA' ? 'Percent' : 'Minutes', angle: -90, position: 'insideLeft' }} />
-                                    <RechartsTooltip 
-                                      content={({ active, payload, label }) => {
-                                        if (active && payload && payload.length) {
-                                          return (
-                                            <div style={{ 
-                                              backgroundColor: 'white', 
-                                              padding: '10px', 
-                                              border: '1px solid #ccc',
-                                              borderRadius: '4px'
-                                            }}>
-                                              <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                              {payload.map((entry, index) => {
-                                                let value = entry.value;
-                                                let unit = '';
-                                                if (entry.name === 'TST') {
-                                                  value = value.toFixed(1);
-                                                  unit = ' hours';
-                                                } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                  value = value.toFixed(0);
-                                                  unit = ' minutes';
-                                                } else if (entry.name === 'PTA') {
-                                                  value = value.toFixed(1);
-                                                  unit = '%';
-                                                } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                  value = value.toFixed(2);
-                                                  unit = ' mg';
-                                                } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                  value = value.toFixed(0);
-                                                  unit = ' minutes';
-                                                }
-                                                return (
-                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                    {`${entry.name}: ${value}${unit}`}
-                                                  </p>
-                                                );
-                                              })}
-                                            </div>
-                                          );
-                                        }
-                                        return null;
-                                      }}
-                                    />
-                                    <Bar dataKey={key} fill={
-                                      key === 'TST' ? '#8884d8' :
-                                      key === 'WASO' ? '#82ca9d' :
-                                      key === 'PTA' ? '#ffc658' :
-                                      key === 'NWB' ? '#ff8042' :
-                                      '#0088fe'
-                                    } name={key} />
-                                  </BarChart>
-                                </ResponsiveContainer>
-                              </Box>
-                            ) : (
-                              value.map((val, index) => (
-                                <Typography key={index} variant="body2" sx={{ pl: 2 }}>
-                                  {getDateForIndex(key, index, data)}: {typeof val === 'number' ? val.toFixed(4) : val}
-                                </Typography>
-                              ))
-                            )}
-                          </>
-                        ) : (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            {/* Add bar chart for SRI if present as a summary value in sleep metrics */}
-                            {key.toLowerCase() === 'sri' && (
-                              <Box sx={{ width: 120, height: 60 }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <BarChart
-                                    data={[{ name: key, value: value }]}
-                                    layout="horizontal"
-                                    margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
-                                  >
-                                    <XAxis type="category" dataKey="name" hide />
-                                    <YAxis type="number" domain={[0, 1]} hide />
-                                    <RechartsTooltip 
-                                      content={({ active, payload, label }) => {
-                                        if (active && payload && payload.length) {
-                                          return (
-                                            <div style={{ 
-                                              backgroundColor: 'white', 
-                                              padding: '10px', 
-                                              border: '1px solid #ccc',
-                                              borderRadius: '4px'
-                                            }}>
-                                              <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                              {payload.map((entry, index) => {
-                                                let value = entry.value;
-                                                let unit = '';
-                                                if (entry.name === 'TST') {
-                                                  value = value.toFixed(1);
-                                                  unit = ' hours';
-                                                } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                  value = value.toFixed(0);
-                                                  unit = ' minutes';
-                                                } else if (entry.name === 'PTA') {
-                                                  value = value.toFixed(1);
-                                                  unit = '%';
-                                                } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                  value = value.toFixed(2);
-                                                  unit = ' mg';
-                                                } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                  value = value.toFixed(0);
-                                                  unit = ' minutes';
-                                                }
-                                                return (
-                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                    {`${entry.name}: ${value}${unit}`}
-                                                  </p>
-                                                );
-                                              })}
-                                            </div>
-                                          );
-                                        }
-                                        return null;
-                                      }}
-                                    />
-                                    <Bar dataKey="value" fill="#82ca9d" />
-                                  </BarChart>
-                                </ResponsiveContainer>
-                              </Box>
-                            )}
-                          </Box>
-                        )}
-                      </Grid>
-                    ))}
-                  </Grid>
                 </Card>
               </Grid>
             )}
