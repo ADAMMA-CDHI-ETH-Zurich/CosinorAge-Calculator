@@ -12,7 +12,10 @@ A web application for analyzing accelerometer data with drag-and-drop functional
 
 ## Demo Video
 
-https://github.com/yourusername/Accelerometer-Data-Analyzer/blob/main/media/CosinorLab_Demo_v1.0.mov
+<video width="100%" controls>
+  <source src="media/CosinorLab_Demo_v1.0.mov" type="video/quicktime">
+  Your browser does not support the video tag.
+</video>
 
 ## Setup
 
