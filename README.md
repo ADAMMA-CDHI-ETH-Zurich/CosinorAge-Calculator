@@ -10,6 +10,10 @@ A web application for analyzing accelerometer data with drag-and-drop functional
 - Real-time data processing
 - Modern, responsive UI
 
+## Demo Video
+
+https://github.com/yourusername/Accelerometer-Data-Analyzer/blob/main/media/CosinorLab_Demo_v1.0.mov
+
 ## Setup
 
 ### Backend Setup
