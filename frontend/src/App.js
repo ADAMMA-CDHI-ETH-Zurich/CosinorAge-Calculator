@@ -517,6 +517,7 @@ function App() {
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('data_source', dataSource);
 
     try {
       const xhr = new XMLHttpRequest();
@@ -794,13 +795,16 @@ function App() {
                     sx={{ minWidth: 300 }}
                     disabled={!!data?.file_id}
                   >
-                    <MenuItem value="samsung_galaxy">Samsung Galaxy Smartwatch - Binary (Zipped)</MenuItem>
+                    <MenuItem value="samsung_galaxy_binary">Samsung Galaxy Smartwatch - Binary (Zipped)</MenuItem>
+                    <MenuItem value="samsung_galaxy_csv">Samsung Galaxy Smartwatch - CSV</MenuItem>
                   </Select>
                 </FormControl>
                 {dataSource && (
                   <>
                     <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
-                      Upload your ZIP file containing the Samsung Galaxy Smartwatch data
+                      {dataSource === 'samsung_galaxy_binary' 
+                        ? 'Upload your ZIP file containing the Samsung Galaxy Smartwatch data'
+                        : 'Upload your CSV file containing the Samsung Galaxy Smartwatch data'}
                     </Typography>
                     <Button
                       variant="contained"
@@ -819,7 +823,7 @@ function App() {
                       <input
                         type="file"
                         hidden
-                        accept=".zip"
+                        accept={dataSource === 'samsung_galaxy_binary' ? '.zip' : '.csv'}
                         onChange={handleFileUpload}
                         ref={fileInputRef}
                       />
@@ -1265,23 +1269,30 @@ function App() {
                           const areas = [];
                           let currentWear = data.data[0]?.wear;
                           let segStart = data.data[0]?.TIMESTAMP;
+                          // Log timestamps
+                          console.log('Min Timestamp:', data.data[0]?.TIMESTAMP);
+                          console.log('M10 Start:', data.features.nonparam.m10_start);
+                          console.log('L5 Start:', data.features.nonparam.l5_start);
                           for (let i = 1; i <= data.data.length; i++) {
                             const point = data.data[i];
                             if (i === data.data.length || point?.wear !== currentWear) {
                               const segEnd = data.data[i - 1]?.TIMESTAMP;
-                              const color = interpolateColor(currentWear);
-                              areas.push(
-                                <ReferenceArea
-                                  key={`wear-seg-${segStart}`}
-                                  x1={segStart}
-                                  x2={segEnd}
-                                  fill={color}
-                                  fillOpacity={0.3}
-                                  stroke={color}
-                                  strokeOpacity={0.5}
-                                  label={null}
-                                />
-                              );
+                              // Only add shaded area if wear is not -1
+                              if (currentWear !== -1) {
+                                const color = interpolateColor(currentWear);
+                                areas.push(
+                                  <ReferenceArea
+                                    key={`wear-seg-${segStart}`}
+                                    x1={segStart}
+                                    x2={segEnd}
+                                    fill={color}
+                                    fillOpacity={0.3}
+                                    stroke={color}
+                                    strokeOpacity={0.5}
+                                    label={null}
+                                  />
+                                );
+                              }
                               if (i < data.data.length) {
                                 currentWear = point.wear;
                                 segStart = point.TIMESTAMP;
@@ -1695,7 +1706,13 @@ function App() {
                                   {/* M10 Period Band */}
                                   <ReferenceArea
                                     x1={m10StartDate.getTime()}
-                                    x2={new Date(m10StartDate.getTime() + 10 * 60 * 60 * 1000).getTime()}
+                                    x2={(() => {
+                                      const x2Value = new Date(m10StartDate.getTime() + 10 * 60 * 60 * 1000);
+                                      if (x2Value.getHours() === 0 && x2Value.getMinutes() === 0) {
+                                        return x2Value.getTime() - 60000;
+                                      }
+                                      return x2Value.getTime();
+                                    })()}
                                     fill="#8884d8"
                                     fillOpacity={0.1}
                                     label="M10"
@@ -2097,6 +2114,12 @@ function App() {
           </Grid>
         </Container>
       </Box>
+      {/* Debug logging */}
+      {data && data.data && data.data.length > 0 && (
+        <div style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+          <p>Min Timestamp: {new Date(Math.min(...data.data.map(d => d.TIMESTAMP))).toLocaleString()}</p>
+        </div>
+      )}
     </ThemeProvider>
   );
 }

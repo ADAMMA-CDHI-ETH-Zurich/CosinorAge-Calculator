@@ -1,8 +1,9 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any
 from cosinorage.bioages.cosinorage import CosinorAge
 from cosinorage.datahandlers.galaxydatahandler import GalaxyDataHandler
+from cosinorage.datahandlers.galaxycsvdatahandler import GalaxyCSVDataHandler
 import os
 import shutil
 import tempfile
@@ -76,12 +77,12 @@ def create_directory_tree(path: str) -> Dict[str, Any]:
     return result
 
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)) -> Dict[str, Any]:
+async def upload_file(file: UploadFile = File(...), data_source: str = Form(...)) -> Dict[str, Any]:
     """
     Handle file upload and extraction
     """
     try:
-        logger.info(f"Received file upload request for file: {file.filename}")
+        logger.info(f"Received file upload request for file: {file.filename} with data source: {data_source}")
         
         # Create a temporary directory to store the uploaded files
         temp_dir = tempfile.mkdtemp()  # Create a temporary directory that won't be automatically deleted
@@ -95,8 +96,13 @@ async def upload_file(file: UploadFile = File(...)) -> Dict[str, Any]:
             contents = await file.read()
             buffer.write(contents)
         
-        # If the file is a ZIP file, extract it
-        if file.filename.endswith('.zip'):
+        file_id = str(len(uploaded_data))
+        
+        # Handle based on data source
+        if data_source == "samsung_galaxy_binary":
+            if not file.filename.endswith('.zip'):
+                raise HTTPException(status_code=400, detail="Only ZIP files are supported for binary data")
+                
             logger.info("File is a ZIP file, extracting...")
             extract_dir = os.path.join(temp_dir, "extracted")
             os.makedirs(extract_dir, exist_ok=True)
@@ -108,11 +114,11 @@ async def upload_file(file: UploadFile = File(...)) -> Dict[str, Any]:
             directory_tree = create_directory_tree(extract_dir)
             
             # Store the extracted directory path
-            file_id = str(len(uploaded_data))
             uploaded_data[file_id] = {
                 "filename": file.filename,
                 "extracted_dir": extract_dir,
-                "temp_dir": temp_dir
+                "temp_dir": temp_dir,
+                "data_source": "samsung_galaxy_binary"
             }
             
             return {
@@ -120,8 +126,24 @@ async def upload_file(file: UploadFile = File(...)) -> Dict[str, Any]:
                 "filename": file.filename,
                 "directory_tree": directory_tree
             }
+        elif data_source == "samsung_galaxy_csv":
+            if not file.filename.endswith('.csv'):
+                raise HTTPException(status_code=400, detail="Only CSV files are supported for CSV data")
+                
+            logger.info("File is a CSV file, storing path...")
+            uploaded_data[file_id] = {
+                "filename": file.filename,
+                "file_path": file_path,
+                "temp_dir": temp_dir,
+                "data_source": "samsung_galaxy_csv"
+            }
+            
+            return {
+                "file_id": file_id,
+                "filename": file.filename
+            }
         else:
-            raise HTTPException(status_code=400, detail="Only ZIP files are supported")
+            raise HTTPException(status_code=400, detail="Invalid data source")
                 
     except Exception as e:
         logger.error(f"Error processing file: {str(e)}", exc_info=True)
@@ -137,6 +159,11 @@ async def extract_files(file_id: str) -> Dict[str, Any]:
             raise HTTPException(status_code=404, detail="File not found")
 
         file_data = uploaded_data[file_id]
+        
+        # Skip extraction for CSV files
+        if file_data.get("data_source") == "samsung_galaxy_csv":
+            return {"message": "No extraction needed for CSV files"}
+
         temp_dir = file_data["temp_dir"]
         zip_path = os.path.join(temp_dir, file_data["filename"])
 
@@ -192,28 +219,32 @@ class ProcessRequest(BaseModel):
 @app.post("/process/{file_id}")
 async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
     """
-    Process the extracted data using GalaxyDataHandler
+    Process the data using appropriate data handler
     """
     try:
         if file_id not in uploaded_data:
             raise HTTPException(status_code=404, detail="File not found")
         
         file_data = uploaded_data[file_id]
-        if "child_dir" not in file_data:
-            raise HTTPException(status_code=400, detail="No child directory found")
         
-        # Ensure the path ends with a forward slash
-        child_dir = file_data["child_dir"]
-        if not child_dir.endswith('/'):
-            child_dir = child_dir + '/'
+        # Choose the appropriate data handler based on data source
+        if file_data.get("data_source") == "samsung_galaxy_csv":
+            logger.info(f"Using GalaxyCSVDataHandler for CSV file: {file_data['file_path']}")
+            handler = GalaxyCSVDataHandler(file_data["file_path"], preprocess_args=request.preprocess_args)
+        else:
+            if "child_dir" not in file_data:
+                raise HTTPException(status_code=400, detail="No child directory found")
+            
+            # Ensure the path ends with a forward slash
+            child_dir = file_data["child_dir"]
+            if not child_dir.endswith('/'):
+                child_dir = child_dir + '/'
+            
+            logger.info(f"Using GalaxyDataHandler with directory: {child_dir}")
+            handler = GalaxyDataHandler(galaxy_file_dir=child_dir, preprocess_args=request.preprocess_args)
         
-        # Log the directory being used
-        logger.info(f"Initializing GalaxyDataHandler with directory: {child_dir}")
         logger.info(f"Using preprocessing args: {request.preprocess_args}")
         logger.info(f"Using features args: {request.features_args}")
-        
-        # Initialize GalaxyDataHandler with the child directory and provided parameters
-        handler = GalaxyDataHandler(galaxy_file_dir=child_dir, preprocess_args=request.preprocess_args)
         
         # Get metadata
         metadata = handler.get_meta_data()
@@ -272,6 +303,7 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
                 "raw_n_datapoints": metadata.get('raw_n_datapoints')
             }
         }
+
     except Exception as e:
         logger.error(f"Error processing data: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
