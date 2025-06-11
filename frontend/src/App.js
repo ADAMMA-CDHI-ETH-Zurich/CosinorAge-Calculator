@@ -753,13 +753,13 @@ function App() {
               />
             </Box>
             {data && (
-              <Button 
-                color="inherit" 
-                onClick={clearState}
-                sx={{ ml: 2 }}
-              >
-                Reset
-              </Button>
+                <Button 
+                  color="inherit" 
+                  onClick={clearState}
+                  sx={{ ml: 2 }}
+                >
+                  Reset
+                </Button>
             )}
           </Toolbar>
         </AppBar>
@@ -810,7 +810,7 @@ function App() {
                         ? 'Upload your ZIP file containing the Samsung Galaxy Smartwatch data'
                         : 'Upload your CSV file containing the Samsung Galaxy Smartwatch data'}
                     </Typography>
-                    <Button
+                <Button
                       variant="contained"
                       component="label"
                       startIcon={<UploadIcon />}
