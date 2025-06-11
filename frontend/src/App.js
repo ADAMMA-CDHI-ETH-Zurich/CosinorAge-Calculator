@@ -26,7 +26,8 @@ import {
   IconButton,
   LinearProgress,
   FormControlLabel,
-  Switch
+  Switch,
+  Slider
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -360,7 +361,8 @@ function App() {
     wear_sd_crit: 0.00013,
     wear_range_crit: 0.00067,
     wear_window_length: 45,
-    wear_window_skip: 7
+    wear_window_skip: 7,
+    required_daily_coverage: 0.7
   });
   const [featureParams, setFeatureParams] = useState({
     sleep_rescore: true,
@@ -507,6 +509,8 @@ function App() {
   };
 
   const handleFileUpload = async (event) => {
+    console.log('handleFileUpload called', event);
+    console.log('Current dataSource:', dataSource);
     const file = event.target.files[0];
     if (!file) return;
 
@@ -709,7 +713,7 @@ function App() {
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: 'background.default' }}>
-        <AppBar position="static" elevation={0}>
+        <AppBar position="sticky" elevation={0}>
           <Toolbar sx={{ minHeight: '64px' }}>
             <Typography 
               variant="h5" 
@@ -817,7 +821,7 @@ function App() {
                         borderRadius: 2
                       }}
                       disabled={!!data?.file_id}
-                      tabIndex={-1}
+                      onClick={() => { console.log('Upload File button pressed'); }}
                     >
                       Upload File
                       <input
@@ -894,20 +898,36 @@ function App() {
                           <TextField
                             fullWidth
                             label="Auto-calibration SD Criterion"
-                            type="number"
+                            type="text"
                             value={preprocessParams.autocalib_sd_criter}
-                            onChange={(e) => handlePreprocessParamChange('autocalib_sd_criter', parseFloat(e.target.value))}
-                            inputProps={{ step: "0.00001" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handlePreprocessParamChange('autocalib_sd_criter', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                           <TextField
                             fullWidth
                             label="Auto-calibration Sphere Criterion"
-                            type="number"
+                            type="text"
                             value={preprocessParams.autocalib_sphere_crit}
-                            onChange={(e) => handlePreprocessParamChange('autocalib_sphere_crit', parseFloat(e.target.value))}
-                            inputProps={{ step: "0.01" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handlePreprocessParamChange('autocalib_sphere_crit', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -928,51 +948,124 @@ function App() {
                           <TextField
                             fullWidth
                             label="Filter Cutoff"
-                            type="number"
+                            type="text"
                             value={preprocessParams.filter_cutoff}
-                            onChange={(e) => handlePreprocessParamChange('filter_cutoff', parseFloat(e.target.value))}
-                            inputProps={{ step: "0.1" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handlePreprocessParamChange('filter_cutoff', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                           <TextField
                             fullWidth
                             label="Wear SD Criterion"
-                            type="number"
+                            type="text"
                             value={preprocessParams.wear_sd_crit}
-                            onChange={(e) => handlePreprocessParamChange('wear_sd_crit', parseFloat(e.target.value))}
-                            inputProps={{ step: "0.00001" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handlePreprocessParamChange('wear_sd_crit', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                           <TextField
                             fullWidth
                             label="Wear Range Criterion"
-                            type="number"
+                            type="text"
                             value={preprocessParams.wear_range_crit}
-                            onChange={(e) => handlePreprocessParamChange('wear_range_crit', parseFloat(e.target.value))}
-                            inputProps={{ step: "0.00001" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handlePreprocessParamChange('wear_range_crit', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                           <TextField
                             fullWidth
                             label="Wear Window Length"
-                            type="number"
+                            type="text"
                             value={preprocessParams.wear_window_length}
-                            onChange={(e) => handlePreprocessParamChange('wear_window_length', parseInt(e.target.value))}
-                            inputProps={{ step: "1" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handlePreprocessParamChange('wear_window_length', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "numeric",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                           <TextField
                             fullWidth
                             label="Wear Window Skip"
-                            type="number"
+                            type="text"
                             value={preprocessParams.wear_window_skip}
-                            onChange={(e) => handlePreprocessParamChange('wear_window_skip', parseInt(e.target.value))}
-                            inputProps={{ step: "1" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handlePreprocessParamChange('wear_window_skip', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "numeric",
+                              lang: "en-US"
+                            }}
                           />
+                        </Grid>
+                        <Grid item xs={12} sm={12}>
+                          <Typography gutterBottom>
+                            Required Daily Coverage
+                          </Typography>
+                          <Slider
+                            value={typeof preprocessParams.required_daily_coverage === 'number' ? preprocessParams.required_daily_coverage : 0.7}
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            onChange={(e, newValue) => setPreprocessParams(prev => ({ ...prev, required_daily_coverage: newValue }))}
+                            valueLabelDisplay="auto"
+                          />
+                          <TextField
+                            fullWidth
+                            label="Required Daily Coverage (0-1)"
+                            type="text"
+                            value={preprocessParams.required_daily_coverage}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                setPreprocessParams(prev => ({ ...prev, required_daily_coverage: value }));
+                              }
+                            }}
+                            inputProps={{
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
+                            sx={{ mt: 2 }}
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                            Minimum fraction of valid data required per day (0 = 0%, 1 = 100%). Default: 0.7
+                          </Typography>
                         </Grid>
                       </Grid>
                     </Grid>
@@ -1000,40 +1093,72 @@ function App() {
                           <TextField
                             fullWidth
                             label="Sleep CK SF"
-                            type="number"
+                            type="text"
                             value={featureParams.sleep_ck_sf}
-                            onChange={(e) => handleFeatureParamChange('sleep_ck_sf', parseFloat(e.target.value))}
-                            inputProps={{ step: "0.0001" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handleFeatureParamChange('sleep_ck_sf', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={4}>
                           <TextField
                             fullWidth
                             label="PA Cutpoint Sedentary-Light"
-                            type="number"
+                            type="text"
                             value={featureParams.pa_cutpoint_sl}
-                            onChange={(e) => handleFeatureParamChange('pa_cutpoint_sl', parseFloat(e.target.value))}
-                            inputProps={{ step: "1" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handleFeatureParamChange('pa_cutpoint_sl', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={4}>
                           <TextField
                             fullWidth
                             label="PA Cutpoint Light-Moderate"
-                            type="number"
+                            type="text"
                             value={featureParams.pa_cutpoint_lm}
-                            onChange={(e) => handleFeatureParamChange('pa_cutpoint_lm', parseFloat(e.target.value))}
-                            inputProps={{ step: "1" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handleFeatureParamChange('pa_cutpoint_lm', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={4}>
                           <TextField
                             fullWidth
                             label="PA Cutpoint Moderate-Vigorous"
-                            type="number"
+                            type="text"
                             value={featureParams.pa_cutpoint_mv}
-                            onChange={(e) => handleFeatureParamChange('pa_cutpoint_mv', parseFloat(e.target.value))}
-                            inputProps={{ step: "1" }}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                handleFeatureParamChange('pa_cutpoint_mv', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                       </Grid>
@@ -1721,7 +1846,13 @@ function App() {
                                   {/* L5 Period Band */}
                                   <ReferenceArea
                                     x1={l5StartDate.getTime()}
-                                    x2={new Date(l5StartDate.getTime() + 5 * 60 * 60 * 1000).getTime()}
+                                    x2={(() => {
+                                      const x2Value = new Date(l5StartDate.getTime() + 5 * 60 * 60 * 1000);
+                                      if (x2Value.getHours() === 0 && x2Value.getMinutes() === 0) {
+                                        return x2Value.getTime() - 60000;
+                                      }
+                                      return x2Value.getTime();
+                                    })()}
                                     fill="#82ca9d"
                                     fillOpacity={0.1}
                                     label="L5"
@@ -2112,14 +2243,57 @@ function App() {
               </Grid>
             )}
           </Grid>
+          {/* Footer */}
+          <Box 
+            component="footer" 
+            sx={{ 
+              mt: 8,
+              py: 3,
+              px: 2,
+              backgroundColor: 'primary.main',
+              color: 'white',
+              borderRadius: 2
+            }}
+          >
+            <Container maxWidth="lg">
+              <Grid container spacing={4}>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="h6" gutterBottom>
+                    About
+                  </Typography>
+                  <Typography variant="body2">
+                    CosinorLab is a web application for analyzing accelerometer data with interactive visualizations.
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="h6" gutterBottom>
+                    Version
+                  </Typography>
+                  <Typography variant="body2">
+                    Version 1.0
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    For the best viewing experience, please ensure you have a modern web browser.
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="h6" gutterBottom>
+                    Contact
+                  </Typography>
+                  <Typography variant="body2">
+                  Core for AI & Digital Biomarker, Acoustic and Inflammatory Biomarkers (ADAMMA) at ETH Zurich
+                  </Typography>
+                </Grid>
+              </Grid>
+              <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.2)' }}>
+                <Typography variant="body2" align="center">
+                  © {new Date().getFullYear()} CosinorLab. All rights reserved.
+                </Typography>
+              </Box>
+            </Container>
+          </Box>
         </Container>
       </Box>
-      {/* Debug logging */}
-      {data && data.data && data.data.length > 0 && (
-        <div style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
-          <p>Min Timestamp: {new Date(Math.min(...data.data.map(d => d.TIMESTAMP))).toLocaleString()}</p>
-        </div>
-      )}
     </ThemeProvider>
   );
 }

@@ -199,6 +199,7 @@ async def extract_files(file_id: str) -> Dict[str, Any]:
 
 class ProcessRequest(BaseModel):
     preprocess_args: dict = {
+        'required_daily_coverage': 0.5,
         'autocalib_sd_criter': 0.00013,
         'autocalib_sphere_crit': 0.02,
         'filter_type': 'lowpass',
