@@ -24,7 +24,9 @@ import {
   DialogContent,
   DialogContentText,
   IconButton,
-  LinearProgress
+  LinearProgress,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -350,6 +352,23 @@ function App() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
   const [preprocessDialogOpen, setPreprocessDialogOpen] = useState(false);
+  const [preprocessParams, setPreprocessParams] = useState({
+    autocalib_sd_criter: 0.00013,
+    autocalib_sphere_crit: 0.02,
+    filter_type: 'lowpass',
+    filter_cutoff: 2,
+    wear_sd_crit: 0.00013,
+    wear_range_crit: 0.00067,
+    wear_window_length: 45,
+    wear_window_skip: 7
+  });
+  const [featureParams, setFeatureParams] = useState({
+    sleep_rescore: true,
+    sleep_ck_sf: 0.0025,
+    pa_cutpoint_sl: 15,
+    pa_cutpoint_lm: 35,
+    pa_cutpoint_mv: 70
+  });
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -563,9 +582,16 @@ function App() {
 
       const extractResult = await extractResponse.json();
       
-      // Then process the data
+      // Then process the data with parameters
       const processResponse = await fetch(`http://localhost:8000/process/${data.file_id}`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          preprocess_args: preprocessParams,
+          features_args: featureParams
+        }),
       });
 
       if (!processResponse.ok) {
@@ -661,6 +687,21 @@ function App() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload({ target: { files: e.dataTransfer.files } });
     }
+  };
+
+  // Add handler for parameter changes
+  const handlePreprocessParamChange = (param, value) => {
+    setPreprocessParams(prev => ({
+      ...prev,
+      [param]: value
+    }));
+  };
+
+  const handleFeatureParamChange = (param, value) => {
+    setFeatureParams(prev => ({
+      ...prev,
+      [param]: value
+    }));
   };
 
   return (
@@ -832,6 +873,172 @@ function App() {
               </Paper>
             </Grid>
 
+            {data?.file_id && !data.data && (
+              <Grid item xs={12}>
+                <Card sx={{ p: 3, mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Processing Parameters
+                  </Typography>
+                  <Grid container spacing={3}>
+                    {/* Preprocessing Parameters */}
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Preprocessing Parameters
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Auto-calibration SD Criterion"
+                            type="number"
+                            value={preprocessParams.autocalib_sd_criter}
+                            onChange={(e) => handlePreprocessParamChange('autocalib_sd_criter', parseFloat(e.target.value))}
+                            inputProps={{ step: "0.00001" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Auto-calibration Sphere Criterion"
+                            type="number"
+                            value={preprocessParams.autocalib_sphere_crit}
+                            onChange={(e) => handlePreprocessParamChange('autocalib_sphere_crit', parseFloat(e.target.value))}
+                            inputProps={{ step: "0.01" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>Filter Type</InputLabel>
+                            <Select
+                              value={preprocessParams.filter_type}
+                              label="Filter Type"
+                              onChange={(e) => handlePreprocessParamChange('filter_type', e.target.value)}
+                            >
+                              <MenuItem value="lowpass">Lowpass</MenuItem>
+                              <MenuItem value="highpass">Highpass</MenuItem>
+                              <MenuItem value="bandpass">Bandpass</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Filter Cutoff"
+                            type="number"
+                            value={preprocessParams.filter_cutoff}
+                            onChange={(e) => handlePreprocessParamChange('filter_cutoff', parseFloat(e.target.value))}
+                            inputProps={{ step: "0.1" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Wear SD Criterion"
+                            type="number"
+                            value={preprocessParams.wear_sd_crit}
+                            onChange={(e) => handlePreprocessParamChange('wear_sd_crit', parseFloat(e.target.value))}
+                            inputProps={{ step: "0.00001" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Wear Range Criterion"
+                            type="number"
+                            value={preprocessParams.wear_range_crit}
+                            onChange={(e) => handlePreprocessParamChange('wear_range_crit', parseFloat(e.target.value))}
+                            inputProps={{ step: "0.00001" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Wear Window Length"
+                            type="number"
+                            value={preprocessParams.wear_window_length}
+                            onChange={(e) => handlePreprocessParamChange('wear_window_length', parseInt(e.target.value))}
+                            inputProps={{ step: "1" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Wear Window Skip"
+                            type="number"
+                            value={preprocessParams.wear_window_skip}
+                            onChange={(e) => handlePreprocessParamChange('wear_window_skip', parseInt(e.target.value))}
+                            inputProps={{ step: "1" }}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Grid>
+
+                    {/* Feature Parameters */}
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Feature Parameters
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                          <FormControl fullWidth>
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={featureParams.sleep_rescore}
+                                  onChange={(e) => handleFeatureParamChange('sleep_rescore', e.target.checked)}
+                                />
+                              }
+                              label="Sleep Rescore"
+                            />
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            label="Sleep CK SF"
+                            type="number"
+                            value={featureParams.sleep_ck_sf}
+                            onChange={(e) => handleFeatureParamChange('sleep_ck_sf', parseFloat(e.target.value))}
+                            inputProps={{ step: "0.0001" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <TextField
+                            fullWidth
+                            label="PA Cutpoint Sedentary-Light"
+                            type="number"
+                            value={featureParams.pa_cutpoint_sl}
+                            onChange={(e) => handleFeatureParamChange('pa_cutpoint_sl', parseFloat(e.target.value))}
+                            inputProps={{ step: "1" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <TextField
+                            fullWidth
+                            label="PA Cutpoint Light-Moderate"
+                            type="number"
+                            value={featureParams.pa_cutpoint_lm}
+                            onChange={(e) => handleFeatureParamChange('pa_cutpoint_lm', parseFloat(e.target.value))}
+                            inputProps={{ step: "1" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <TextField
+                            fullWidth
+                            label="PA Cutpoint Moderate-Vigorous"
+                            type="number"
+                            value={featureParams.pa_cutpoint_mv}
+                            onChange={(e) => handleFeatureParamChange('pa_cutpoint_mv', parseFloat(e.target.value))}
+                            inputProps={{ step: "1" }}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </Card>
+              </Grid>
+            )}
+
             {error && (
               <Grid item xs={12}>
                 <Paper sx={{ p: 2, bgcolor: 'error.light' }}>
@@ -912,6 +1119,28 @@ function App() {
                           Number of Data Points
                         </Typography>
                         <Typography variant="body1">{data.metadata?.raw_n_datapoints || 'N/A'}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Follow-up Time
+                        </Typography>
+                        <Typography variant="body1">
+                          {data.metadata?.raw_start_datetime && data.metadata?.raw_end_datetime ? 
+                            (() => {
+                              const diff = new Date(data.metadata.raw_end_datetime) - new Date(data.metadata.raw_start_datetime);
+                              const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                              const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                              const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                              return `${days} ${days === 1 ? 'day' : 'days'} ${hours} ${hours === 1 ? 'hour' : 'hours'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+                            })() : 
+                            'N/A'}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Cohort Size
+                        </Typography>
+                        <Typography variant="body1">1 individual</Typography>
                       </Grid>
                     </Grid>
                   </CardContent>

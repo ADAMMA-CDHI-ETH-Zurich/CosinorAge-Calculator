@@ -170,8 +170,27 @@ async def extract_files(file_id: str) -> Dict[str, Any]:
         logger.error(f"Error extracting files: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+class ProcessRequest(BaseModel):
+    preprocess_args: dict = {
+        'autocalib_sd_criter': 0.00013,
+        'autocalib_sphere_crit': 0.02,
+        'filter_type': 'lowpass',
+        'filter_cutoff': 2,
+        'wear_sd_crit': 0.00013,
+        'wear_range_crit': 0.00067,
+        'wear_window_length': 45,
+        'wear_window_skip': 7,
+    }
+    features_args: dict = {
+        'sleep_ck_sf': 0.0025,
+        'sleep_rescore': True,
+        'pa_cutpoint_sl': 15,
+        'pa_cutpoint_lm': 35,
+        'pa_cutpoint_mv': 70,
+    }
+
 @app.post("/process/{file_id}")
-async def process_data(file_id: str) -> Dict[str, Any]:
+async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
     """
     Process the extracted data using GalaxyDataHandler
     """
@@ -190,34 +209,17 @@ async def process_data(file_id: str) -> Dict[str, Any]:
         
         # Log the directory being used
         logger.info(f"Initializing GalaxyDataHandler with directory: {child_dir}")
-
-        preprocess_args = {
-            'autocalib_sd_criter': 0.00013,
-            'autocalib_sphere_crit': 0.02,
-            'filter_type': 'lowpass',
-            'filter_cutoff': 2,
-            'wear_sd_crit': 0.00013,
-            'wear_range_crit': 0.00067,
-            'wear_window_length': 45,
-            'wear_window_skip': 7,
-        }
+        logger.info(f"Using preprocessing args: {request.preprocess_args}")
+        logger.info(f"Using features args: {request.features_args}")
         
-        # Initialize GalaxyDataHandler with the child directory
-        handler = GalaxyDataHandler(galaxy_file_dir=child_dir, preprocess_args=preprocess_args)
+        # Initialize GalaxyDataHandler with the child directory and provided parameters
+        handler = GalaxyDataHandler(galaxy_file_dir=child_dir, preprocess_args=request.preprocess_args)
         
         # Get metadata
         metadata = handler.get_meta_data()
         
-        # Extract features using WearableFeatures
-        features_args = {
-            #'sleep_ck_sf': 0.01,
-            'sleep_rescore': True,
-            'pa_cutpoint_sl': 15,
-            'pa_cutpoint_lm': 35,
-            'pa_cutpoint_mv': 70,
-        }
-
-        wf = WearableFeatures(handler, features_args=features_args)
+        # Extract features using WearableFeatures with provided parameters
+        wf = WearableFeatures(handler, features_args=request.features_args)
         features = wf.get_features()
         df = wf.get_ml_data()
         df = df.reset_index()
