@@ -1,0 +1,10 @@
+{
+ "samples": [
+  {
+   "level": 6,
+   "state": "AC_CHARGING",
+   "unix_timestamp_in_ms": "1729506751391"
+  }
+ ]
+}
+
