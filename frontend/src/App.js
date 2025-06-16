@@ -27,13 +27,25 @@ import {
   LinearProgress,
   FormControlLabel,
   Switch,
-  Slider
+  Slider,
+  Tabs,
+  Tab,
+  Chip,
+  Link
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import UploadIcon from '@mui/icons-material/Upload';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HomeIcon from '@mui/icons-material/Home';
+import ScienceIcon from '@mui/icons-material/Science';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import InfoIcon from '@mui/icons-material/Info';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import logo from './assets/logo.png';
 
 // Create a modern theme
@@ -371,6 +383,9 @@ function App() {
     pa_cutpoint_lm: 35,
     pa_cutpoint_mv: 70
   });
+  const [currentTab, setCurrentTab] = useState(0);
+  const [cosinorAge, setCosinorAge] = useState(null);
+  const [serverStatus, setServerStatus] = useState('Server Connected');
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -412,9 +427,11 @@ function App() {
           setSuccess(null);
           setProcessing(false);
           setProcessingTime(0);
+          setServerStatus('Server Disconnected');
         }
       } catch (error) {
         console.error('Error checking server status:', error);
+        setServerStatus('Server Disconnected');
       }
     };
 
@@ -667,6 +684,7 @@ function App() {
       const result = await response.json();
       setPredictedAge(result.predicted_age);
       setSuccess('Age prediction completed successfully');
+      setCosinorAge(result.predicted_age);
     } catch (err) {
       setError(err.message);
     }
@@ -709,880 +727,1191 @@ function App() {
     }));
   };
 
+  const handleTabChange = (event, newValue) => {
+    setCurrentTab(newValue);
+  };
+
+  const handleReset = () => {
+    setData(null);
+    setDataSource('');
+    setError(null);
+    setSuccess(null);
+    setProcessing(false);
+    setProcessingTime(0);
+    setChronologicalAge('');
+    setGender('');
+    setPredictedAge(null);
+    setPreprocessParams({
+      autocalib_sd_criter: 0.013,
+      autocalib_sphere_crit: 0.3,
+      filter_type: 'lowpass',
+      filter_cutoff: 20,
+      wear_sd_crit: 0.013,
+      wear_range_crit: 0.05,
+      wear_window_length: 90,
+      wear_window_skip: 15,
+      required_daily_coverage: 0.7
+    });
+    setFeatureParams({
+      sleep_rescore: true,
+      sleep_ck_sf: 0.5,
+      pa_cutpoint_sl: 40,
+      pa_cutpoint_lm: 100,
+      pa_cutpoint_mv: 400
+    });
+    setServerStatus('Server Connected');
+    setCosinorAge(null);
+    setCurrentTab(2); // Keep user in Lab tab
+  };
+
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
       <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: 'background.default' }}>
-        <AppBar position="sticky" elevation={0}>
-          <Toolbar sx={{ minHeight: '64px' }}>
-            <Typography 
-              variant="h5" 
-              component="div" 
+        <AppBar position="static" sx={{ bgcolor: 'primary.main' }}>
+          <Toolbar>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+              <img 
+                src={logo} 
+                alt="Logo" 
+                style={{ 
+                  height: '40px', 
+                  marginRight: '16px',
+                  filter: 'brightness(0) invert(1)' // This makes the logo white
+                }} 
+              />
+              <Typography variant="h6" component="div">
+                CosinorLab
+              </Typography>
+            </Box>
+            <Chip
+              label={serverStatus}
+              color={serverStatus === 'Server Connected' ? 'success' : 'error'}
+              size="small"
               sx={{ 
-                flexGrow: 1,
-                fontWeight: 700,
-                letterSpacing: '0.5px',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center'
-              }}
-            >
-              CosinorLab
-            </Typography>
-            <Box
-              component="a"
-              href="https://ethz.ch"
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                height: 40,
-                marginRight: 2,
-                display: { xs: 'none', sm: 'block' },
-                filter: 'brightness(0) invert(1)',
-                opacity: 0.9,
-                '&:hover': {
-                  opacity: 1,
+                '& .MuiChip-label': { 
+                  px: 1,
+                  fontSize: '0.75rem'
                 }
               }}
-            >
-              <Box
-                component="img"
-                src={logo}
-                alt="Logo"
-                sx={{ height: 40 }}
-              />
-            </Box>
-            {data && (
-                <Button 
-                  color="inherit" 
-                  onClick={clearState}
-                  sx={{ ml: 2 }}
-                >
-                  Reset
-                </Button>
-            )}
+            />
           </Toolbar>
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            sx={{ 
+              bgcolor: 'primary.main',
+              borderBottom: 1,
+              borderColor: 'primary.dark',
+              maxWidth: 600,
+              mx: 'auto',
+              minHeight: 48,
+              '& .MuiTabs-indicator': {
+                backgroundColor: 'white',
+                height: 2,
+              },
+              '& .MuiTabs-flexContainer': {
+                justifyContent: 'center',
+              },
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 500,
+                fontSize: '0.9rem',
+                minWidth: 100,
+                padding: '8px 12px',
+                color: 'white',
+                minHeight: 48,
+                '&.Mui-selected': {
+                  color: 'white',
+                  fontWeight: 600,
+                },
+                '&:hover': {
+                  color: 'white',
+                  backgroundColor: 'primary.dark',
+                },
+                '& .MuiSvgIcon-root': {
+                  color: 'white',
+                },
+              },
+            }}
+          >
+            <Tab 
+              label="Home" 
+              icon={<HomeIcon sx={{ fontSize: '1.2rem' }} />} 
+              iconPosition="start"
+            />
+            <Tab 
+              label="Documentation" 
+              icon={<MenuBookIcon sx={{ fontSize: '1.2rem' }} />} 
+              iconPosition="start"
+            />
+            <Tab 
+              label="Lab" 
+              icon={<ScienceIcon sx={{ fontSize: '1.2rem' }} />} 
+              iconPosition="start"
+            />
+            <Tab 
+              label="About" 
+              icon={<InfoIcon sx={{ fontSize: '1.2rem' }} />} 
+              iconPosition="start"
+            />
+          </Tabs>
         </AppBar>
 
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Paper
-                elevation={3}
-                sx={{
-                  p: 3,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                  alignItems: 'center',
-                  maxWidth: 600,
-                  mx: 'auto',
-                  border: dragActive ? '2px dashed #2196f3' : 'none',
-                  background: dragActive ? 'rgba(33,150,243,0.05)' : undefined,
-                  position: 'relative',
-                }}
-                onDragEnter={dataSource ? handleDrag : undefined}
-                onDragOver={dataSource ? handleDrag : undefined}
-                onDragLeave={dataSource ? handleDrag : undefined}
-                onDrop={dataSource ? handleDrop : undefined}
-              >
-                <Typography variant="h6" gutterBottom>
-                  Select Data Source
-                </Typography>
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel id="data-source-label">Data Source</InputLabel>
-                  <Select
-                    labelId="data-source-label"
-                    value={dataSource}
-                    label="Data Source"
-                    onChange={(e) => setDataSource(e.target.value)}
-                    sx={{ minWidth: 300 }}
-                    disabled={!!data?.file_id}
-                  >
-                    <MenuItem value="samsung_galaxy_binary">Samsung Galaxy Smartwatch - Binary (Zipped)</MenuItem>
-                    <MenuItem value="samsung_galaxy_csv">Samsung Galaxy Smartwatch - CSV</MenuItem>
-                  </Select>
-                </FormControl>
-                {dataSource && (
-                  <>
-                    <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
-                      {dataSource === 'samsung_galaxy_binary' 
-                        ? 'Upload your ZIP file containing the Samsung Galaxy Smartwatch data'
-                        : 'Upload your CSV file containing the Samsung Galaxy Smartwatch data'}
-                    </Typography>
-                <Button
-                      variant="contained"
-                      component="label"
-                      startIcon={<UploadIcon />}
-                      sx={{ 
-                        minWidth: 200,
-                        py: 1,
-                        px: 3,
-                        borderRadius: 2
-                      }}
-                      disabled={!!data?.file_id}
-                      onClick={() => { console.log('Upload File button pressed'); }}
-                    >
-                      Upload File
-                      <input
-                        type="file"
-                        hidden
-                        accept={dataSource === 'samsung_galaxy_binary' ? '.zip' : '.csv'}
-                        onChange={handleFileUpload}
-                        ref={fileInputRef}
-                      />
-                    </Button>
-                    {uploadProgress > 0 && uploadProgress < 100 && (
-                      <Box sx={{ width: '100%', mt: 2 }}>
-                        <LinearProgress variant="determinate" value={uploadProgress} />
-                        <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-                          Uploading: {Math.round(uploadProgress)}%
-                        </Typography>
-                      </Box>
-                    )}
-                    {data?.file_id && (
-                      <Typography 
-                        variant="body2" 
-                        color="success.main" 
-                        sx={{ 
-                          mt: 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1
-                        }}
-                      >
-                        <CheckCircleIcon fontSize="small" />
-                        Successfully uploaded: {data.filename}
-                      </Typography>
-                    )}
-                    {dragActive && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          zIndex: 10,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#2196f3',
-                          fontSize: 24,
-                          pointerEvents: 'none',
-                          background: 'rgba(255,255,255,0.5)'
-                        }}
-                      >
-                        Drop file to upload
-                      </Box>
-                    )}
-                  </>
-                )}
-              </Paper>
-            </Grid>
-
-            {data?.file_id && !data.data && (
+          {currentTab === 0 && (
+            <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Card sx={{ p: 3, mb: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Processing Parameters
+                <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+                  <Typography variant="h3" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
+                    Welcome to CosinorLab
                   </Typography>
-                  <Grid container spacing={3}>
-                    {/* Preprocessing Parameters */}
-                    <Grid item xs={12} md={6}>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Preprocessing Parameters
-                      </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Auto-calibration SD Criterion"
-                            type="text"
-                            value={preprocessParams.autocalib_sd_criter}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handlePreprocessParamChange('autocalib_sd_criter', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Auto-calibration Sphere Criterion"
-                            type="text"
-                            value={preprocessParams.autocalib_sphere_crit}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handlePreprocessParamChange('autocalib_sphere_crit', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <FormControl fullWidth>
-                            <InputLabel>Filter Type</InputLabel>
-                            <Select
-                              value={preprocessParams.filter_type}
-                              label="Filter Type"
-                              onChange={(e) => handlePreprocessParamChange('filter_type', e.target.value)}
-                            >
-                              <MenuItem value="lowpass">Lowpass</MenuItem>
-                              <MenuItem value="highpass">Highpass</MenuItem>
-                              <MenuItem value="bandpass">Bandpass</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Filter Cutoff"
-                            type="text"
-                            value={preprocessParams.filter_cutoff}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handlePreprocessParamChange('filter_cutoff', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Wear SD Criterion"
-                            type="text"
-                            value={preprocessParams.wear_sd_crit}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handlePreprocessParamChange('wear_sd_crit', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Wear Range Criterion"
-                            type="text"
-                            value={preprocessParams.wear_range_crit}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handlePreprocessParamChange('wear_range_crit', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Wear Window Length"
-                            type="text"
-                            value={preprocessParams.wear_window_length}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handlePreprocessParamChange('wear_window_length', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "numeric",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            fullWidth
-                            label="Wear Window Skip"
-                            type="text"
-                            value={preprocessParams.wear_window_skip}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handlePreprocessParamChange('wear_window_skip', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "numeric",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={12}>
-                          <Typography gutterBottom>
-                            Required Daily Coverage
+                  <Typography variant="h5" color="text.secondary" gutterBottom sx={{ mb: 4 }}>
+                    Advanced Analysis of Accelerometer Data
+                  </Typography>
+                  
+                  <Grid container spacing={4} sx={{ mt: 2 }}>
+                    <Grid item xs={12} md={4}>
+                      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
+                        <Box sx={{ 
+                          position: 'absolute', 
+                          top: -20, 
+                          left: '50%', 
+                          transform: 'translateX(-50%)',
+                          width: 60,
+                          height: 60,
+                          borderRadius: '50%',
+                          bgcolor: 'primary.light',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <AccessTimeIcon sx={{ fontSize: 30, color: 'white' }} />
+                        </Box>
+                        <CardContent sx={{ pt: 6, textAlign: 'center' }}>
+                          <Typography variant="h5" gutterBottom>
+                            Biological Age Prediction
                           </Typography>
-                          <Slider
-                            value={typeof preprocessParams.required_daily_coverage === 'number' ? preprocessParams.required_daily_coverage : 0.7}
-                            min={0}
-                            max={1}
-                            step={0.01}
-                            onChange={(e, newValue) => setPreprocessParams(prev => ({ ...prev, required_daily_coverage: newValue }))}
-                            valueLabelDisplay="auto"
-                          />
-                          <TextField
-                            fullWidth
-                            label="Required Daily Coverage (0-1)"
-                            type="text"
-                            value={preprocessParams.required_daily_coverage}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                setPreprocessParams(prev => ({ ...prev, required_daily_coverage: value }));
-                              }
-                            }}
-                            inputProps={{
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
-                            sx={{ mt: 2 }}
-                          />
-                          <Typography variant="caption" color="text.secondary">
-                            Minimum fraction of valid data required per day (0 = 0%, 1 = 100%). Default: 0.7
+                          <Typography variant="body1" color="text.secondary">
+                            Estimate your biological age based on activity patterns. Our advanced 
+                            algorithms analyze your movement data to provide insights into your 
+                            physiological age and health status.
                           </Typography>
-                        </Grid>
-                      </Grid>
+                        </CardContent>
+                      </Card>
                     </Grid>
 
-                    {/* Feature Parameters */}
-                    <Grid item xs={12} md={6}>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Feature Parameters
-                      </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                          <FormControl fullWidth>
-                            <FormControlLabel
-                              control={
-                                <Switch
-                                  checked={featureParams.sleep_rescore}
-                                  onChange={(e) => handleFeatureParamChange('sleep_rescore', e.target.checked)}
-                                />
-                              }
-                              label="Sleep Rescore"
-                            />
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={12}>
-                          <TextField
-                            fullWidth
-                            label="Sleep CK SF"
-                            type="text"
-                            value={featureParams.sleep_ck_sf}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handleFeatureParamChange('sleep_ck_sf', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                          <TextField
-                            fullWidth
-                            label="PA Cutpoint Sedentary-Light"
-                            type="text"
-                            value={featureParams.pa_cutpoint_sl}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handleFeatureParamChange('pa_cutpoint_sl', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                          <TextField
-                            fullWidth
-                            label="PA Cutpoint Light-Moderate"
-                            type="text"
-                            value={featureParams.pa_cutpoint_lm}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handleFeatureParamChange('pa_cutpoint_lm', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                          <TextField
-                            fullWidth
-                            label="PA Cutpoint Moderate-Vigorous"
-                            type="text"
-                            value={featureParams.pa_cutpoint_mv}
-                            onChange={(e) => {
-                              let value = e.target.value.replace(/,/g, '.');
-                              if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                handleFeatureParamChange('pa_cutpoint_mv', value);
-                              }
-                            }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
-                          />
-                        </Grid>
-                      </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
+                        <Box sx={{ 
+                          position: 'absolute', 
+                          top: -20, 
+                          left: '50%', 
+                          transform: 'translateX(-50%)',
+                          width: 60,
+                          height: 60,
+                          borderRadius: '50%',
+                          bgcolor: 'primary.light',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <TimelineIcon sx={{ fontSize: 30, color: 'white' }} />
+                        </Box>
+                        <CardContent sx={{ pt: 6, textAlign: 'center' }}>
+                          <Typography variant="h5" gutterBottom>
+                            Accelerometer Data Analysis
+                          </Typography>
+                          <Typography variant="body1" color="text.secondary">
+                            Process and analyze raw accelerometer data with advanced algorithms. 
+                            Extract meaningful insights from your movement patterns using state-of-the-art 
+                            preprocessing and feature extraction techniques.
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'visible' }}>
+                        <Box sx={{ 
+                          position: 'absolute', 
+                          top: -20, 
+                          left: '50%', 
+                          transform: 'translateX(-50%)',
+                          width: 60,
+                          height: 60,
+                          borderRadius: '50%',
+                          bgcolor: 'primary.light',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <ShowChartIcon sx={{ fontSize: 30, color: 'white' }} />
+                        </Box>
+                        <CardContent sx={{ pt: 6, textAlign: 'center' }}>
+                          <Typography variant="h5" gutterBottom>
+                            Feature Visualization
+                          </Typography>
+                          <Typography variant="body1" color="text.secondary">
+                            Explore your data through interactive visualizations. View circadian rhythms, 
+                            activity patterns, and sleep metrics with our comprehensive suite of 
+                            visualization tools.
+                          </Typography>
+                        </CardContent>
+                      </Card>
                     </Grid>
                   </Grid>
-                </Card>
-              </Grid>
-            )}
 
-            {error && (
-              <Grid item xs={12}>
-                <Paper sx={{ p: 2, bgcolor: 'error.light' }}>
-                  <Typography color="error">{error}</Typography>
-                </Paper>
-              </Grid>
-            )}
-
-            {data?.file_id && !data.data && (
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                   <Button
                     variant="contained"
                     color="primary"
-                    startIcon={processing ? <CircularProgress size={20} color="inherit" /> : <PlayArrowIcon />}
-                    onClick={handleProcessData}
-                    disabled={processing}
+                    size="large"
+                    onClick={() => setCurrentTab(2)}
+                    sx={{ 
+                      mt: 6,
+                      px: 4,
+                      py: 1.5,
+                      fontSize: '1.1rem',
+                      borderRadius: 2,
+                      boxShadow: 3,
+                      '&:hover': {
+                        boxShadow: 6,
+                        transform: 'translateY(-2px)',
+                        transition: 'all 0.2s ease-in-out'
+                      }
+                    }}
                   >
-                    {processing ? 'Processing...' : 'Process Data'}
+                    Go to Lab
                   </Button>
-                  {processing && (
-                    <Typography variant="body2" color="text.secondary">
-                      Processing time: {formatTime(processingTime)}
-                    </Typography>
-                  )}
-                </Box>
-              </Grid>
-            )}
-
-            {success && (
-              <Grid item xs={12}>
-                <Paper sx={{ p: 2, bgcolor: 'success.light' }}>
-                  <Typography color="success">{success}</Typography>
                 </Paper>
               </Grid>
-            )}
-
-            {data?.data && (
+            </Grid>
+          )}
+          
+          {currentTab === 1 && (
+            <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      Raw Data Information
+                <Paper elevation={3} sx={{ p: 4 }}>
+                  <Typography variant="h4" gutterBottom>
+                    Documentation
+                  </Typography>
+                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                    How to Use CosinorLab
+                  </Typography>
+                  
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Getting Started
                     </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Data Frequency
-                        </Typography>
-                        <Typography variant="body1">{data.metadata?.raw_data_frequency || 'N/A'}</Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Start Time
-                        </Typography>
-                        <Typography variant="body1">{data.metadata?.raw_start_datetime || 'N/A'}</Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          End Time
-                        </Typography>
-                        <Typography variant="body1">{data.metadata?.raw_end_datetime || 'N/A'}</Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Data Type
-                        </Typography>
-                        <Typography variant="body1">{data.metadata?.raw_data_type || 'N/A'}</Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Data Unit
-                        </Typography>
-                        <Typography variant="body1">{data.metadata?.raw_data_unit || 'N/A'}</Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Number of Data Points
-                        </Typography>
-                        <Typography variant="body1">{data.metadata?.raw_n_datapoints || 'N/A'}</Typography>
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Follow-up Time
-                        </Typography>
+                    <Typography variant="body1" paragraph>
+                      1. Navigate to the Lab tab to begin your analysis
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      2. Upload your accelerometer data file (supported formats: .csv, .xlsx)
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      3. Configure your analysis parameters
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      4. View and interpret your results
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Data Format Requirements
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      Your data file should contain the following columns:
+                    </Typography>
+                    <ul>
+                      <li><Typography variant="body1">Timestamp</Typography></li>
+                      <li><Typography variant="body1">X-axis acceleration</Typography></li>
+                      <li><Typography variant="body1">Y-axis acceleration</Typography></li>
+                      <li><Typography variant="body1">Z-axis acceleration</Typography></li>
+                    </ul>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Analysis Parameters
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      • Window Size: The duration of each analysis window
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      • Overlap: The amount of overlap between consecutive windows
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      • Period: The expected period of the circadian rhythm
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Features
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      CosinorLab provides several types of analysis:
+                    </Typography>
+                    <ul>
+                      <li>
                         <Typography variant="body1">
-                          {data.metadata?.raw_start_datetime && data.metadata?.raw_end_datetime ? 
-                            (() => {
-                              const diff = new Date(data.metadata.raw_end_datetime) - new Date(data.metadata.raw_start_datetime);
-                              const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                              const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                              const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                              return `${days} ${days === 1 ? 'day' : 'days'} ${hours} ${hours === 1 ? 'hour' : 'hours'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-                            })() : 
-                            'N/A'}
+                          <strong>Cosinor Analysis:</strong> Analyzes circadian rhythms using harmonic regression
                         </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
+                          <strong>Non-parametric Analysis:</strong> Calculates activity metrics like M10, L5, and relative amplitude
+                        </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
+                          <strong>Physical Activity Analysis:</strong> Categorizes activity into sedentary, light, moderate, and vigorous
+                        </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
+                          <strong>Sleep Analysis:</strong> Estimates sleep parameters including total sleep time and sleep efficiency
+                        </Typography>
+                      </li>
+                    </ul>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Age Prediction
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      The age prediction feature uses your activity patterns to estimate your biological age. To use this feature:
+                    </Typography>
+                    <ol>
+                      <li><Typography variant="body1">Enter your chronological age</Typography></li>
+                      <li><Typography variant="body1">Select your gender</Typography></li>
+                      <li><Typography variant="body1">Click "Predict Age" to see the results</Typography></li>
+                    </ol>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Troubleshooting
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      Common issues and solutions:
+                    </Typography>
+                    <ul>
+                      <li>
+                        <Typography variant="body1">
+                          <strong>Data Upload Issues:</strong> Ensure your file is in the correct format and contains all required columns
+                        </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
+                          <strong>Processing Errors:</strong> Check that your data spans at least 24 hours and contains valid acceleration values
+                        </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
+                          <strong>Age Prediction Issues:</strong> Verify that you've entered a valid chronological age and selected a gender
+                        </Typography>
+                      </li>
+                    </ul>
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
+          )}
+
+          {currentTab === 2 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper
+                  elevation={3}
+                  sx={{
+                    p: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    alignItems: 'center',
+                    maxWidth: 600,
+                    mx: 'auto',
+                    border: dragActive ? '2px dashed #2196f3' : 'none',
+                    background: dragActive ? 'rgba(33,150,243,0.05)' : undefined,
+                    position: 'relative',
+                  }}
+                  onDragEnter={dataSource ? handleDrag : undefined}
+                  onDragOver={dataSource ? handleDrag : undefined}
+                  onDragLeave={dataSource ? handleDrag : undefined}
+                  onDrop={dataSource ? handleDrop : undefined}
+                >
+                  <Typography variant="h6" gutterBottom>
+                    Select Data Source
+                  </Typography>
+                  <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel id="data-source-label">Data Source</InputLabel>
+                    <Select
+                      labelId="data-source-label"
+                      value={dataSource}
+                      label="Data Source"
+                      onChange={(e) => setDataSource(e.target.value)}
+                      sx={{ minWidth: 300 }}
+                      disabled={!!data?.file_id}
+                    >
+                      <MenuItem value="samsung_galaxy_binary">Samsung Galaxy Smartwatch - Binary (Zipped)</MenuItem>
+                      <MenuItem value="samsung_galaxy_csv">Samsung Galaxy Smartwatch - CSV</MenuItem>
+                    </Select>
+                  </FormControl>
+                  {dataSource && (
+                    <>
+                      <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+                        {dataSource === 'samsung_galaxy_binary' 
+                          ? 'Upload your ZIP file containing the Samsung Galaxy Smartwatch data'
+                          : 'Upload your CSV file containing the Samsung Galaxy Smartwatch data'}
+                      </Typography>
+                  <Button
+                        variant="contained"
+                        component="label"
+                        startIcon={<UploadIcon />}
+                        sx={{ 
+                          minWidth: 200,
+                          py: 1,
+                          px: 3,
+                          borderRadius: 2
+                        }}
+                        disabled={!!data?.file_id}
+                        onClick={() => { console.log('Upload File button pressed'); }}
+                      >
+                        Upload File
+                        <input
+                          type="file"
+                          hidden
+                          accept={dataSource === 'samsung_galaxy_binary' ? '.zip' : '.csv'}
+                          onChange={handleFileUpload}
+                          ref={fileInputRef}
+                        />
+                      </Button>
+                      {uploadProgress > 0 && uploadProgress < 100 && (
+                        <Box sx={{ width: '100%', mt: 2 }}>
+                          <LinearProgress variant="determinate" value={uploadProgress} />
+                          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+                            Uploading: {Math.round(uploadProgress)}%
+                          </Typography>
+                        </Box>
+                      )}
+                      {data?.file_id && (
+                        <Typography 
+                          variant="body2" 
+                          color="success.main" 
+                          sx={{ 
+                            mt: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                          }}
+                        >
+                          <CheckCircleIcon fontSize="small" />
+                          Successfully uploaded: {data.filename}
+                        </Typography>
+                      )}
+                      {dragActive && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 10,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#2196f3',
+                            fontSize: 24,
+                            pointerEvents: 'none',
+                            background: 'rgba(255,255,255,0.5)'
+                          }}
+                        >
+                          Drop file to upload
+                        </Box>
+                      )}
+                    </>
+                  )}
+                  {cosinorAge && (
+                    <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1, width: '100%' }}>
+                      <Typography variant="h6" gutterBottom>
+                        CosinorAge Prediction
+                      </Typography>
+                      <Typography variant="body1">
+                        Predicted Age: {cosinorAge.toFixed(1)} years
+                      </Typography>
+                    </Box>
+                  )}
+                  {data && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, width: '100%' }}>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={handleReset}
+                        startIcon={<RefreshIcon />}
+                        sx={{ 
+                          minWidth: 120,
+                          '&:hover': {
+                            backgroundColor: 'error.main',
+                            color: 'white'
+                          }
+                        }}
+                      >
+                        Reset All
+                      </Button>
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+
+              {data?.file_id && !data.data && (
+                <Grid item xs={12}>
+                  <Card sx={{ p: 3, mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Processing Parameters
+                    </Typography>
+                    <Grid container spacing={3}>
+                      {/* Preprocessing Parameters */}
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle1" gutterBottom>
+                          Preprocessing Parameters
+                        </Typography>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Auto-calibration SD Criterion"
+                              type="text"
+                              value={preprocessParams.autocalib_sd_criter}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handlePreprocessParamChange('autocalib_sd_criter', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "decimal",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Auto-calibration Sphere Criterion"
+                              type="text"
+                              value={preprocessParams.autocalib_sphere_crit}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handlePreprocessParamChange('autocalib_sphere_crit', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "decimal",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth>
+                              <InputLabel>Filter Type</InputLabel>
+                              <Select
+                                value={preprocessParams.filter_type}
+                                label="Filter Type"
+                                onChange={(e) => handlePreprocessParamChange('filter_type', e.target.value)}
+                              >
+                                <MenuItem value="lowpass">Lowpass</MenuItem>
+                                <MenuItem value="highpass">Highpass</MenuItem>
+                                <MenuItem value="bandpass">Bandpass</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Filter Cutoff"
+                              type="text"
+                              value={preprocessParams.filter_cutoff}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handlePreprocessParamChange('filter_cutoff', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "decimal",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Wear SD Criterion"
+                              type="text"
+                              value={preprocessParams.wear_sd_crit}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handlePreprocessParamChange('wear_sd_crit', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "decimal",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Wear Range Criterion"
+                              type="text"
+                              value={preprocessParams.wear_range_crit}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handlePreprocessParamChange('wear_range_crit', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "decimal",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Wear Window Length"
+                              type="text"
+                              value={preprocessParams.wear_window_length}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handlePreprocessParamChange('wear_window_length', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "numeric",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Wear Window Skip"
+                              type="text"
+                              value={preprocessParams.wear_window_skip}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handlePreprocessParamChange('wear_window_skip', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "numeric",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={12}>
+                            <Typography gutterBottom>
+                              Required Daily Coverage
+                            </Typography>
+                            <Slider
+                              value={typeof preprocessParams.required_daily_coverage === 'number' ? preprocessParams.required_daily_coverage : 0.7}
+                              min={0}
+                              max={1}
+                              step={0.01}
+                              onChange={(e, newValue) => setPreprocessParams(prev => ({ ...prev, required_daily_coverage: newValue }))}
+                              valueLabelDisplay="auto"
+                            />
+                            <TextField
+                              fullWidth
+                              label="Required Daily Coverage (0-1)"
+                              type="text"
+                              value={preprocessParams.required_daily_coverage}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  setPreprocessParams(prev => ({ ...prev, required_daily_coverage: value }));
+                                }
+                              }}
+                              inputProps={{
+                                inputMode: "decimal",
+                                lang: "en-US"
+                              }}
+                              sx={{ mt: 2 }}
+                            />
+                            <Typography variant="caption" color="text.secondary">
+                              Minimum fraction of valid data required per day (0 = 0%, 1 = 100%). Default: 0.7
+                            </Typography>
+                          </Grid>
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Cohort Size
+
+                      {/* Feature Parameters */}
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle1" gutterBottom>
+                          Feature Parameters
                         </Typography>
-                        <Typography variant="body1">1 individual</Typography>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12}>
+                            <FormControl fullWidth>
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={featureParams.sleep_rescore}
+                                    onChange={(e) => handleFeatureParamChange('sleep_rescore', e.target.checked)}
+                                  />
+                                }
+                                label="Sleep Rescore"
+                              />
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={12}>
+                            <TextField
+                              fullWidth
+                              label="Sleep CK SF"
+                              type="text"
+                              value={featureParams.sleep_ck_sf}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handleFeatureParamChange('sleep_ck_sf', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "decimal",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={4}>
+                            <TextField
+                              fullWidth
+                              label="PA Cutpoint Sedentary-Light"
+                              type="text"
+                              value={featureParams.pa_cutpoint_sl}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handleFeatureParamChange('pa_cutpoint_sl', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "decimal",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={4}>
+                            <TextField
+                              fullWidth
+                              label="PA Cutpoint Light-Moderate"
+                              type="text"
+                              value={featureParams.pa_cutpoint_lm}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handleFeatureParamChange('pa_cutpoint_lm', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "decimal",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={4}>
+                            <TextField
+                              fullWidth
+                              label="PA Cutpoint Moderate-Vigorous"
+                              type="text"
+                              value={featureParams.pa_cutpoint_mv}
+                              onChange={(e) => {
+                                let value = e.target.value.replace(/,/g, '.');
+                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                  handleFeatureParamChange('pa_cutpoint_mv', value);
+                                }
+                              }}
+                              inputProps={{ 
+                                inputMode: "decimal",
+                                lang: "en-US"
+                              }}
+                            />
+                          </Grid>
+                        </Grid>
                       </Grid>
                     </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-            {/* Disclaimer below Raw Data Information */}
-            {data?.data && (
-              <Grid item xs={12}>
-                <Box sx={{ mt: 1, mb: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                  <React.Fragment>
-                    <Typography
-                      variant="body2"
-                      color="success.main"
-                      sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(76, 175, 80, 0.08)', px: 2, py: 1, borderRadius: 2, cursor: 'pointer' }}
-                      onClick={() => setPreprocessDialogOpen(true)}
-                      tabIndex={0}
-                      role="button"
-                      aria-label="Show preprocessing explanation"
-                    >
-                      <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
-                      Data was successfully preprocessed.
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="success.main"
-                      sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(76, 175, 80, 0.08)', px: 2, py: 1, borderRadius: 2 }}
-                    >
-                      <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
-                      Features were successfully computed.
-                    </Typography>
-                    <Dialog open={preprocessDialogOpen} onClose={() => setPreprocessDialogOpen(false)}>
-                      <DialogTitle>Preprocessing Steps</DialogTitle>
-                      <DialogContent>
-                        <DialogContentText style={{ whiteSpace: 'pre-line' }}>
-                          The preprocessing of your data includes:
-                          {'\n'}• Resampling to minute-level time grid
-                          {'\n'}• Selection of the longest consecutive valid timeframe
-                          {'\n'}• Calibration of raw accelerometer data
-                        </DialogContentText>
-                      </DialogContent>
-                    </Dialog>
-                  </React.Fragment>
-                </Box>
-              </Grid>
-            )}
-
-            {(() => {
-              return data?.data && (
-                <Grid item xs={12}>
-                  <Card style={{ marginTop: '20px', padding: '20px' }}>
-                    <Typography variant="h6" gutterBottom>
-                      ENMO time series (incl. wear/non-wear segments)
-                    </Typography>
-                    {/* Custom legend for wear/non-wear */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 1 }}>
-                      <Box sx={{ width: 18, height: 18, bgcolor: '#4caf50', opacity: 0.3, border: '1px solid #4caf50', mr: 1 }} />
-                      <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>wear</Typography>
-                      <Box sx={{ width: 18, height: 18, bgcolor: '#ff5252', opacity: 0.3, border: '1px solid #ff5252', mr: 1 }} />
-                      <Typography variant="body2" color="text.secondary">non-wear</Typography>
-                    </Box>
-                    <ResponsiveContainer width="100%" height={400}>
-                      <LineChart 
-                        data={data.data}
-                        margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                      >
-                        <XAxis 
-                          dataKey="TIMESTAMP" 
-                          label={{ value: 'Time', position: 'insideBottom', offset: -5 }}
-                          tickFormatter={(timestamp) => {
-                            const date = new Date(timestamp);
-                            return date.toLocaleDateString();
-                          }}
-                          interval={0}
-                          tick={(props) => {
-                            const { x, y, payload } = props;
-                            const date = new Date(payload.value);
-                            const isStartOfDay = date.getHours() === 0 && date.getMinutes() === 0;
-                            return isStartOfDay ? (
-                              <g transform={`translate(${x},${y})`}>
-                                <text x={0} y={0} dy={16} textAnchor="middle" fill="#666">
-                                  {date.toLocaleDateString()}
-                                </text>
-                              </g>
-                            ) : null;
-                          }}
-                        />
-                        <YAxis 
-                          label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
-                        />
-                        <RechartsTooltip 
-                          content={({ active, payload, label }) => {
-                            if (active && payload && payload.length) {
-                              return (
-                                <div style={{ 
-                                  backgroundColor: 'white', 
-                                  padding: '10px', 
-                                  border: '1px solid #ccc',
-                                  borderRadius: '4px'
-                                }}>
-                                  <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
-                                  {payload.map((entry, index) => (
-                                    <p key={index} style={{ margin: '0', color: entry.color }}>
-                                      {`${entry.name}: ${entry.value.toFixed(2)} mg`}
-                                    </p>
-                                  ))}
-                                </div>
-                              );
-                            }
-                            return null;
-                          }}
-                        />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="ENMO" 
-                          stroke="#8884d8" 
-                          dot={false}
-                        />
-                        {/* Shaded background for wear/non-wear segments */}
-                        {(() => {
-                          const areas = [];
-                          let currentWear = data.data[0]?.wear;
-                          let segStart = data.data[0]?.TIMESTAMP;
-                          // Log timestamps
-                          console.log('Min Timestamp:', data.data[0]?.TIMESTAMP);
-                          console.log('M10 Start:', data.features.nonparam.m10_start);
-                          console.log('L5 Start:', data.features.nonparam.l5_start);
-                          for (let i = 1; i <= data.data.length; i++) {
-                            const point = data.data[i];
-                            if (i === data.data.length || point?.wear !== currentWear) {
-                              const segEnd = data.data[i - 1]?.TIMESTAMP;
-                              // Only add shaded area if wear is not -1
-                              if (currentWear !== -1) {
-                                const color = interpolateColor(currentWear);
-                                areas.push(
-                                  <ReferenceArea
-                                    key={`wear-seg-${segStart}`}
-                                    x1={segStart}
-                                    x2={segEnd}
-                                    fill={color}
-                                    fillOpacity={0.3}
-                                    stroke={color}
-                                    strokeOpacity={0.5}
-                                    label={null}
-                                  />
-                                );
-                              }
-                              if (i < data.data.length) {
-                                currentWear = point.wear;
-                                segStart = point.TIMESTAMP;
-                              }
-                            }
-                          }
-                          return areas;
-                        })()}
-                      </LineChart>
-                    </ResponsiveContainer>
                   </Card>
                 </Grid>
-              );
-            })()}
+              )}
 
-            {data?.features && data.features.cosinor && (
-              <Grid item xs={12}>
-                <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Cosinor Features
-                    </Typography>
-                    <SectionInfoButton section="cosinor" />
+              {error && (
+                <Grid item xs={12}>
+                  <Paper sx={{ p: 2, bgcolor: 'error.light' }}>
+                    <Typography color="error">{error}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {data?.file_id && !data.data && (
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={processing ? <CircularProgress size={20} color="inherit" /> : <PlayArrowIcon />}
+                      onClick={handleProcessData}
+                      disabled={processing}
+                    >
+                      {processing ? 'Processing...' : 'Process Data'}
+                    </Button>
+                    {processing && (
+                      <Typography variant="body2" color="text.secondary">
+                        Processing time: {formatTime(processingTime)}
+                      </Typography>
+                    )}
                   </Box>
-                  <Grid container spacing={2} direction="row" wrap="nowrap">
-                    {Object.entries(data.features.cosinor).map(([key, value]) => (
-                      <Grid item xs key={key} zeroMinWidth>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="subtitle2" color="text.secondary" noWrap>
-                            {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </Grid>
+              )}
+
+              {success && (
+                <Grid item xs={12}>
+                  <Paper sx={{ p: 2, bgcolor: 'success.light' }}>
+                    <Typography color="success">{success}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {data?.data && (
+                <Grid item xs={12}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        Raw Data Information
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Data Frequency
                           </Typography>
-                          <SectionInfoButton metric={key} />
-                        </Box>
-                        <Typography variant="body1" noWrap>
-                          {typeof value === 'number' ? 
-                            key === 'acrophase_time' ? (() => {
-                              const minutes = value;
-                              const hours = Math.floor(minutes / 60);
-                              const mins = Math.round(minutes % 60);
-                              return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-                            })() : value.toFixed(4) : value}
-                          {key === 'mesor' || key === 'amplitude' ? ' mg' : 
-                            key === 'acrophase' ? ' radians' : ''}
-                        </Typography>
+                          <Typography variant="body1">{data.metadata?.raw_data_frequency || 'N/A'}</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Start Time
+                          </Typography>
+                          <Typography variant="body1">{data.metadata?.raw_start_datetime || 'N/A'}</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            End Time
+                          </Typography>
+                          <Typography variant="body1">{data.metadata?.raw_end_datetime || 'N/A'}</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Data Type
+                          </Typography>
+                          <Typography variant="body1">{data.metadata?.raw_data_type || 'N/A'}</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Data Unit
+                          </Typography>
+                          <Typography variant="body1">{data.metadata?.raw_data_unit || 'N/A'}</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Number of Data Points
+                          </Typography>
+                          <Typography variant="body1">{data.metadata?.raw_n_datapoints || 'N/A'}</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Follow-up Time
+                          </Typography>
+                          <Typography variant="body1">
+                            {data.metadata?.raw_start_datetime && data.metadata?.raw_end_datetime ? 
+                              (() => {
+                                const diff = new Date(data.metadata.raw_end_datetime) - new Date(data.metadata.raw_start_datetime);
+                                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                                return `${days} ${days === 1 ? 'day' : 'days'} ${hours} ${hours === 1 ? 'hour' : 'hours'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+                              })() : 
+                              'N/A'}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            Cohort Size
+                          </Typography>
+                          <Typography variant="body1">1 individual</Typography>
+                        </Grid>
                       </Grid>
-                    ))}
-                  </Grid>
-                </Card>
-              </Grid>
-            )}
-            {data?.features && data.features.nonparam && (
-              <Grid item xs={12}>
-                <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Non-parametric Features
-                    </Typography>
-                    <SectionInfoButton section="nonparam" />
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+              {/* Disclaimer below Raw Data Information */}
+              {data?.data && (
+                <Grid item xs={12}>
+                  <Box sx={{ mt: 1, mb: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                    <React.Fragment>
+                      <Typography
+                        variant="body2"
+                        color="success.main"
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(76, 175, 80, 0.08)', px: 2, py: 1, borderRadius: 2, cursor: 'pointer' }}
+                        onClick={() => setPreprocessDialogOpen(true)}
+                        tabIndex={0}
+                        role="button"
+                        aria-label="Show preprocessing explanation"
+                      >
+                        <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
+                        Data was successfully preprocessed.
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="success.main"
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(76, 175, 80, 0.08)', px: 2, py: 1, borderRadius: 2 }}
+                      >
+                        <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
+                        Features were successfully computed.
+                      </Typography>
+                      <Dialog open={preprocessDialogOpen} onClose={() => setPreprocessDialogOpen(false)}>
+                        <DialogTitle>Preprocessing Steps</DialogTitle>
+                        <DialogContent>
+                          <DialogContentText style={{ whiteSpace: 'pre-line' }}>
+                            The preprocessing of your data includes:
+                            {'\n'}• Resampling to minute-level time grid
+                            {'\n'}• Selection of the longest consecutive valid timeframe
+                            {'\n'}• Calibration of raw accelerometer data
+                          </DialogContentText>
+                        </DialogContent>
+                      </Dialog>
+                    </React.Fragment>
                   </Box>
-                  <Grid container spacing={2}>
-                    {Object.entries(data.features.nonparam)
-                      .sort(([keyA], [keyB]) => {
-                        // Define the desired order
-                        const order = {
-                          'is': 1,
-                          'iv': 2,
-                          'm10': 3,
-                          'ra': 4
-                        };
-                        const orderA = order[keyA.toLowerCase()] || 5;
-                        const orderB = order[keyB.toLowerCase()] || 5;
-                        return orderA - orderB;
-                      })
-                      .map(([key, value]) => (
-                      ['l5', 'm10_start', 'l5_start'].includes(key.toLowerCase()) ? null : (
-                        <Grid item xs={12} key={key}>
+                </Grid>
+              )}
+
+              {(() => {
+                return data?.data && (
+                  <Grid item xs={12}>
+                    <Card style={{ marginTop: '20px', padding: '20px' }}>
+                      <Typography variant="h6" gutterBottom>
+                        ENMO time series (incl. wear/non-wear segments)
+                      </Typography>
+                      {/* Custom legend for wear/non-wear */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 1 }}>
+                        <Box sx={{ width: 18, height: 18, bgcolor: '#4caf50', opacity: 0.3, border: '1px solid #4caf50', mr: 1 }} />
+                        <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>wear</Typography>
+                        <Box sx={{ width: 18, height: 18, bgcolor: '#ff5252', opacity: 0.3, border: '1px solid #ff5252', mr: 1 }} />
+                        <Typography variant="body2" color="text.secondary">non-wear</Typography>
+                      </Box>
+                      <ResponsiveContainer width="100%" height={400}>
+                        <LineChart 
+                          data={data.data}
+                          margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                        >
+                          <XAxis 
+                            dataKey="TIMESTAMP" 
+                            label={{ value: 'Time', position: 'insideBottom', offset: -5 }}
+                            tickFormatter={(timestamp) => {
+                              const date = new Date(timestamp);
+                              return date.toLocaleDateString();
+                            }}
+                            interval={0}
+                            tick={(props) => {
+                              const { x, y, payload } = props;
+                              const date = new Date(payload.value);
+                              const isStartOfDay = date.getHours() === 0 && date.getMinutes() === 0;
+                              return isStartOfDay ? (
+                                <g transform={`translate(${x},${y})`}>
+                                  <text x={0} y={0} dy={16} textAnchor="middle" fill="#666">
+                                    {date.toLocaleDateString()}
+                                  </text>
+                                </g>
+                              ) : null;
+                            }}
+                          />
+                          <YAxis 
+                            label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
+                          />
+                          <RechartsTooltip 
+                            content={({ active, payload, label }) => {
+                              if (active && payload && payload.length) {
+                                return (
+                                  <div style={{ 
+                                    backgroundColor: 'white', 
+                                    padding: '10px', 
+                                    border: '1px solid #ccc',
+                                    borderRadius: '4px'
+                                  }}>
+                                    <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                    {payload.map((entry, index) => (
+                                      <p key={index} style={{ margin: '0', color: entry.color }}>
+                                        {`${entry.name}: ${entry.value.toFixed(2)} mg`}
+                                      </p>
+                                    ))}
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="ENMO" 
+                            stroke="#8884d8" 
+                            dot={false}
+                          />
+                          {/* Shaded background for wear/non-wear segments */}
+                          {(() => {
+                            const areas = [];
+                            let currentWear = data.data[0]?.wear;
+                            let segStart = data.data[0]?.TIMESTAMP;
+                            // Log timestamps
+                            console.log('Min Timestamp:', data.data[0]?.TIMESTAMP);
+                            console.log('M10 Start:', data.features.nonparam.m10_start);
+                            console.log('L5 Start:', data.features.nonparam.l5_start);
+                            for (let i = 1; i <= data.data.length; i++) {
+                              const point = data.data[i];
+                              if (i === data.data.length || point?.wear !== currentWear) {
+                                const segEnd = data.data[i - 1]?.TIMESTAMP;
+                                // Only add shaded area if wear is not -1
+                                if (currentWear !== -1) {
+                                  const color = interpolateColor(currentWear);
+                                  areas.push(
+                                    <ReferenceArea
+                                      key={`wear-seg-${segStart}`}
+                                      x1={segStart}
+                                      x2={segEnd}
+                                      fill={color}
+                                      fillOpacity={0.3}
+                                      stroke={color}
+                                      strokeOpacity={0.5}
+                                      label={null}
+                                    />
+                                  );
+                                }
+                                if (i < data.data.length) {
+                                  currentWear = point.wear;
+                                  segStart = point.TIMESTAMP;
+                                }
+                              }
+                            }
+                            return areas;
+                          })()}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </Card>
+                  </Grid>
+                );
+              })()}
+
+              {data?.features && data.features.cosinor && (
+                <Grid item xs={12}>
+                  <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Cosinor Features
+                      </Typography>
+                      <SectionInfoButton section="cosinor" />
+                    </Box>
+                    <Grid container spacing={2} direction="row" wrap="nowrap">
+                      {Object.entries(data.features.cosinor).map(([key, value]) => (
+                        <Grid item xs key={key} zeroMinWidth>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="subtitle2" color="text.secondary">
-                              {key === 'RA' ? 'Relative Amplitude (RA)' : 
-                               key === 'M10' || key === 'L5' ? 'L5 & M10' : 
-                               key === 'IV' ? 'Intradaily Variability (IV)' :
-                               key === 'IS' ? 'Interdaily Stability (IS)' :
-                               key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            <Typography variant="subtitle2" color="text.secondary" noWrap>
+                              {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                             </Typography>
                             <SectionInfoButton metric={key} />
                           </Box>
-                          {/* IS and IV as horizontal scale */}
-                          {(['is', 'iv'].includes(key.toLowerCase()) && typeof value === 'number') ? (
-                            <HorizontalScale
-                              value={value}
-                              min={key.toLowerCase() === 'is' ? 0 : 0}
-                              max={key.toLowerCase() === 'is' ? 1 : 2}
-                              color={key.toLowerCase() === 'is' ? '#1976d2' : '#388e3c'}
-                            />
-                          ) : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
-                            <Box sx={{ width: '100%', height: 200, mt: 2 }}>
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                  data={value.map((v, index) => ({
-                                    day: getDateForIndex('RA', index, data),
-                                    RA: v
-                                  }))}
-                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis dataKey="day" />
-                                  <YAxis label={{ value: 'RA', angle: -90, position: 'insideLeft' }} />
-                                  <RechartsTooltip 
-                                    content={({ active, payload, label }) => {
-                                      if (active && payload && payload.length) {
-                                        return (
-                                          <div style={{ 
-                                            backgroundColor: 'white', 
-                                            padding: '10px', 
-                                            border: '1px solid #ccc',
-                                            borderRadius: '4px'
-                                          }}>
-                                            <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                            {payload.map((entry, index) => {
-                                              let value = entry.value;
-                                              let unit = '';
-                                              if (entry.name === 'TST') {
-                                                value = Math.round(value).toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                value = value.toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'PTA') {
-                                                value = value.toFixed(1);
-                                                unit = '%';
-                                              } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                value = value.toFixed(2);
-                                                unit = ' mg';
-                                              }
-                                              return (
-                                                <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                  {`${entry.name}: ${value}${unit}`}
-                                                </p>
-                                              );
-                                            })}
-                                          </div>
-                                        );
-                                      }
-                                      return null;
-                                    }}
-                                  />
-                                  <Bar dataKey="RA" fill="#0088fe" name="RA" />
-                                </BarChart>
-                              </ResponsiveContainer>
+                          <Typography variant="body1" noWrap>
+                            {typeof value === 'number' ? 
+                              key === 'acrophase_time' ? (() => {
+                                const minutes = value;
+                                const hours = Math.floor(minutes / 60);
+                                const mins = Math.round(minutes % 60);
+                                return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+                              })() : value.toFixed(4) : value}
+                            {key === 'mesor' || key === 'amplitude' ? ' mg' : 
+                              key === 'acrophase' ? ' radians' : ''}
+                          </Typography>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Card>
+                </Grid>
+              )}
+              {data?.features && data.features.nonparam && (
+                <Grid item xs={12}>
+                  <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Non-parametric Features
+                      </Typography>
+                      <SectionInfoButton section="nonparam" />
+                    </Box>
+                    <Grid container spacing={2}>
+                      {Object.entries(data.features.nonparam)
+                        .sort(([keyA], [keyB]) => {
+                          // Define the desired order
+                          const order = {
+                            'is': 1,
+                            'iv': 2,
+                            'm10': 3,
+                            'ra': 4
+                          };
+                          const orderA = order[keyA.toLowerCase()] || 5;
+                          const orderB = order[keyB.toLowerCase()] || 5;
+                          return orderA - orderB;
+                        })
+                        .map(([key, value]) => (
+                        ['l5', 'm10_start', 'l5_start'].includes(key.toLowerCase()) ? null : (
+                          <Grid item xs={12} key={key}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="subtitle2" color="text.secondary">
+                                {key === 'RA' ? 'Relative Amplitude (RA)' : 
+                                 key === 'M10' || key === 'L5' ? 'L5 & M10' : 
+                                 key === 'IV' ? 'Intradaily Variability (IV)' :
+                                 key === 'IS' ? 'Interdaily Stability (IS)' :
+                                 key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </Typography>
+                              <SectionInfoButton metric={key} />
                             </Box>
-                          ) : key === 'M10' && data.features.nonparam.M10 && data.features.nonparam.L5 ? (
-                            <>
-                              <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                            {/* IS and IV as horizontal scale */}
+                            {(['is', 'iv'].includes(key.toLowerCase()) && typeof value === 'number') ? (
+                              <HorizontalScale
+                                value={value}
+                                min={key.toLowerCase() === 'is' ? 0 : 0}
+                                max={key.toLowerCase() === 'is' ? 1 : 2}
+                                color={key.toLowerCase() === 'is' ? '#1976d2' : '#388e3c'}
+                              />
+                            ) : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
+                              <Box sx={{ width: '100%', height: 200, mt: 2 }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                   <BarChart
-                                    data={data.features.nonparam.M10.map((m10, index) => ({
-                                      day: getDateForIndex('M10', index, data),
-                                      M10: m10,
-                                      L5: data.features.nonparam.L5[index]
+                                    data={value.map((v, index) => ({
+                                      day: getDateForIndex('RA', index, data),
+                                      RA: v
                                     }))}
                                     margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
                                   >
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="day" />
-                                    <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
+                                    <YAxis label={{ value: 'RA', angle: -90, position: 'insideLeft' }} />
                                     <RechartsTooltip 
                                       content={({ active, payload, label }) => {
                                         if (active && payload && payload.length) {
@@ -1594,6 +1923,249 @@ function App() {
                                               borderRadius: '4px'
                                             }}>
                                               <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                              {payload.map((entry, index) => {
+                                                let value = entry.value;
+                                                let unit = '';
+                                                if (entry.name === 'TST') {
+                                                  value = Math.round(value).toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                  value = value.toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'PTA') {
+                                                  value = value.toFixed(1);
+                                                  unit = '%';
+                                                } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                  value = value.toFixed(2);
+                                                  unit = ' mg';
+                                                }
+                                                return (
+                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                    {`${entry.name}: ${value}${unit}`}
+                                                  </p>
+                                                );
+                                              })}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      }}
+                                    />
+                                    <Bar dataKey="RA" fill="#0088fe" name="RA" />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </Box>
+                            ) : key === 'M10' && data.features.nonparam.M10 && data.features.nonparam.L5 ? (
+                              <>
+                                <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                      data={data.features.nonparam.M10.map((m10, index) => ({
+                                        day: getDateForIndex('M10', index, data),
+                                        M10: m10,
+                                        L5: data.features.nonparam.L5[index]
+                                      }))}
+                                      margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                    >
+                                      <CartesianGrid strokeDasharray="3 3" />
+                                      <XAxis dataKey="day" />
+                                      <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
+                                      <RechartsTooltip 
+                                        content={({ active, payload, label }) => {
+                                          if (active && payload && payload.length) {
+                                            return (
+                                              <div style={{ 
+                                                backgroundColor: 'white', 
+                                                padding: '10px', 
+                                                border: '1px solid #ccc',
+                                                borderRadius: '4px'
+                                              }}>
+                                                <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                {payload.map((entry, index) => {
+                                                  let value = entry.value;
+                                                  let unit = '';
+                                                  if (entry.name === 'TST') {
+                                                    value = Math.round(value).toFixed(0);
+                                                    unit = ' minutes';
+                                                  } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                    value = value.toFixed(0);
+                                                    unit = ' minutes';
+                                                  } else if (entry.name === 'PTA') {
+                                                    value = value.toFixed(1);
+                                                    unit = '%';
+                                                  } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                    value = value.toFixed(2);
+                                                    unit = ' mg';
+                                                  } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                    value = value.toFixed(0);
+                                                    unit = ' minutes';
+                                                  }
+                                                  return (
+                                                    <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                      {`${entry.name}: ${value}${unit}`}
+                                                    </p>
+                                                  );
+                                                })}
+                                              </div>
+                                            );
+                                          }
+                                          return null;
+                                        }}
+                                      />
+                                      <Legend />
+                                      <Bar dataKey="M10" fill="#8884d8" name="M10" />
+                                      <Bar dataKey="L5" fill="#82ca9d" name="L5" />
+                                    </BarChart>
+                                  </ResponsiveContainer>
+                                </Box>
+                              </>
+                            ) : key === 'TST' || key === 'WASO' || key === 'SOL' || key === 'PTA' ? (
+                              <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart
+                                    data={value.map((v, index) => ({
+                                      day: getDateForIndex(key, index, data),
+                                      [key]: v
+                                    }))}
+                                    margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="day" />
+                                    <YAxis label={{ 
+                                      value: key === 'PTA' ? 'Percentage (%)' : key === 'NWB' ? 'Number of Bouts' : 'Minutes', 
+                                      angle: -90, 
+                                      position: 'insideLeft' 
+                                    }} />
+                                    <RechartsTooltip 
+                                      content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                          return (
+                                            <div style={{ 
+                                              backgroundColor: 'white', 
+                                              padding: '10px', 
+                                              border: '1px solid #ccc',
+                                              borderRadius: '4px'
+                                            }}>
+                                              <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                              {payload.map((entry, index) => {
+                                                let value = entry.value;
+                                                let unit = '';
+                                                if (entry.name === 'TST') {
+                                                  value = Math.round(value).toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                  value = value.toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'PTA') {
+                                                  value = value.toFixed(1);
+                                                  unit = '%';
+                                                } else if (entry.name === 'NWB') {
+                                                  value = value.toFixed(0);
+                                                  unit = ' bouts';
+                                                }
+                                                return (
+                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                    {`${entry.name}: ${value}${unit}`}
+                                                  </p>
+                                                );
+                                              })}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      }}
+                                    />
+                                    <Legend />
+                                    <Bar dataKey={key} fill="#8884d8" name={key} />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </Box>
+                            ) : (
+                              <Typography variant="body1">
+                                {Array.isArray(value) ? value.join(', ') : value}
+                              </Typography>
+                            )}
+                          </Grid>
+                        )
+                      ))}
+                    </Grid>
+                    {/* Daily ENMO Time Series with M10 and L5 Periods */}
+                    <Box sx={{ mt: 4 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Daily ENMO Time Series with M10 and L5 Periods (incl. multiday Cosinor Fits)
+                      </Typography>
+                      <Grid container spacing={3}>
+                        {Array.from(new Set(data.data.map(item => {
+                          const date = new Date(item.TIMESTAMP);
+                          return date.toLocaleDateString('en-CA');
+                        }))).map((dayStr, dayIndex) => {
+                          const dayData = data.data.filter(item => {
+                            const date = new Date(item.TIMESTAMP);
+                            return date.toLocaleDateString('en-CA') === dayStr;
+                          });
+                          if (dayData.length === 0) return null;
+                          const m10Start = data.features.nonparam.M10_start?.[dayIndex];
+                          const l5Start = data.features.nonparam.L5_start?.[dayIndex];
+                          if (!m10Start || !l5Start) return null;
+                          // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
+                          const dayDataWithNum = dayData.map(item => {
+                            const globalIndex = data.data.findIndex(d => d.TIMESTAMP === item.TIMESTAMP);
+                            const globalData = globalIndex !== -1 ? data.data[globalIndex] : null;
+                            return {
+                              ...item,
+                              timestampNum: new Date(item.TIMESTAMP).getTime(),
+                              cosinor_fitted: globalData ? globalData.cosinor_fitted : null
+                            };
+                          });
+                          const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
+                          // Check if m10StartDate and l5StartDate are valid
+                          const m10StartDate = m10Start && m10Start.includes('T')
+                            ? new Date(m10Start)
+                            : new Date(`${dayStr}T${m10Start}`);
+                          const l5StartDate = l5Start && l5Start.includes('T')
+                            ? new Date(l5Start)
+                            : new Date(`${dayStr}T${l5Start}`);
+                          return (
+                            <Grid item xs={12} key={dayStr}>
+                              <Card variant="outlined" sx={{ p: 2 }}>
+                                <Typography variant="subtitle1" gutterBottom align="center">
+                                  {dayStr}
+                                </Typography>
+                                <ResponsiveContainer width="100%" height={300}>
+                                  <LineChart
+                                    data={dayDataWithNumSorted}
+                                    margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis
+                                      dataKey="timestampNum"
+                                      type="number"
+                                      domain={['dataMin', 'dataMax']}
+                                      tickFormatter={(timestampNum) => {
+                                        const date = new Date(timestampNum);
+                                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                      }}
+                                    />
+                                    <YAxis 
+                                      yAxisId="left"
+                                      label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} 
+                                    />
+                                    <YAxis 
+                                      yAxisId="right"
+                                      orientation="right"
+                                      label={{ value: 'Cosinor Fit (mg)', angle: 90, position: 'insideRight' }} 
+                                    />
+                                    <RechartsTooltip
+                                      content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                          return (
+                                            <div style={{ 
+                                              backgroundColor: 'white',
+                                              padding: '10px', 
+                                              border: '1px solid #ccc',
+                                              borderRadius: '4px'
+                                            }}>
+                                              <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
                                               {payload.map((entry, index) => {
                                                 let value = entry.value;
                                                 let unit = '';
@@ -1626,672 +2198,577 @@ function App() {
                                       }}
                                     />
                                     <Legend />
-                                    <Bar dataKey="M10" fill="#8884d8" name="M10" />
-                                    <Bar dataKey="L5" fill="#82ca9d" name="L5" />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="ENMO"
+                                      stroke="#8884d8"
+                                      dot={false}
+                                      isAnimationActive={false}
+                                      yAxisId="left"
+                                    />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="cosinor_fitted"
+                                      stroke="#ff0000"
+                                      dot={false}
+                                      isAnimationActive={false}
+                                      name="Cosinor Fit"
+                                      yAxisId="left"
+                                    />
+                                    {/* M10 Period Band */}
+                                    <ReferenceArea
+                                      x1={m10StartDate.getTime()}
+                                      x2={(() => {
+                                        const x2Value = new Date(m10StartDate.getTime() + 10 * 60 * 60 * 1000);
+                                        if (x2Value.getHours() === 0 && x2Value.getMinutes() === 0) {
+                                          return x2Value.getTime() - 60000;
+                                        }
+                                        return x2Value.getTime();
+                                      })()}
+                                      fill="#8884d8"
+                                      fillOpacity={0.1}
+                                      label="M10"
+                                      yAxisId="left"
+                                    />
+                                    {/* L5 Period Band */}
+                                    <ReferenceArea
+                                      x1={l5StartDate.getTime()}
+                                      x2={(() => {
+                                        const x2Value = new Date(l5StartDate.getTime() + 5 * 60 * 60 * 1000);
+                                        if (x2Value.getHours() === 0 && x2Value.getMinutes() === 0) {
+                                          return x2Value.getTime() - 60000;
+                                        }
+                                        return x2Value.getTime();
+                                      })()}
+                                      fill="#82ca9d"
+                                      fillOpacity={0.1}
+                                      label="L5"
+                                      yAxisId="left"
+                                    />
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              </Card>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    </Box>
+                  </Card>
+                </Grid>
+              )}
+
+              {data?.features && data.features.physical_activity && (
+                <Grid item xs={12}>
+                  <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Physical Activity Features
+                      </Typography>
+                      <SectionInfoButton section="activity" />
+                    </Box>
+                    <Grid container spacing={2}>
+                      {/* Only show the stacked bar chart for per-day metrics, not the per-day values */}
+                      <Grid item xs={12}>
+                        <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={(() => {
+                                // Extract unique days from data.data
+                                const uniqueDays = Array.from(new Set(data.data.map(item => {
+                                  const date = new Date(item.TIMESTAMP);
+                                  return date.toLocaleDateString('en-CA');
+                                })));
+                                return uniqueDays.map((dayStr, index) => ({
+                                  day: dayStr,
+                                  sedentary: data.features.physical_activity.sedentary[index],
+                                  light: data.features.physical_activity.light[index],
+                                  moderate: data.features.physical_activity.moderate[index],
+                                  vigorous: data.features.physical_activity.vigorous[index],
+                                }));
+                              })()}
+                              margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="day" />
+                              <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
+                              <RechartsTooltip 
+                                content={({ active, payload, label }) => {
+                                  if (active && payload && payload.length) {
+                                    return (
+                                      <div style={{ 
+                                        backgroundColor: 'white', 
+                                        padding: '10px', 
+                                        border: '1px solid #ccc',
+                                        borderRadius: '4px'
+                                      }}>
+                                        <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                        {payload.map((entry, index) => {
+                                          let value = entry.value;
+                                          let unit = '';
+                                          if (entry.name === 'TST') {
+                                            value = Math.round(value).toFixed(0);
+                                            unit = ' minutes';
+                                          } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                            value = value.toFixed(0);
+                                            unit = ' minutes';
+                                          } else if (entry.name === 'PTA') {
+                                            value = value.toFixed(1);
+                                            unit = '%';
+                                          }
+                                          return (
+                                            <p key={index} style={{ margin: '0', color: entry.color }}>
+                                              {`${entry.name}: ${value}${unit}`}
+                                            </p>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                }}
+                              />
+                              <Legend />
+                              <Bar dataKey="sedentary" stackId="a" fill="#8884d8" name="Sedentary" />
+                              <Bar dataKey="light" stackId="a" fill="#82ca9d" name="Light" />
+                              <Bar dataKey="moderate" stackId="a" fill="#ffc658" name="Moderate" />
+                              <Bar dataKey="vigorous" stackId="a" fill="#ff8042" name="Vigorous" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                </Grid>
+              )}
+
+              {data?.features && data.features.nonparam && (
+                <Grid item xs={12}>
+                  <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Sleep Features
+                      </Typography>
+                      <SectionInfoButton section="sleep" />
+                    </Box>
+                    {/* Debug logging */}
+                    {console.log('Non-parametric features:', data.features.nonparam)}
+                    {/* Sleep Metrics Bar Charts */}
+                    <Grid container spacing={3}>
+                      {['TST', 'WASO', 'PTA', 'NWB', 'SOL', 'SRI'].map((metric) => {
+                        // Try to get the value from sleep, then nonparam
+                        const value = (data.features.sleep && data.features.sleep[metric]) || (data.features.nonparam && data.features.nonparam[metric]);
+                        if (!value || !Array.isArray(value)) return null;
+                        return (
+                          <Grid item xs={12} key={metric}>
+                            <Card variant="outlined" sx={{ p: 2 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Typography variant="subtitle1">
+                                  {metricDescriptions[metric.toLowerCase()]?.title || metric}
+                                </Typography>
+                                <SectionInfoButton metric={metric} />
+                              </Box>
+                              <Box sx={{ width: '100%', height: 300 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart
+                                    data={value.map((v, index) => ({
+                                      day: getDateForIndex(metric, index, data),
+                                      [metric]: v
+                                    }))}
+                                    margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="day" />
+                                    <YAxis label={{
+                                      value:
+                                        metric === 'PTA' ? 'Percentage (%)' :
+                                        metric === 'NWB' ? 'Number of Bouts' :
+                                        metric === 'SRI' ? 'Index' :
+                                        'Minutes',
+                                      angle: -90,
+                                      position: 'insideLeft'
+                                    }} />
+                                    <RechartsTooltip
+                                      content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                          return (
+                                            <div style={{
+                                              backgroundColor: 'white',
+                                              padding: '10px',
+                                              border: '1px solid #ccc',
+                                              borderRadius: '4px'
+                                            }}>
+                                              <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                              {payload.map((entry, index) => {
+                                                let value = entry.value;
+                                                let unit = '';
+                                                if (entry.name === 'TST') {
+                                                  value = Math.round(value).toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                  value = value.toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'PTA') {
+                                                  value = value.toFixed(1);
+                                                  unit = '%';
+                                                } else if (entry.name === 'NWB') {
+                                                  value = value.toFixed(0);
+                                                  unit = ' bouts';
+                                                } else if (entry.name === 'SRI') {
+                                                  value = value.toFixed(2);
+                                                  unit = '';
+                                                }
+                                                return (
+                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                    {`${entry.name}: ${value}${unit}`}
+                                                  </p>
+                                                );
+                                              })}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      }}
+                                    />
+                                    <Legend />
+                                    <Bar dataKey={metric} fill="#8884d8" name={metric} />
                                   </BarChart>
                                 </ResponsiveContainer>
                               </Box>
-                            </>
-                          ) : key === 'TST' || key === 'WASO' || key === 'SOL' || key === 'PTA' ? (
-                            <Box sx={{ width: '100%', height: 300, mt: 2 }}>
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                  data={value.map((v, index) => ({
-                                    day: getDateForIndex(key, index, data),
-                                    [key]: v
-                                  }))}
-                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis dataKey="day" />
-                                  <YAxis label={{ 
-                                    value: key === 'PTA' ? 'Percentage (%)' : key === 'NWB' ? 'Number of Bouts' : 'Minutes', 
-                                    angle: -90, 
-                                    position: 'insideLeft' 
-                                  }} />
-                                  <RechartsTooltip 
-                                    content={({ active, payload, label }) => {
-                                      if (active && payload && payload.length) {
-                                        return (
-                                          <div style={{ 
-                                            backgroundColor: 'white', 
-                                            padding: '10px', 
-                                            border: '1px solid #ccc',
-                                            borderRadius: '4px'
-                                          }}>
-                                            <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                            {payload.map((entry, index) => {
-                                              let value = entry.value;
-                                              let unit = '';
-                                              if (entry.name === 'TST') {
-                                                value = Math.round(value).toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                value = value.toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'PTA') {
-                                                value = value.toFixed(1);
-                                                unit = '%';
-                                              } else if (entry.name === 'NWB') {
-                                                value = value.toFixed(0);
-                                                unit = ' bouts';
-                                              }
-                                              return (
-                                                <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                  {`${entry.name}: ${value}${unit}`}
-                                                </p>
-                                              );
-                                            })}
-                                          </div>
-                                        );
-                                      }
-                                      return null;
-                                    }}
-                                  />
-                                  <Legend />
-                                  <Bar dataKey={key} fill="#8884d8" name={key} />
-                                </BarChart>
-                              </ResponsiveContainer>
-                            </Box>
-                          ) : (
-                            <Typography variant="body1">
-                              {Array.isArray(value) ? value.join(', ') : value}
-                            </Typography>
-                          )}
-                        </Grid>
-                      )
-                    ))}
-                  </Grid>
-                  {/* Daily ENMO Time Series with M10 and L5 Periods */}
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Daily ENMO Time Series with M10 and L5 Periods (incl. multiday Cosinor Fits)
-                    </Typography>
-                    <Grid container spacing={3}>
-                      {Array.from(new Set(data.data.map(item => {
-                        const date = new Date(item.TIMESTAMP);
-                        return date.toLocaleDateString('en-CA');
-                      }))).map((dayStr, dayIndex) => {
-                        const dayData = data.data.filter(item => {
+                            </Card>
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
+                    {/* Daily ENMO Time Series with Sleep Bands */}
+                    <Box sx={{ mt: 4 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Daily ENMO Time Series with Sleep Periods
+                      </Typography>
+                      {/* Custom legend for sleep periods */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 1 }}>
+                        <Box sx={{ width: 18, height: 18, bgcolor: '#2196f3', opacity: 0.15, border: '1px solid #2196f3', mr: 1 }} />
+                        <Typography variant="body2" color="text.secondary">Sleep Period</Typography>
+                      </Box>
+                      <Grid container spacing={3}>
+                        {Array.from(new Set(data.data.map(item => {
                           const date = new Date(item.TIMESTAMP);
-                          return date.toLocaleDateString('en-CA') === dayStr;
-                        });
-                        if (dayData.length === 0) return null;
-                        const m10Start = data.features.nonparam.M10_start?.[dayIndex];
-                        const l5Start = data.features.nonparam.L5_start?.[dayIndex];
-                        if (!m10Start || !l5Start) return null;
-                        // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
-                        const dayDataWithNum = dayData.map(item => {
-                          const globalIndex = data.data.findIndex(d => d.TIMESTAMP === item.TIMESTAMP);
-                          const globalData = globalIndex !== -1 ? data.data[globalIndex] : null;
-                          return {
+                          return date.toLocaleDateString('en-CA');
+                        }))).map((dayStr, dayIndex) => {
+                          const dayData = data.data.filter(item => {
+                            const date = new Date(item.TIMESTAMP);
+                            return date.toLocaleDateString('en-CA') === dayStr;
+                          });
+                          if (dayData.length === 0) return null;
+                          // Add a 'timestampNum' property for numeric x-axis
+                          const dayDataWithNum = dayData.map(item => ({
                             ...item,
                             timestampNum: new Date(item.TIMESTAMP).getTime(),
-                            cosinor_fitted: globalData ? globalData.cosinor_fitted : null
-                          };
-                        });
-                        const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
-                        // Check if m10StartDate and l5StartDate are valid
-                        const m10StartDate = m10Start && m10Start.includes('T')
-                          ? new Date(m10Start)
-                          : new Date(`${dayStr}T${m10Start}`);
-                        const l5StartDate = l5Start && l5Start.includes('T')
-                          ? new Date(l5Start)
-                          : new Date(`${dayStr}T${l5Start}`);
-                        return (
-                          <Grid item xs={12} key={dayStr}>
-                            <Card variant="outlined" sx={{ p: 2 }}>
-                              <Typography variant="subtitle1" gutterBottom align="center">
-                                {dayStr}
-                              </Typography>
-                              <ResponsiveContainer width="100%" height={300}>
-                                <LineChart
-                                  data={dayDataWithNumSorted}
-                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis
-                                    dataKey="timestampNum"
-                                    type="number"
-                                    domain={['dataMin', 'dataMax']}
-                                    tickFormatter={(timestampNum) => {
-                                      const date = new Date(timestampNum);
-                                      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                    }}
-                                  />
-                                  <YAxis 
-                                    yAxisId="left"
-                                    label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} 
-                                  />
-                                  <YAxis 
-                                    yAxisId="right"
-                                    orientation="right"
-                                    label={{ value: 'Cosinor Fit (mg)', angle: 90, position: 'insideRight' }} 
-                                  />
-                                  <RechartsTooltip
-                                    content={({ active, payload, label }) => {
-                                      if (active && payload && payload.length) {
-                                        return (
-                                          <div style={{ 
-                                            backgroundColor: 'white',
-                                            padding: '10px', 
-                                            border: '1px solid #ccc',
-                                            borderRadius: '4px'
-                                          }}>
-                                            <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
-                                            {payload.map((entry, index) => {
-                                              let value = entry.value;
-                                              let unit = '';
-                                              if (entry.name === 'TST') {
-                                                value = Math.round(value).toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                value = value.toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'PTA') {
-                                                value = value.toFixed(1);
-                                                unit = '%';
-                                              } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                value = value.toFixed(2);
-                                                unit = ' mg';
-                                              } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                value = value.toFixed(0);
-                                                unit = ' minutes';
-                                              }
-                                              return (
-                                                <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                  {`${entry.name}: ${value}${unit}`}
-                                                </p>
-                                              );
-                                            })}
-                                          </div>
-                                        );
-                                      }
-                                      return null;
-                                    }}
-                                  />
-                                  <Legend />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="ENMO"
-                                    stroke="#8884d8"
-                                    dot={false}
-                                    isAnimationActive={false}
-                                    yAxisId="left"
-                                  />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="cosinor_fitted"
-                                    stroke="#ff0000"
-                                    dot={false}
-                                    isAnimationActive={false}
-                                    name="Cosinor Fit"
-                                    yAxisId="left"
-                                  />
-                                  {/* M10 Period Band */}
-                                  <ReferenceArea
-                                    x1={m10StartDate.getTime()}
-                                    x2={(() => {
-                                      const x2Value = new Date(m10StartDate.getTime() + 10 * 60 * 60 * 1000);
-                                      if (x2Value.getHours() === 0 && x2Value.getMinutes() === 0) {
-                                        return x2Value.getTime() - 60000;
-                                      }
-                                      return x2Value.getTime();
-                                    })()}
-                                    fill="#8884d8"
-                                    fillOpacity={0.1}
-                                    label="M10"
-                                    yAxisId="left"
-                                  />
-                                  {/* L5 Period Band */}
-                                  <ReferenceArea
-                                    x1={l5StartDate.getTime()}
-                                    x2={(() => {
-                                      const x2Value = new Date(l5StartDate.getTime() + 5 * 60 * 60 * 1000);
-                                      if (x2Value.getHours() === 0 && x2Value.getMinutes() === 0) {
-                                        return x2Value.getTime() - 60000;
-                                      }
-                                      return x2Value.getTime();
-                                    })()}
-                                    fill="#82ca9d"
-                                    fillOpacity={0.1}
-                                    label="L5"
-                                    yAxisId="left"
-                                  />
-                                </LineChart>
-                              </ResponsiveContainer>
-                            </Card>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                  </Box>
-                </Card>
-              </Grid>
-            )}
-
-            {data?.features && data.features.physical_activity && (
-              <Grid item xs={12}>
-                <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Physical Activity Features
-                    </Typography>
-                    <SectionInfoButton section="activity" />
-                  </Box>
-                  <Grid container spacing={2}>
-                    {/* Only show the stacked bar chart for per-day metrics, not the per-day values */}
-                    <Grid item xs={12}>
-                      <Box sx={{ width: '100%', height: 300, mt: 2 }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={(() => {
-                              // Extract unique days from data.data
-                              const uniqueDays = Array.from(new Set(data.data.map(item => {
-                                const date = new Date(item.TIMESTAMP);
-                                return date.toLocaleDateString('en-CA');
-                              })));
-                              return uniqueDays.map((dayStr, index) => ({
-                                day: dayStr,
-                                sedentary: data.features.physical_activity.sedentary[index],
-                                light: data.features.physical_activity.light[index],
-                                moderate: data.features.physical_activity.moderate[index],
-                                vigorous: data.features.physical_activity.vigorous[index],
-                              }));
-                            })()}
-                            margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="day" />
-                            <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
-                            <RechartsTooltip 
-                              content={({ active, payload, label }) => {
-                                if (active && payload && payload.length) {
-                                  return (
-                                    <div style={{ 
-                                      backgroundColor: 'white', 
-                                      padding: '10px', 
-                                      border: '1px solid #ccc',
-                                      borderRadius: '4px'
-                                    }}>
-                                      <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                      {payload.map((entry, index) => {
-                                        let value = entry.value;
-                                        let unit = '';
-                                        if (entry.name === 'TST') {
-                                          value = Math.round(value).toFixed(0);
-                                          unit = ' minutes';
-                                        } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                          value = value.toFixed(0);
-                                          unit = ' minutes';
-                                        } else if (entry.name === 'PTA') {
-                                          value = value.toFixed(1);
-                                          unit = '%';
+                          }));
+                          const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
+                          // Find sleep=1 intervals
+                          const sleepBands = [];
+                          let bandStart = null;
+                          for (let i = 0; i < dayDataWithNumSorted.length; i++) {
+                            if (dayDataWithNumSorted[i].sleep === 1 && bandStart === null) {
+                              bandStart = dayDataWithNumSorted[i].timestampNum;
+                            }
+                            if ((dayDataWithNumSorted[i].sleep !== 1 || i === dayDataWithNumSorted.length - 1) && bandStart !== null) {
+                              const bandEnd = dayDataWithNumSorted[i - 1].timestampNum;
+                              sleepBands.push({ start: bandStart, end: bandEnd });
+                              bandStart = null;
+                            }
+                          }
+                          return (
+                            <Grid item xs={12} key={dayStr}>
+                              <Card variant="outlined" sx={{ p: 2 }}>
+                                <Typography variant="subtitle1" gutterBottom align="center">
+                                  {dayStr}
+                                </Typography>
+                                <ResponsiveContainer width="100%" height={300}>
+                                  <LineChart
+                                    data={dayDataWithNumSorted}
+                                    margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis
+                                      dataKey="timestampNum"
+                                      type="number"
+                                      domain={['dataMin', 'dataMax']}
+                                      tickFormatter={(timestampNum) => {
+                                        const date = new Date(timestampNum);
+                                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                      }}
+                                    />
+                                    <YAxis
+                                      yAxisId="left"
+                                      label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
+                                    />
+                                    <RechartsTooltip
+                                      content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                          return (
+                                            <div style={{ 
+                                              backgroundColor: 'white', 
+                                              padding: '10px', 
+                                              border: '1px solid #ccc',
+                                              borderRadius: '4px'
+                                            }}>
+                                              <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                              {payload.map((entry, index) => {
+                                                let value = entry.value;
+                                                let unit = '';
+                                                if (entry.name === 'TST') {
+                                                  value = Math.round(value).toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                  value = value.toFixed(0);
+                                                  unit = ' minutes';
+                                                } else if (entry.name === 'PTA') {
+                                                  value = value.toFixed(1);
+                                                  unit = '%';
+                                                }
+                                                return (
+                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                    {`${entry.name}: ${value}${unit}`}
+                                                  </p>
+                                                );
+                                              })}
+                                            </div>
+                                          );
                                         }
-                                        return (
-                                          <p key={index} style={{ margin: '0', color: entry.color }}>
-                                            {`${entry.name}: ${value}${unit}`}
-                                          </p>
-                                        );
-                                      })}
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              }}
-                            />
-                            <Legend />
-                            <Bar dataKey="sedentary" stackId="a" fill="#8884d8" name="Sedentary" />
-                            <Bar dataKey="light" stackId="a" fill="#82ca9d" name="Light" />
-                            <Bar dataKey="moderate" stackId="a" fill="#ffc658" name="Moderate" />
-                            <Bar dataKey="vigorous" stackId="a" fill="#ff8042" name="Vigorous" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Card>
-              </Grid>
-            )}
-
-            {data?.features && data.features.nonparam && (
-              <Grid item xs={12}>
-                <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Sleep Features
-                    </Typography>
-                    <SectionInfoButton section="sleep" />
-                  </Box>
-                  {/* Debug logging */}
-                  {console.log('Non-parametric features:', data.features.nonparam)}
-                  {/* Sleep Metrics Bar Charts */}
-                  <Grid container spacing={3}>
-                    {['TST', 'WASO', 'PTA', 'NWB', 'SOL', 'SRI'].map((metric) => {
-                      // Try to get the value from sleep, then nonparam
-                      const value = (data.features.sleep && data.features.sleep[metric]) || (data.features.nonparam && data.features.nonparam[metric]);
-                      if (!value || !Array.isArray(value)) return null;
-                      return (
-                        <Grid item xs={12} key={metric}>
-                          <Card variant="outlined" sx={{ p: 2 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                              <Typography variant="subtitle1">
-                                {metricDescriptions[metric.toLowerCase()]?.title || metric}
-                              </Typography>
-                              <SectionInfoButton metric={metric} />
-                            </Box>
-                            <Box sx={{ width: '100%', height: 300 }}>
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                  data={value.map((v, index) => ({
-                                    day: getDateForIndex(metric, index, data),
-                                    [metric]: v
-                                  }))}
-                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis dataKey="day" />
-                                  <YAxis label={{
-                                    value:
-                                      metric === 'PTA' ? 'Percentage (%)' :
-                                      metric === 'NWB' ? 'Number of Bouts' :
-                                      metric === 'SRI' ? 'Index' :
-                                      'Minutes',
-                                    angle: -90,
-                                    position: 'insideLeft'
-                                  }} />
-                                  <RechartsTooltip
-                                    content={({ active, payload, label }) => {
-                                      if (active && payload && payload.length) {
-                                        return (
-                                          <div style={{
-                                            backgroundColor: 'white',
-                                            padding: '10px',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '4px'
-                                          }}>
-                                            <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                            {payload.map((entry, index) => {
-                                              let value = entry.value;
-                                              let unit = '';
-                                              if (entry.name === 'TST') {
-                                                value = Math.round(value).toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                value = value.toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'PTA') {
-                                                value = value.toFixed(1);
-                                                unit = '%';
-                                              } else if (entry.name === 'NWB') {
-                                                value = value.toFixed(0);
-                                                unit = ' bouts';
-                                              } else if (entry.name === 'SRI') {
-                                                value = value.toFixed(2);
-                                                unit = '';
-                                              }
-                                              return (
-                                                <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                  {`${entry.name}: ${value}${unit}`}
-                                                </p>
-                                              );
-                                            })}
-                                          </div>
-                                        );
-                                      }
-                                      return null;
-                                    }}
-                                  />
-                                  <Legend />
-                                  <Bar dataKey={metric} fill="#8884d8" name={metric} />
-                                </BarChart>
-                              </ResponsiveContainer>
-                            </Box>
-                          </Card>
-                        </Grid>
-                      );
-                    })}
-                  </Grid>
-                  {/* Daily ENMO Time Series with Sleep Bands */}
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Daily ENMO Time Series with Sleep Periods
-                    </Typography>
-                    {/* Custom legend for sleep periods */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 1 }}>
-                      <Box sx={{ width: 18, height: 18, bgcolor: '#2196f3', opacity: 0.15, border: '1px solid #2196f3', mr: 1 }} />
-                      <Typography variant="body2" color="text.secondary">Sleep Period</Typography>
-                    </Box>
-                    <Grid container spacing={3}>
-                      {Array.from(new Set(data.data.map(item => {
-                        const date = new Date(item.TIMESTAMP);
-                        return date.toLocaleDateString('en-CA');
-                      }))).map((dayStr, dayIndex) => {
-                        const dayData = data.data.filter(item => {
-                          const date = new Date(item.TIMESTAMP);
-                          return date.toLocaleDateString('en-CA') === dayStr;
-                        });
-                        if (dayData.length === 0) return null;
-                        // Add a 'timestampNum' property for numeric x-axis
-                        const dayDataWithNum = dayData.map(item => ({
-                          ...item,
-                          timestampNum: new Date(item.TIMESTAMP).getTime(),
-                        }));
-                        const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
-                        // Find sleep=1 intervals
-                        const sleepBands = [];
-                        let bandStart = null;
-                        for (let i = 0; i < dayDataWithNumSorted.length; i++) {
-                          if (dayDataWithNumSorted[i].sleep === 1 && bandStart === null) {
-                            bandStart = dayDataWithNumSorted[i].timestampNum;
-                          }
-                          if ((dayDataWithNumSorted[i].sleep !== 1 || i === dayDataWithNumSorted.length - 1) && bandStart !== null) {
-                            const bandEnd = dayDataWithNumSorted[i - 1].timestampNum;
-                            sleepBands.push({ start: bandStart, end: bandEnd });
-                            bandStart = null;
-                          }
-                        }
-                        return (
-                          <Grid item xs={12} key={dayStr}>
-                            <Card variant="outlined" sx={{ p: 2 }}>
-                              <Typography variant="subtitle1" gutterBottom align="center">
-                                {dayStr}
-                              </Typography>
-                              <ResponsiveContainer width="100%" height={300}>
-                                <LineChart
-                                  data={dayDataWithNumSorted}
-                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis
-                                    dataKey="timestampNum"
-                                    type="number"
-                                    domain={['dataMin', 'dataMax']}
-                                    tickFormatter={(timestampNum) => {
-                                      const date = new Date(timestampNum);
-                                      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                    }}
-                                  />
-                                  <YAxis
-                                    yAxisId="left"
-                                    label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
-                                  />
-                                  <RechartsTooltip
-                                    content={({ active, payload, label }) => {
-                                      if (active && payload && payload.length) {
-                                        return (
-                                          <div style={{ 
-                                            backgroundColor: 'white', 
-                                            padding: '10px', 
-                                            border: '1px solid #ccc',
-                                            borderRadius: '4px'
-                                          }}>
-                                            <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
-                                            {payload.map((entry, index) => {
-                                              let value = entry.value;
-                                              let unit = '';
-                                              if (entry.name === 'TST') {
-                                                value = Math.round(value).toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                value = value.toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'PTA') {
-                                                value = value.toFixed(1);
-                                                unit = '%';
-                                              }
-                                              return (
-                                                <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                  {`${entry.name}: ${value}${unit}`}
-                                                </p>
-                                              );
-                                            })}
-                                          </div>
-                                        );
-                                      }
-                                      return null;
-                                    }}
-                                  />
-                                  <Legend />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="ENMO"
-                                    stroke="#8884d8"
-                                    dot={false}
-                                    isAnimationActive={false}
-                                    yAxisId="left"
-                                  />
-                                  {/* Blue bands for sleep=1 */}
-                                  {sleepBands.map((band, idx) => (
-                                    <ReferenceArea
-                                      key={`sleep-band-${idx}`}
-                                      x1={band.start}
-                                      x2={band.end}
-                                      fill="#2196f3"
-                                      fillOpacity={0.15}
+                                        return null;
+                                      }}
+                                    />
+                                    <Legend />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="ENMO"
+                                      stroke="#8884d8"
+                                      dot={false}
+                                      isAnimationActive={false}
                                       yAxisId="left"
                                     />
-                                  ))}
-                                </LineChart>
-                              </ResponsiveContainer>
-                            </Card>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                  </Box>
-                </Card>
-              </Grid>
-            )}
+                                    {/* Blue bands for sleep=1 */}
+                                    {sleepBands.map((band, idx) => (
+                                      <ReferenceArea
+                                        key={`sleep-band-${idx}`}
+                                        x1={band.start}
+                                        x2={band.end}
+                                        fill="#2196f3"
+                                        fillOpacity={0.15}
+                                        yAxisId="left"
+                                      />
+                                    ))}
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              </Card>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    </Box>
+                  </Card>
+                </Grid>
+              )}
 
-            {data?.data && (
-              <Grid item xs={12}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      Cosinor Age Prediction
-                    </Typography>
-                    <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={12} sm={4}>
-                        <TextField
-                          fullWidth
-                          label="Chronological Age"
-                          type="number"
-                          value={chronologicalAge}
-                          onChange={(e) => setChronologicalAge(e.target.value)}
-                          InputProps={{ inputProps: { min: 0, max: 120 } }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <FormControl fullWidth>
-                          <InputLabel>Gender</InputLabel>
-                          <Select
-                            value={gender}
-                            label="Gender"
-                            onChange={(e) => setGender(e.target.value)}
-                          >
-                            <MenuItem value="male">Male</MenuItem>
-                            <MenuItem value="female">Female</MenuItem>
-                            <MenuItem value="invariant">Invariant</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={handlePredictAge}
-                          disabled={!chronologicalAge || !data?.data}
-                          fullWidth
-                        >
-                          Predict Age
-                        </Button>
-                      </Grid>
-                      {predictedAge !== null && (
-                        <Grid item xs={12}>
-                          <Typography variant="h6" color="primary" gutterBottom>
-                            Predicted Cosinor Age: {predictedAge.toFixed(2)} years
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Difference from Chronological Age: {(predictedAge - parseFloat(chronologicalAge)).toFixed(2)} years
-                          </Typography>
+              {data?.data && (
+                <Grid item xs={12}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        Cosinor Age Prediction
+                      </Typography>
+                      <Grid container spacing={2} alignItems="center">
+                        <Grid item xs={12} sm={4}>
+                          <TextField
+                            fullWidth
+                            label="Chronological Age"
+                            type="number"
+                            value={chronologicalAge}
+                            onChange={(e) => setChronologicalAge(e.target.value)}
+                            InputProps={{ inputProps: { min: 0, max: 120 } }}
+                          />
                         </Grid>
-                      )}
-                    </Grid>
-                  </CardContent>
-                </Card>
+                        <Grid item xs={12} sm={4}>
+                          <FormControl fullWidth>
+                            <InputLabel>Gender</InputLabel>
+                            <Select
+                              value={gender}
+                              label="Gender"
+                              onChange={(e) => setGender(e.target.value)}
+                            >
+                              <MenuItem value="male">Male</MenuItem>
+                              <MenuItem value="female">Female</MenuItem>
+                              <MenuItem value="invariant">Invariant</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handlePredictAge}
+                            disabled={!chronologicalAge || !data?.data}
+                            fullWidth
+                          >
+                            Predict Age
+                          </Button>
+                        </Grid>
+                        {predictedAge !== null && (
+                          <Grid item xs={12}>
+                            <Typography variant="h6" color="primary" gutterBottom>
+                              Predicted Cosinor Age: {predictedAge.toFixed(2)} years
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Difference from Chronological Age: {(predictedAge - parseFloat(chronologicalAge)).toFixed(2)} years
+                            </Typography>
+                          </Grid>
+                        )}
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+            </Grid>
+          )}
+
+          {currentTab === 3 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper elevation={3} sx={{ p: 4 }}>
+                  <Typography variant="h4" gutterBottom>
+                    About CosinorLab
+                  </Typography>
+                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                    A Project by ADAMMA
+                  </Typography>
+                  
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="body1" paragraph>
+                      CosinorLab is a research project developed at ADAMMA (Core for AI & Digital Biomarker Research) at ETH Zurich. Our mission is to advance health monitoring through innovative digital biomarker analysis.
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      This project was developed by Jinjoo Shim and Jacob Hunecke as part of ADAMMA's commitment to creating open-source tools for health innovation.
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      Learn more about ADAMMA at: <Link href="https://adamma.ethz.ch/" target="_blank" rel="noopener noreferrer">adamma.ethz.ch</Link>
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Our Mission
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      At CosinorLab, we're dedicated to advancing the field of digital health through:
+                    </Typography>
+                    <ul>
+                      <li>
+                        <Typography variant="body1">
+                          <strong>Advanced Analysis:</strong> Providing sophisticated tools for analyzing accelerometer data
+                        </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
+                          <strong>Open Source:</strong> Making our tools freely available to the research community
+                        </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
+                          <strong>User-Friendly Interface:</strong> Making complex analysis accessible to researchers and healthcare professionals
+                        </Typography>
+                      </li>
+                    </ul>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Key Features
+                    </Typography>
+                    <ul>
+                      <li>
+                        <Typography variant="body1">
+                          Advanced cosinor analysis for circadian rhythm assessment
+                        </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
+                          Interactive visualization of activity patterns
+                        </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
+                          Biological age prediction based on activity patterns
+                        </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
+                          Comprehensive data processing tools
+                        </Typography>
+                      </li>
+                    </ul>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Contact
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      For support or inquiries, please contact us at: <Link href="mailto:adamma@ethz.ch">adamma@ethz.ch</Link>
+                    </Typography>
+                  </Box>
+                </Paper>
               </Grid>
-            )}
-          </Grid>
-          {/* Footer */}
-          <Box 
-            component="footer" 
-            sx={{ 
-              mt: 8,
-              py: 3,
-              px: 2,
-              backgroundColor: 'primary.main',
-              color: 'white',
-              borderRadius: 2
-            }}
-          >
-            <Container maxWidth="lg">
-              <Grid container spacing={4}>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="h6" gutterBottom>
-                    About
+            </Grid>
+          )}
+
+          {currentTab === 4 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper elevation={3} sx={{ p: 4 }}>
+                  <Typography variant="h4" gutterBottom>
+                    About CosinorLab
                   </Typography>
-                  <Typography variant="body2">
-                    CosinorLab is a web application for analyzing accelerometer data with interactive visualizations.
+                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                    Advanced Analysis of Accelerometer Data
                   </Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="h6" gutterBottom>
-                    Version
-                  </Typography>
-                  <Typography variant="body2">
-                    Version 1.0
-                  </Typography>
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    For the best viewing experience, please ensure you have a modern web browser.
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="h6" gutterBottom>
-                    Contact
-                  </Typography>
-                  <Typography variant="body2">
-                  Core for AI & Digital Biomarker, Acoustic and Inflammatory Biomarkers (ADAMMA) at ETH Zurich
-                  </Typography>
-                </Grid>
+                  
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Our Mission
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      CosinorLab is dedicated to advancing the analysis of accelerometer data through sophisticated cosinor analysis techniques. Our platform enables researchers and healthcare professionals to gain deeper insights into activity patterns and biological rhythms.
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Key Features
+                    </Typography>
+                    <ul>
+                      <li><Typography variant="body1">Advanced cosinor analysis of accelerometer data</Typography></li>
+                      <li><Typography variant="body1">Interactive visualization of activity patterns</Typography></li>
+                      <li><Typography variant="body1">Biological age prediction based on activity rhythms</Typography></li>
+                      <li><Typography variant="body1">Comprehensive data processing and analysis tools</Typography></li>
+                    </ul>
+                  </Box>
+
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                      Contact
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      For questions, feedback, or support, please contact us at:
+                    </Typography>
+                    <Typography variant="body1">
+                      Email: support@cosinorlab.com
+                    </Typography>
+                  </Box>
+                </Paper>
               </Grid>
-              <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.2)' }}>
-                <Typography variant="body2" align="center">
-                  © {new Date().getFullYear()} CosinorLab. All rights reserved.
-                </Typography>
-              </Box>
-            </Container>
-          </Box>
+            </Grid>
+          )}
         </Container>
       </Box>
     </ThemeProvider>
