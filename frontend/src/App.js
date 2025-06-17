@@ -1565,12 +1565,69 @@ function App() {
 
               {data?.file_id && !data.data && (
                 <Grid item xs={12}>
+                  <Card sx={{ p: 3, mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Cosinor Age Prediction
+                    </Typography>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          fullWidth
+                          label="Chronological Age"
+                          type="number"
+                          value={chronologicalAge}
+                          onChange={(e) => setChronologicalAge(e.target.value)}
+                          InputProps={{ inputProps: { min: 0, max: 120 } }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <FormControl fullWidth>
+                          <InputLabel>Gender</InputLabel>
+                          <Select
+                            value={gender}
+                            label="Gender"
+                            onChange={(e) => setGender(e.target.value)}
+                          >
+                            <MenuItem value="male">Male</MenuItem>
+                            <MenuItem value="female">Female</MenuItem>
+                            <MenuItem value="invariant">Invariant</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                </Grid>
+              )}
+              {data?.file_id && !data.data && (
+                <Grid item xs={12}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                     <Button
                       variant="contained"
                       color="primary"
                       startIcon={processing ? <CircularProgress size={20} color="inherit" /> : <PlayArrowIcon />}
-                      onClick={handleProcessData}
+                      onClick={async () => {
+                        await handleProcessData();
+                        // After processing, if successful, call age prediction
+                        if (data?.file_id && chronologicalAge) {
+                          try {
+                            const response = await fetch(`http://localhost:8000/predict_age/${data.file_id}`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                chronological_age: parseFloat(chronologicalAge),
+                                gender: gender
+                              })
+                            });
+                            if (response.ok) {
+                              const result = await response.json();
+                              setPredictedAge(result.predicted_age);
+                              setCosinorAge(result.predicted_age);
+                            }
+                          } catch (err) {
+                            setError('Failed to predict Cosinor Age');
+                          }
+                        }
+                      }}
                       disabled={processing}
                     >
                       {processing ? 'Processing...' : 'Process Data'}
@@ -2579,51 +2636,26 @@ function App() {
                         Cosinor Age Prediction
                       </Typography>
                       <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={12} sm={4}>
-                          <TextField
-                            fullWidth
-                            label="Chronological Age"
-                            type="number"
-                            value={chronologicalAge}
-                            onChange={(e) => setChronologicalAge(e.target.value)}
-                            InputProps={{ inputProps: { min: 0, max: 120 } }}
-                          />
+                        <Grid item xs={12} sm={6}>
+                          <Typography variant="body1">
+                            Chronological Age: {chronologicalAge || 'N/A'}
+                          </Typography>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
-                          <FormControl fullWidth>
-                            <InputLabel>Gender</InputLabel>
-                            <Select
-                              value={gender}
-                              label="Gender"
-                              onChange={(e) => setGender(e.target.value)}
-                            >
-                              <MenuItem value="male">Male</MenuItem>
-                              <MenuItem value="female">Female</MenuItem>
-                              <MenuItem value="invariant">Invariant</MenuItem>
-                            </Select>
-                          </FormControl>
+                        <Grid item xs={12} sm={6}>
+                          <Typography variant="body1">
+                            Gender: {gender || 'N/A'}
+                          </Typography>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handlePredictAge}
-                            disabled={!chronologicalAge || !data?.data}
-                            fullWidth
-                          >
-                            Predict Age
-                          </Button>
-                        </Grid>
-                        {predictedAge !== null && (
-                          <Grid item xs={12}>
-                            <Typography variant="h6" color="primary" gutterBottom>
-                              Predicted Cosinor Age: {predictedAge.toFixed(2)} years
-                            </Typography>
+                        <Grid item xs={12}>
+                          <Typography variant="h5" color="primary" gutterBottom>
+                            Predicted Cosinor Age: {predictedAge !== null ? predictedAge.toFixed(2) + ' years' : 'N/A'}
+                          </Typography>
+                          {predictedAge !== null && chronologicalAge && (
                             <Typography variant="body2" color="text.secondary">
                               Difference from Chronological Age: {(predictedAge - parseFloat(chronologicalAge)).toFixed(2)} years
                             </Typography>
-                          </Grid>
-                        )}
+                          )}
+                        </Grid>
                       </Grid>
                     </CardContent>
                   </Card>
