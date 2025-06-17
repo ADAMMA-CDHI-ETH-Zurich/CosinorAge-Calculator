@@ -637,8 +637,6 @@ function App() {
         extracted: true,
         processed: true  // Add a flag to indicate processing is complete
       }));
-      
-      setSuccess('Data processed successfully. Plot is now available.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -683,7 +681,6 @@ function App() {
 
       const result = await response.json();
       setPredictedAge(result.predicted_age);
-      setSuccess('Age prediction completed successfully');
       setCosinorAge(result.predicted_age);
     } catch (err) {
       setError(err.message);
@@ -1236,16 +1233,6 @@ function App() {
                       )}
                     </>
                   )}
-                  {cosinorAge && (
-                    <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1, width: '100%' }}>
-                      <Typography variant="h6" gutterBottom>
-                        CosinorAge Prediction
-                      </Typography>
-                      <Typography variant="body1">
-                        Predicted Age: {cosinorAge.toFixed(1)} years
-                      </Typography>
-                    </Box>
-                  )}
                   {data && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, width: '100%' }}>
                       <Button
@@ -1594,6 +1581,19 @@ function App() {
                           </Select>
                         </FormControl>
                       </Grid>
+                      {data?.data && (
+                        <Grid item xs={12} sm={4}>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handlePredictAge}
+                            disabled={!chronologicalAge || !data}
+                            sx={{ height: '100%', width: '100%' }}
+                          >
+                            Recalculate Age
+                          </Button>
+                        </Grid>
+                      )}
                     </Grid>
                   </Card>
                 </Grid>
@@ -1720,7 +1720,6 @@ function App() {
                   </Card>
                 </Grid>
               )}
-              {/* Disclaimer below Raw Data Information */}
               {data?.data && (
                 <Grid item xs={12}>
                   <Box sx={{ mt: 1, mb: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
@@ -1758,6 +1757,67 @@ function App() {
                       </Dialog>
                     </React.Fragment>
                   </Box>
+                </Grid>
+              )}
+
+              {/* Cosinor Age Prediction input section moved here */}
+              {data?.data && (
+                <Grid item xs={12}>
+                  <Card sx={{ p: 3, mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Cosinor Age Prediction
+                    </Typography>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          fullWidth
+                          label="Chronological Age"
+                          type="number"
+                          value={chronologicalAge}
+                          onChange={(e) => setChronologicalAge(e.target.value)}
+                          InputProps={{ inputProps: { min: 0, max: 120 } }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <FormControl fullWidth>
+                          <InputLabel>Gender</InputLabel>
+                          <Select
+                            value={gender}
+                            label="Gender"
+                            onChange={(e) => setGender(e.target.value)}
+                          >
+                            <MenuItem value="male">Male</MenuItem>
+                            <MenuItem value="female">Female</MenuItem>
+                            <MenuItem value="invariant">Invariant</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      {data?.data && (
+                        <Grid item xs={12} sm={4}>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handlePredictAge}
+                            disabled={!chronologicalAge || !data}
+                            sx={{ height: '100%', width: '100%' }}
+                          >
+                            Recalculate Age
+                          </Button>
+                        </Grid>
+                      )}
+                    </Grid>
+                    {/* Cosinor Age Prediction Results */}
+                    <Box sx={{ mt: 3 }}>
+                      <Typography variant="h5" color="primary" gutterBottom>
+                        Predicted Cosinor Age: {predictedAge !== null ? predictedAge.toFixed(2) + ' years' : 'N/A'}
+                      </Typography>
+                      {predictedAge !== null && chronologicalAge && (
+                        <Typography variant="body2" color="text.secondary">
+                          Difference from Chronological Age: {(predictedAge - parseFloat(chronologicalAge)).toFixed(2)} years
+                        </Typography>
+                      )}
+                    </Box>
+                  </Card>
                 </Grid>
               )}
 
@@ -2624,40 +2684,6 @@ function App() {
                         })}
                       </Grid>
                     </Box>
-                  </Card>
-                </Grid>
-              )}
-
-              {data?.data && (
-                <Grid item xs={12}>
-                  <Card>
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom>
-                        Cosinor Age Prediction
-                      </Typography>
-                      <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={12} sm={6}>
-                          <Typography variant="body1">
-                            Chronological Age: {chronologicalAge || 'N/A'}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Typography variant="body1">
-                            Gender: {gender || 'N/A'}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Typography variant="h5" color="primary" gutterBottom>
-                            Predicted Cosinor Age: {predictedAge !== null ? predictedAge.toFixed(2) + ' years' : 'N/A'}
-                          </Typography>
-                          {predictedAge !== null && chronologicalAge && (
-                            <Typography variant="body2" color="text.secondary">
-                              Difference from Chronological Age: {(predictedAge - parseFloat(chronologicalAge)).toFixed(2)} years
-                            </Typography>
-                          )}
-                        </Grid>
-                      </Grid>
-                    </CardContent>
                   </Card>
                 </Grid>
               )}
