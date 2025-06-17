@@ -58,3 +58,14 @@ backend/temp/
 
 /GalaxyWatch_Case1
 GalaxyWatch_Case1.zip
+
+extracted_files/
+extracted_files/*
+extracted_files/**/*
+extracted_files/**/**/*
+extracted_files/**/**/**/*
+extracted_files/**/**/**/**/*
+extracted_files/**/**/**/**/**/*
+extracted_files/**/**/**/**/**/**/*
+
+venv_new/
