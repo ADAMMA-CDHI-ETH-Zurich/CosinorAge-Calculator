@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # Create a permanent directory for extracted files

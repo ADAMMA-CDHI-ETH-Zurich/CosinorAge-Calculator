@@ -374,7 +374,7 @@ function App() {
     wear_range_crit: 0.00067,
     wear_window_length: 45,
     wear_window_skip: 7,
-    required_daily_coverage: 0.7
+    required_daily_coverage: 0.5
   });
   const [featureParams, setFeatureParams] = useState({
     sleep_rescore: true,
@@ -384,7 +384,6 @@ function App() {
     pa_cutpoint_mv: 70
   });
   const [currentTab, setCurrentTab] = useState(0);
-  const [cosinorAge, setCosinorAge] = useState(null);
   const [serverStatus, setServerStatus] = useState('Server Connected');
 
   // Save state to localStorage whenever it changes
@@ -453,38 +452,6 @@ function App() {
     }
   }, [data?.features]);
 
-  const clearState = async () => {
-    try {
-      if (data?.file_id) {
-        const response = await fetch(`http://localhost:8000/clear_state/${data.file_id}`, {
-          method: 'POST'
-        });
-        if (!response.ok) {
-          throw new Error('Failed to clear server state');
-        }
-      }
-      
-      // Clear all state
-      localStorage.setItem('shouldClear', 'true');
-      setData(null);
-      setDataSource('');
-      setPredictedAge(null);
-      setChronologicalAge('');
-      setGender('invariant');
-      setError(null);
-      setSuccess(null);
-      setProcessing(false);
-      setProcessingTime(0);
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        setTimerInterval(null);
-      }
-    } catch (error) {
-      console.error('Error clearing state:', error);
-      setError('Failed to clear state. Please try again.');
-    }
-  };
-
   // Function to start the timer
   const startTimer = () => {
     // Clear any existing timer first
@@ -530,6 +497,14 @@ function App() {
     console.log('Current dataSource:', dataSource);
     const file = event.target.files[0];
     if (!file) return;
+
+    // File size limit: 2GB
+    const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2GB in bytes
+    if (file.size > MAX_SIZE) {
+      setError('File is too large. Maximum allowed size is 2GB.');
+      setUploadProgress(0);
+      return;
+    }
 
     setError(null);
     setSuccess(null);
@@ -681,7 +656,6 @@ function App() {
 
       const result = await response.json();
       setPredictedAge(result.predicted_age);
-      setCosinorAge(result.predicted_age);
     } catch (err) {
       setError(err.message);
     }
@@ -757,8 +731,6 @@ function App() {
       pa_cutpoint_mv: 400
     });
     setServerStatus('Server Connected');
-    setCosinorAge(null);
-    setCurrentTab(2); // Keep user in Lab tab
   };
 
   return (
@@ -767,31 +739,44 @@ function App() {
       <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: 'background.default' }}>
         <AppBar position="static" sx={{ bgcolor: 'primary.main' }}>
           <Toolbar>
-            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+            <Typography 
+              variant="h4" 
+              component="div" 
+              sx={{ 
+                flexGrow: 0, 
+                fontWeight: 800, 
+                letterSpacing: 1,
+                pl: 0,
+                ml: 0,
+                color: 'white',
+                lineHeight: 1.1
+              }}
+            >
+              CosinorLab
+            </Typography>
+            <Box sx={{ flexGrow: 1 }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Chip
+                label={serverStatus}
+                color={serverStatus === 'Server Connected' ? 'success' : 'error'}
+                size="small"
+                sx={{ 
+                  '& .MuiChip-label': { 
+                    px: 1,
+                    fontSize: '0.75rem'
+                  }
+                }}
+              />
               <img 
                 src={logo} 
                 alt="Logo" 
                 style={{ 
                   height: '40px', 
-                  marginRight: '16px',
+                  marginLeft: '16px',
                   filter: 'brightness(0) invert(1)' // This makes the logo white
                 }} 
               />
-              <Typography variant="h6" component="div">
-                CosinorLab
-              </Typography>
             </Box>
-            <Chip
-              label={serverStatus}
-              color={serverStatus === 'Server Connected' ? 'success' : 'error'}
-              size="small"
-              sx={{ 
-                '& .MuiChip-label': { 
-                  px: 1,
-                  fontSize: '0.75rem'
-                }
-              }}
-            />
           </Toolbar>
           <Tabs
             value={currentTab}
@@ -988,131 +973,16 @@ function App() {
           {currentTab === 1 && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 4 }}>
+                <Paper elevation={3} sx={{ p: 4, minHeight: '80vh' }}>
                   <Typography variant="h4" gutterBottom>
-                    Documentation
+                    Package Documentation
                   </Typography>
-                  <Typography variant="h6" color="text.secondary" gutterBottom>
-                    How to Use CosinorLab
-                  </Typography>
-                  
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5" gutterBottom>
-                      Getting Started
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      1. Navigate to the Lab tab to begin your analysis
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      2. Upload your accelerometer data file (supported formats: .csv, .xlsx)
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      3. Configure your analysis parameters
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      4. View and interpret your results
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5" gutterBottom>
-                      Data Format Requirements
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      Your data file should contain the following columns:
-                    </Typography>
-                    <ul>
-                      <li><Typography variant="body1">Timestamp</Typography></li>
-                      <li><Typography variant="body1">X-axis acceleration</Typography></li>
-                      <li><Typography variant="body1">Y-axis acceleration</Typography></li>
-                      <li><Typography variant="body1">Z-axis acceleration</Typography></li>
-                    </ul>
-                  </Box>
-
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5" gutterBottom>
-                      Analysis Parameters
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      • Window Size: The duration of each analysis window
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      • Overlap: The amount of overlap between consecutive windows
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      • Period: The expected period of the circadian rhythm
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5" gutterBottom>
-                      Features
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      CosinorLab provides several types of analysis:
-                    </Typography>
-                    <ul>
-                      <li>
-                        <Typography variant="body1">
-                          <strong>Cosinor Analysis:</strong> Analyzes circadian rhythms using harmonic regression
-                        </Typography>
-                      </li>
-                      <li>
-                        <Typography variant="body1">
-                          <strong>Non-parametric Analysis:</strong> Calculates activity metrics like M10, L5, and relative amplitude
-                        </Typography>
-                      </li>
-                      <li>
-                        <Typography variant="body1">
-                          <strong>Physical Activity Analysis:</strong> Categorizes activity into sedentary, light, moderate, and vigorous
-                        </Typography>
-                      </li>
-                      <li>
-                        <Typography variant="body1">
-                          <strong>Sleep Analysis:</strong> Estimates sleep parameters including total sleep time and sleep efficiency
-                        </Typography>
-                      </li>
-                    </ul>
-                  </Box>
-
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5" gutterBottom>
-                      Age Prediction
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      The age prediction feature uses your activity patterns to estimate your biological age. To use this feature:
-                    </Typography>
-                    <ol>
-                      <li><Typography variant="body1">Enter your chronological age</Typography></li>
-                      <li><Typography variant="body1">Select your gender</Typography></li>
-                      <li><Typography variant="body1">Click "Predict Age" to see the results</Typography></li>
-                    </ol>
-                  </Box>
-
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5" gutterBottom>
-                      Troubleshooting
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      Common issues and solutions:
-                    </Typography>
-                    <ul>
-                      <li>
-                        <Typography variant="body1">
-                          <strong>Data Upload Issues:</strong> Ensure your file is in the correct format and contains all required columns
-                        </Typography>
-                      </li>
-                      <li>
-                        <Typography variant="body1">
-                          <strong>Processing Errors:</strong> Check that your data spans at least 24 hours and contains valid acceleration values
-                        </Typography>
-                      </li>
-                      <li>
-                        <Typography variant="body1">
-                          <strong>Age Prediction Issues:</strong> Verify that you've entered a valid chronological age and selected a gender
-                        </Typography>
-                      </li>
-                    </ul>
+                  <Box sx={{ mt: 4, width: '100%', height: '70vh' }}>
+                    <iframe
+                      src="https://cosinorage.readthedocs.io/en/latest/cosinorage.html"
+                      title="CosinorAge Documentation"
+                      style={{ width: '100%', height: '100%', border: 'none' }}
+                    />
                   </Box>
                 </Paper>
               </Grid>
@@ -1621,7 +1491,6 @@ function App() {
                             if (response.ok) {
                               const result = await response.json();
                               setPredictedAge(result.predicted_age);
-                              setCosinorAge(result.predicted_age);
                             }
                           } catch (err) {
                             setError('Failed to predict Cosinor Age');
