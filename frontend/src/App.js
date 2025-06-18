@@ -385,6 +385,15 @@ function App() {
   });
   const [currentTab, setCurrentTab] = useState(0);
   const [serverStatus, setServerStatus] = useState('Server Connected');
+  // Add state for fileType
+  const [fileType, setFileType] = useState('binary');
+  // Add state for dataType
+  const [dataType, setDataType] = useState('accelerometer');
+
+  // Update dataType when fileType changes
+  useEffect(() => {
+    setDataType(fileType === 'binary' ? 'accelerometer' : 'enmo');
+  }, [fileType]);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -513,7 +522,8 @@ function App() {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('data_source', dataSource);
+    // Set data_source based on fileType for backend compatibility
+    formData.append('data_source', fileType === 'binary' ? 'samsung_galaxy_binary' : 'samsung_galaxy_csv');
 
     try {
       const xhr = new XMLHttpRequest();
@@ -710,25 +720,25 @@ function App() {
     setProcessing(false);
     setProcessingTime(0);
     setChronologicalAge('');
-    setGender('');
+    setGender('invariant');
     setPredictedAge(null);
     setPreprocessParams({
-      autocalib_sd_criter: 0.013,
-      autocalib_sphere_crit: 0.3,
+      autocalib_sd_criter: 0.00013,
+      autocalib_sphere_crit: 0.02,
       filter_type: 'lowpass',
-      filter_cutoff: 20,
-      wear_sd_crit: 0.013,
-      wear_range_crit: 0.05,
-      wear_window_length: 90,
-      wear_window_skip: 15,
-      required_daily_coverage: 0.7
+      filter_cutoff: 2,
+      wear_sd_crit: 0.00013,
+      wear_range_crit: 0.00067,
+      wear_window_length: 45,
+      wear_window_skip: 7,
+      required_daily_coverage: 0.5
     });
     setFeatureParams({
       sleep_rescore: true,
-      sleep_ck_sf: 0.5,
-      pa_cutpoint_sl: 40,
-      pa_cutpoint_lm: 100,
-      pa_cutpoint_mv: 400
+      sleep_ck_sf: 0.0025,
+      pa_cutpoint_sl: 15,
+      pa_cutpoint_lm: 35,
+      pa_cutpoint_mv: 70
     });
     setServerStatus('Server Connected');
   };
@@ -1014,24 +1024,57 @@ function App() {
                   <Typography variant="h6" gutterBottom>
                     Select Data Source
                   </Typography>
-                  <FormControl fullWidth sx={{ mb: 2 }}>
-                    <InputLabel id="data-source-label">Data Source</InputLabel>
-                    <Select
-                      labelId="data-source-label"
-                      value={dataSource}
-                      label="Data Source"
-                      onChange={(e) => setDataSource(e.target.value)}
-                      sx={{ minWidth: 300 }}
-                      disabled={!!data?.file_id}
-                    >
-                      <MenuItem value="samsung_galaxy_binary">Samsung Galaxy Smartwatch - Binary (Zipped)</MenuItem>
-                      <MenuItem value="samsung_galaxy_csv">Samsung Galaxy Smartwatch - CSV</MenuItem>
-                    </Select>
-                  </FormControl>
+                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                    <Grid item xs={4}>
+                      <FormControl fullWidth>
+                        <InputLabel id="data-source-label">Data Source</InputLabel>
+                        <Select
+                          labelId="data-source-label"
+                          value={dataSource}
+                          label="Data Source"
+                          onChange={(e) => setDataSource(e.target.value)}
+                          sx={{ minWidth: 120 }}
+                          disabled={!!data?.file_id}
+                        >
+                          <MenuItem value="samsung_galaxy">Samsung Galaxy Smartwatch</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <FormControl fullWidth>
+                        <InputLabel id="file-type-label">File Type</InputLabel>
+                        <Select
+                          labelId="file-type-label"
+                          value={fileType}
+                          label="File Type"
+                          onChange={(e) => setFileType(e.target.value)}
+                          sx={{ minWidth: 120 }}
+                          disabled={!!data?.file_id}
+                        >
+                          <MenuItem value="binary">Binary (Zipped)</MenuItem>
+                          <MenuItem value="csv">CSV</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <FormControl fullWidth disabled>
+                        <InputLabel id="data-type-label">Data Type</InputLabel>
+                        <Select
+                          labelId="data-type-label"
+                          value={dataType}
+                          label="Data Type"
+                          sx={{ minWidth: 120 }}
+                        >
+                          <MenuItem value="accelerometer">Accelerometer</MenuItem>
+                          <MenuItem value="enmo">ENMO</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
                   {dataSource && (
                     <>
                       <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
-                        {dataSource === 'samsung_galaxy_binary' 
+                        {fileType === 'binary' 
                           ? 'Upload your ZIP file containing the Samsung Galaxy Smartwatch data'
                           : 'Upload your CSV file containing the Samsung Galaxy Smartwatch data'}
                       </Typography>
@@ -1052,7 +1095,7 @@ function App() {
                         <input
                           type="file"
                           hidden
-                          accept={dataSource === 'samsung_galaxy_binary' ? '.zip' : '.csv'}
+                          accept={fileType === 'binary' ? '.zip' : '.csv'}
                           onChange={handleFileUpload}
                           ref={fileInputRef}
                         />
@@ -1283,7 +1326,7 @@ function App() {
                               Required Daily Coverage
                             </Typography>
                             <Slider
-                              value={typeof preprocessParams.required_daily_coverage === 'number' ? preprocessParams.required_daily_coverage : 0.7}
+                              value={typeof preprocessParams.required_daily_coverage === 'number' ? preprocessParams.required_daily_coverage : 0.5}
                               min={0}
                               max={1}
                               step={0.01}
@@ -1308,7 +1351,7 @@ function App() {
                               sx={{ mt: 2 }}
                             />
                             <Typography variant="caption" color="text.secondary">
-                              Minimum fraction of valid data required per day (0 = 0%, 1 = 100%). Default: 0.7
+                              Minimum fraction of valid data required per day (0 = 0%, 1 = 100%). Default: 0.5
                             </Typography>
                           </Grid>
                         </Grid>
