@@ -12,6 +12,8 @@ import zipfile
 from datetime import datetime
 from cosinorage.features.features import WearableFeatures
 from pydantic import BaseModel
+from docs_service import setup_docs_routes
+import uvicorn
 
 
 # Configure logging
@@ -32,6 +34,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Setup documentation routes
+setup_docs_routes(app)
 
 # Store uploaded data in memory (in a real app, you'd want to use a proper database)
 uploaded_data = {}
@@ -413,46 +418,66 @@ async def predict_age(file_id: str, request: AgePredictionRequest):
 @app.post("/clear_state/{file_id}")
 async def clear_state(file_id: str):
     """
-    Clear state for a specific file_id or all files if file_id is 'all'
+    Clear the state for a specific file
     """
     try:
-        if file_id == "all":
-            # Clean up all temporary directories
-            for temp_dir in temp_dirs.values():
-                if os.path.exists(temp_dir):
-                    shutil.rmtree(temp_dir)
-            temp_dirs.clear()
-            
-            # Clean up all permanent directories
-            for file_data in uploaded_data.values():
-                if "permanent_dir" in file_data and os.path.exists(file_data["permanent_dir"]):
-                    shutil.rmtree(file_data["permanent_dir"])
-            
-            # Clear all uploaded data
-            uploaded_data.clear()
-            
-            logger.info("Cleared all state")
-            return {"message": "All state cleared successfully"}
-        elif file_id in uploaded_data:
-            # Clean up any temporary directories
-            if file_id in temp_dirs and os.path.exists(temp_dirs[file_id]):
-                shutil.rmtree(temp_dirs[file_id])
-                del temp_dirs[file_id]
-            
-            # Clean up any permanent directories
+        if file_id in uploaded_data:
             file_data = uploaded_data[file_id]
+            
+            # Clean up temporary directory
+            if "temp_dir" in file_data and os.path.exists(file_data["temp_dir"]):
+                shutil.rmtree(file_data["temp_dir"])
+            
+            # Clean up permanent directory
             if "permanent_dir" in file_data and os.path.exists(file_data["permanent_dir"]):
                 shutil.rmtree(file_data["permanent_dir"])
             
-            # Remove from uploaded_data
+            # Remove from memory
             del uploaded_data[file_id]
+            if file_id in temp_dirs:
+                del temp_dirs[file_id]
             
-            logger.info(f"Cleared state for file_id: {file_id}")
-            return {"message": "State cleared successfully"}
+            return {"message": f"State cleared for file {file_id}"}
         else:
-            # Instead of raising an error, just return success if the file doesn't exist
-            logger.info(f"File {file_id} not found, but clearing state anyway")
-            return {"message": "State cleared successfully"}
+            raise HTTPException(status_code=404, detail="File not found")
+            
     except Exception as e:
         logger.error(f"Error clearing state: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Documentation API endpoints
+@app.get("/docs/content/{page_path:path}")
+async def get_docs_content(page_path: str = ""):
+    """
+    Get documentation content for a specific page
+    """
+    try:
+        return docs_service.get_page_content(page_path)
+    except Exception as e:
+        logger.error(f"Error fetching docs content: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/docs/sitemap")
+async def get_docs_sitemap():
+    """
+    Get the sitemap of all documentation pages
+    """
+    try:
+        return {"pages": docs_service.get_sitemap()}
+    except Exception as e:
+        logger.error(f"Error fetching docs sitemap: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/docs/search")
+async def search_docs(query: str):
+    """
+    Search through documentation content
+    """
+    try:
+        return {"results": docs_service.search_content(query)}
+    except Exception as e:
+        logger.error(f"Error searching docs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000) 

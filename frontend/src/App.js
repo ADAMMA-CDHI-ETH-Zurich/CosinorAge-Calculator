@@ -47,6 +47,7 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import logo from './assets/logo.png';
+import EnhancedDocumentationTab from './EnhancedDocumentationTab';
 
 // Create a modern theme
 const appTheme = createTheme({
@@ -1057,24 +1058,7 @@ pip install -e .`}
             </>
           )}
           
-          {currentTab === 1 && (
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 4, minHeight: '80vh' }}>
-                  <Typography variant="h4" gutterBottom>
-                    Package Documentation
-                  </Typography>
-                  <Box sx={{ mt: 4, width: '100%', height: '70vh' }}>
-                    <iframe
-                      src="https://cosinorage.readthedocs.io/en/latest/cosinorage.html"
-                      title="CosinorAge Documentation"
-                      style={{ width: '100%', height: '100%', border: 'none' }}
-                    />
-                  </Box>
-                </Paper>
-              </Grid>
-            </Grid>
-          )}
+          {currentTab === 1 && <EnhancedDocumentationTab />}
 
           {currentTab === 2 && (
             <Grid container spacing={3}>
