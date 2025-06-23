@@ -49,6 +49,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import logo from './assets/logo.png';
 import EnhancedDocumentationTab from './EnhancedDocumentationTab';
 import SGSBinaryZippedExample from './assets/SGS_Binary_Zipped_Example.png';
+import { API_BASE_URL } from './config';
 
 // Create a modern theme
 const appTheme = createTheme({
@@ -543,7 +544,7 @@ function App() {
         throw new Error('Network error occurred during upload');
       });
 
-      xhr.open('POST', 'http://localhost:8000/upload');
+      xhr.open('POST', `${API_BASE_URL}/upload`);
       xhr.send(formData);
     } catch (err) {
       setError(err.message);
@@ -570,7 +571,7 @@ function App() {
 
     try {
       // First extract the files
-      const extractResponse = await fetch(`http://localhost:8000/extract/${data.file_id}`, {
+      const extractResponse = await fetch(`${API_BASE_URL}/extract/${data.file_id}`, {
         method: 'POST',
       });
 
@@ -582,7 +583,7 @@ function App() {
       const extractResult = await extractResponse.json();
       
       // Then process the data with parameters
-      const processResponse = await fetch(`http://localhost:8000/process/${data.file_id}`, {
+      const processResponse = await fetch(`${API_BASE_URL}/process/${data.file_id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -640,7 +641,7 @@ function App() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/predict_age/${data.file_id}`, {
+      const response = await fetch(`${API_BASE_URL}/predict_age/${data.file_id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1798,7 +1799,7 @@ pip install -e .`}
                         // After processing, if successful, call age prediction
                         if (data?.file_id && chronologicalAge) {
                           try {
-                            const response = await fetch(`http://localhost:8000/predict_age/${data.file_id}`, {
+                            const response = await fetch(`${API_BASE_URL}/predict_age/${data.file_id}`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({

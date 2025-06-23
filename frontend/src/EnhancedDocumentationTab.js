@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, CircularProgress, Tabs, Tab, Paper, Alert } from '@mui/material';
+import { API_BASE_URL } from './config';
 
 function EnhancedDocumentationTab() {
   const [activeTab, setActiveTab] = useState('dataloaders');
@@ -13,7 +14,7 @@ function EnhancedDocumentationTab() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`http://localhost:8000/docs/${module}`);
+        const response = await fetch(`${API_BASE_URL}/docs/${module}`);
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.detail || `Failed to fetch ${module} documentation`);
