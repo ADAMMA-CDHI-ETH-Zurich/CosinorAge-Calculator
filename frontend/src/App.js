@@ -31,7 +31,8 @@ import {
   Tabs,
   Tab,
   Chip,
-  Link
+  Link,
+  DialogActions
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -46,8 +47,10 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import WarningIcon from '@mui/icons-material/Warning';
 import logo from './assets/logo.png';
 import EnhancedDocumentationTab from './EnhancedDocumentationTab';
+import SGSBinaryZippedExample from './assets/SGS_Binary_Zipped_Example.png';
 
 // Create a modern theme
 const appTheme = createTheme({
@@ -386,15 +389,33 @@ function App() {
   });
   const [currentTab, setCurrentTab] = useState(0);
   const [serverStatus, setServerStatus] = useState('Server Connected');
+  const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
   // Add state for fileType
-  const [fileType, setFileType] = useState('binary');
+  const [fileType, setFileType] = useState('');
   // Add state for dataType
-  const [dataType, setDataType] = useState('accelerometer');
+  const [dataType, setDataType] = useState('');
 
   // Update dataType when fileType changes
   useEffect(() => {
-    setDataType(fileType === 'binary' ? 'accelerometer' : 'enmo');
+    if (fileType === 'binary') {
+      setDataType('accelerometer');
+    } else if (fileType === 'csv') {
+      setDataType('enmo');
+    } else {
+      setDataType('');
+    }
   }, [fileType]);
+
+  // Update fileType and dataType when dataSource changes
+  useEffect(() => {
+    if (dataSource === 'other') {
+      setFileType('csv');
+      setDataType('raw');
+    } else if (dataSource === '') {
+      setFileType('');
+      setDataType('');
+    }
+  }, [dataSource]);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -708,6 +729,8 @@ function App() {
   const handleReset = () => {
     setData(null);
     setDataSource('');
+    setFileType('');
+    setDataType('');
     setError(null);
     setSuccess(null);
     setProcessing(false);
@@ -739,6 +762,13 @@ function App() {
   // Scroll to top when changing tabs
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, [currentTab]);
+
+  // Reset all when Lab tab is accessed
+  useEffect(() => {
+    if (currentTab === 2) {
+      handleReset();
+    }
   }, [currentTab]);
 
   return (
@@ -1063,6 +1093,34 @@ pip install -e .`}
           {currentTab === 2 && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                  {/* Getting Started Button - only show when no file is uploaded */}
+                  {!data?.file_id && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => setGettingStartedOpen(true)}
+                      startIcon={<InfoIcon />}
+                      sx={{ 
+                        borderRadius: 2,
+                        px: 4,
+                        py: 1.5,
+                        fontSize: '1.1rem',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        '&:hover': {
+                          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+                        },
+                      }}
+                    >
+                      Getting Started
+                    </Button>
+                  )}
+                </Box>
+              </Grid>
+
+              <Grid item xs={12}>
                 <Paper
                   elevation={3}
                   sx={{
@@ -1083,7 +1141,7 @@ pip install -e .`}
                   onDrop={dataSource ? handleDrop : undefined}
                 >
                   <Typography variant="h6" gutterBottom>
-                    Select Data Source
+                    Select Data & File Format
                   </Typography>
                   <Grid container spacing={2} sx={{ mb: 2 }}>
                     <Grid item xs={4}>
@@ -1098,6 +1156,7 @@ pip install -e .`}
                           disabled={!!data?.file_id}
                         >
                           <MenuItem value="samsung_galaxy">Samsung Galaxy Smartwatch</MenuItem>
+                          <MenuItem value="other">Other</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
@@ -1110,7 +1169,7 @@ pip install -e .`}
                           label="File Type"
                           onChange={(e) => setFileType(e.target.value)}
                           sx={{ minWidth: 120 }}
-                          disabled={!!data?.file_id}
+                          disabled={!!data?.file_id || dataSource === 'other' || !dataSource}
                         >
                           <MenuItem value="binary">Binary (Zipped)</MenuItem>
                           <MenuItem value="csv">CSV</MenuItem>
@@ -1128,18 +1187,15 @@ pip install -e .`}
                         >
                           <MenuItem value="accelerometer">Accelerometer</MenuItem>
                           <MenuItem value="enmo">ENMO</MenuItem>
+                          <MenuItem value="raw">Raw</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
                   </Grid>
                   {dataSource && (
                     <>
-                      <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
-                        {fileType === 'binary' 
-                          ? 'Upload your ZIP file containing the Samsung Galaxy Smartwatch data'
-                          : 'Upload your CSV file containing the Samsung Galaxy Smartwatch data'}
-                      </Typography>
-                  <Button
+                      {/* File Upload Button - moved above disclaimers */}
+                      <Button
                         variant="contained"
                         component="label"
                         startIcon={<UploadIcon />}
@@ -1147,12 +1203,33 @@ pip install -e .`}
                           minWidth: 200,
                           py: 1,
                           px: 3,
-                          borderRadius: 2
+                          borderRadius: 2,
+                          position: 'relative'
                         }}
-                        disabled={!!data?.file_id}
+                        disabled={!!data?.file_id || dataSource === 'other'}
                         onClick={() => { console.log('Upload File button pressed'); }}
                       >
                         Upload File
+                        {dataSource === 'other' && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: -8,
+                              right: -8,
+                              bgcolor: 'warning.main',
+                              color: 'white',
+                              px: 1,
+                              py: 0.5,
+                              borderRadius: 1,
+                              fontSize: '0.7rem',
+                              fontWeight: 'bold',
+                              transform: 'rotate(15deg)',
+                              zIndex: 1
+                            }}
+                          >
+                            WIP
+                          </Box>
+                        )}
                         <input
                           type="file"
                           hidden
@@ -1161,51 +1238,165 @@ pip install -e .`}
                           ref={fileInputRef}
                         />
                       </Button>
-                      {uploadProgress > 0 && uploadProgress < 100 && (
-                        <Box sx={{ width: '100%', mt: 2 }}>
-                          <LinearProgress variant="determinate" value={uploadProgress} />
-                          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-                            Uploading: {Math.round(uploadProgress)}%
+
+                      {/* Explanation for Binary Zipped format */}
+                      {fileType === 'binary' && (
+                        <Box sx={{ 
+                          mt: 2, 
+                          mb: 3, 
+                          p: 3, 
+                          bgcolor: 'background.paper', 
+                          borderRadius: 2, 
+                          border: '1px solid',
+                          borderColor: 'primary.light',
+                          maxWidth: 600,
+                          mx: 'auto'
+                        }}>
+                          <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
+                            Data Format Requirements
+                          </Typography>
+                          <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                            The uploaded ZIP file is expected to follow a specific structure: it should contain a single top-level parent directory, within which there are subdirectories organized by day. These daily subdirectories must contain binary files. This layout corresponds to the default export format (see example below).
+                          </Typography>
+                          <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                            Each binary file is expected to contain raw accelerometer data in a 4-column format: <strong>'unix_timestamp_in_ms'</strong>, <strong>'acceleration_x'</strong>, <strong>'acceleration_y'</strong>, and <strong>'acceleration_z'</strong>.
+                          </Typography>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            mt: 2,
+                            p: 2,
+                            bgcolor: 'grey.50',
+                            borderRadius: 1
+                          }}>
+                            <img 
+                              src={SGSBinaryZippedExample} 
+                              alt="Samsung Galaxy Smartwatch Binary Zipped Data Structure Example" 
+                              style={{ 
+                                maxWidth: '100%', 
+                                height: 'auto',
+                                borderRadius: '8px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                              }} 
+                            />
+                          </Box>
+                        </Box>
+                      )}
+
+                      {/* Explanation for CSV format */}
+                      {fileType === 'csv' && dataSource === 'samsung_galaxy' && (
+                        <Box sx={{ 
+                          mt: 2, 
+                          mb: 3, 
+                          p: 3, 
+                          bgcolor: 'background.paper', 
+                          borderRadius: 2, 
+                          border: '1px solid',
+                          borderColor: 'primary.light',
+                          maxWidth: 600,
+                          mx: 'auto'
+                        }}>
+                          <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
+                            Data Format Requirements
+                          </Typography>
+                          <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                            The uploaded CSV file is expected to contain ENMO data in milligravitational (mg) units. It must include exactly two columns: <strong>'time'</strong> and <strong>'enmo_mg'</strong>.
                           </Typography>
                         </Box>
                       )}
-                      {data?.file_id && (
-                        <Typography 
-                          variant="body2" 
-                          color="success.main" 
-                          sx={{ 
-                            mt: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                          }}
-                        >
-                          <CheckCircleIcon fontSize="small" />
-                          Successfully uploaded: {data.filename}
-                        </Typography>
-                      )}
-                      {dragActive && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            zIndex: 10,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#2196f3',
-                            fontSize: 24,
-                            pointerEvents: 'none',
-                            background: 'rgba(255,255,255,0.5)'
-                          }}
-                        >
-                          Drop file to upload
-                        </Box>
+
+                      {/* Disclaimers for Other data source */}
+                      {dataSource === 'other' && (
+                        <>
+                          {/* Validation Notice in Red Box */}
+                          <Box sx={{ 
+                            mt: 2, 
+                            mb: 3, 
+                            p: 3, 
+                            bgcolor: 'background.paper', 
+                            borderRadius: 2, 
+                            border: '1px solid',
+                            borderColor: 'error.main',
+                            maxWidth: 600,
+                            mx: 'auto'
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                              <WarningIcon sx={{ color: 'error.main' }} />
+                              <Typography variant="h6" sx={{ color: 'error.main', fontWeight: 600 }}>
+                                Validation Notice
+                              </Typography>
+                            </Box>
+                            <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                              The data preprocessing and biological age estimation pipeline has been validated using data (raw accelerometer and/or ENMO data) from the UK Biobank, NHANES, and Samsung Galaxy Watch. Results from other devices may vary in accuracy.
+                            </Typography>
+                          </Box>
+
+                          {/* Data Format Requirements in Blue Box */}
+                          <Box sx={{ 
+                            mt: 2, 
+                            mb: 3, 
+                            p: 3, 
+                            bgcolor: 'background.paper', 
+                            borderRadius: 2, 
+                            border: '1px solid',
+                            borderColor: 'primary.main',
+                            maxWidth: 600,
+                            mx: 'auto'
+                          }}>
+                            <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
+                              Data Format Requirements
+                            </Typography>
+                            <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                              The uploaded CSV file must contain raw, 1-dimensional time series data (e.g., ENMO) collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>.
+                            </Typography>
+                          </Box>
+                        </>
                       )}
                     </>
+                  )}
+                  {uploadProgress > 0 && uploadProgress < 100 && (
+                    <Box sx={{ width: '100%', mt: 2 }}>
+                      <LinearProgress variant="determinate" value={uploadProgress} />
+                      <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+                        Uploading: {Math.round(uploadProgress)}%
+                      </Typography>
+                    </Box>
+                  )}
+                  {data?.file_id && (
+                    <Typography 
+                      variant="body2" 
+                      color="success.main" 
+                      sx={{ 
+                        mt: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                      }}
+                    >
+                      <CheckCircleIcon fontSize="small" />
+                      Successfully uploaded: {data.filename}
+                    </Typography>
+                  )}
+                  {dragActive && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#2196f3',
+                        fontSize: 24,
+                        pointerEvents: 'none',
+                        background: 'rgba(255,255,255,0.5)'
+                      }}
+                    >
+                      Drop file to upload
+                    </Box>
                   )}
                   {data && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, width: '100%' }}>
@@ -2676,10 +2867,10 @@ pip install -e .`}
                   
                   <Box sx={{ mt: 4 }}>
                     <Typography variant="body1" paragraph>
-                      CosinorLab is a research project developed at ADAMMA (Core for AI & Digital Biomarker Research) at ETH Zurich. Our mission is to advance health monitoring through innovative digital biomarker analysis.
+                      CosinorLab is a research initiative developed at ADAMMA (Core for AI & Digital Biomarker Research) at ETH Zurich. Our mission is to advance health monitoring by pioneering innovative analysis of accelerometer data — including the prediction of biological age.
                     </Typography>
                     <Typography variant="body1" paragraph>
-                      This project was developed by Jinjoo Shim and Jacob Hunecke as part of ADAMMA's commitment to creating open-source tools for health innovation.
+                      This project was developed by Jinjoo Shim (Harvard University, formerly at ETH Zurich) and Jacob Hunecke (ETH Zurich) as part of ADAMMA's commitment to creating open-source tools for health innovation.
                     </Typography>
                     <Typography variant="body1" paragraph>
                       Learn more about ADAMMA at: <Link href="https://adamma.ethz.ch/" target="_blank" rel="noopener noreferrer">adamma.ethz.ch</Link>
@@ -2719,22 +2910,17 @@ pip install -e .`}
                     <ul>
                       <li>
                         <Typography variant="body1">
+                          Biological age prediction based on activity patterns
+                        </Typography>
+                      </li>
+                      <li>
+                        <Typography variant="body1">
                           Advanced cosinor analysis for circadian rhythm assessment
                         </Typography>
                       </li>
                       <li>
                         <Typography variant="body1">
                           Interactive visualization of activity patterns
-                        </Typography>
-                      </li>
-                      <li>
-                        <Typography variant="body1">
-                          Biological age prediction based on activity patterns
-                        </Typography>
-                      </li>
-                      <li>
-                        <Typography variant="body1">
-                          Comprehensive data processing tools
                         </Typography>
                       </li>
                     </ul>
@@ -2745,7 +2931,7 @@ pip install -e .`}
                       Contact
                     </Typography>
                     <Typography variant="body1" paragraph>
-                      For support or inquiries, please contact us at: <Link href="mailto:adamma@ethz.ch">adamma@ethz.ch</Link>
+                      For support or inquiries, please contact us at: <Link href="mailto:jinjooshim@hsph.harvard.edu">jinjooshim@hsph.harvard.edu</Link> or <Link href="mailto:jhunecke@student.ethz.ch">jhunecke@student.ethz.ch</Link>
                     </Typography>
                   </Box>
                 </Paper>
@@ -2802,6 +2988,78 @@ pip install -e .`}
           )}
         </Container>
       </Box>
+
+      {/* Getting Started Dialog */}
+      <Dialog 
+        open={gettingStartedOpen} 
+        onClose={() => setGettingStartedOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Getting Started with CosinorLab
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" paragraph>
+            Welcome to CosinorLab! To help you explore the interface, we've provided a sample file containing mock accelerometer data.
+          </Typography>
+          
+          <Typography variant="body1" paragraph>
+            This is an example file containing mock accelerometer data which can be used to explore the UI. For uploading this file, you should select:
+          </Typography>
+          
+          <Box sx={{ 
+            bgcolor: 'grey.50', 
+            p: 2, 
+            borderRadius: 1, 
+            mb: 3,
+            border: '1px solid',
+            borderColor: 'grey.300'
+          }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+              Recommended Settings:
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • Data Source: <strong>Other</strong><br/>
+              • File Type: <strong>CSV</strong><br/>
+              • Data Type: <strong>Accelerometer</strong>
+            </Typography>
+          </Box>
+
+          <Box sx={{ textAlign: 'center' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = '/sample_data2.csv';
+                link.download = 'sample_data2.csv';
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+              sx={{ 
+                borderRadius: 2,
+                px: 4,
+                py: 1.5,
+                mb: 2
+              }}
+            >
+              Download Sample CSV File
+            </Button>
+          </Box>
+
+          <Typography variant="body2" color="text.secondary" align="center">
+            After downloading, you can upload this file to explore the CosinorLab interface and see how the analysis works.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGettingStartedOpen(false)}>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </ThemeProvider>
   );
 }

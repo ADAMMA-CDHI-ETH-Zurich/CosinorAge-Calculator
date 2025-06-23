@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from typing import Dict, Any
 from cosinorage.bioages.cosinorage import CosinorAge
 from cosinorage.datahandlers.galaxydatahandler import GalaxyDataHandler
@@ -470,14 +471,21 @@ async def get_docs_sitemap():
 
 @app.get("/docs/search")
 async def search_docs(query: str):
-    """
-    Search through documentation content
-    """
-    try:
-        return {"results": docs_service.search_content(query)}
-    except Exception as e:
-        logger.error(f"Error searching docs: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    """Search documentation content."""
+    return {"results": []}
+
+@app.get("/download/sample")
+async def download_sample_data():
+    """Download sample data file."""
+    sample_file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "SampleData", "sample_data2.csv")
+    if not os.path.exists(sample_file_path):
+        raise HTTPException(status_code=404, detail="Sample file not found")
+    
+    return FileResponse(
+        path=sample_file_path,
+        filename="sample_data2.csv",
+        media_type="text/csv"
+    )
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000) 
