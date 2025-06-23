@@ -13,7 +13,10 @@ import zipfile
 from datetime import datetime
 from cosinorage.features.features import WearableFeatures
 from pydantic import BaseModel
-from docs_service import setup_docs_routes
+try:
+    from docs_service import setup_docs_routes
+except ImportError:
+    from backend.docs_service import setup_docs_routes
 import uvicorn
 
 
