@@ -667,7 +667,7 @@ function App() {
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!dataSource) return; // Only allow drag if dataSource is selected
+    if (!dataSource || !fileType) return; // Only allow drag if both dataSource and fileType are selected
     if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
     } else if (e.type === 'dragleave') {
@@ -678,7 +678,7 @@ function App() {
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!dataSource) return; // Only allow drop if dataSource is selected
+    if (!dataSource || !fileType) return; // Only allow drop if both dataSource and fileType are selected
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload({ target: { files: e.dataTransfer.files } });
@@ -1172,7 +1172,11 @@ pip install -e .`}
                           labelId="data-source-label"
                           value={dataSource}
                           label="Data Source"
-                          onChange={(e) => setDataSource(e.target.value)}
+                          onChange={(e) => {
+                            setDataSource(e.target.value);
+                            setFileType('');
+                            setDataType('');
+                          }}
                           sx={{ minWidth: 120 }}
                           disabled={!!data?.file_id}
                         >
@@ -1215,7 +1219,7 @@ pip install -e .`}
                       </FormControl>
                     </Grid>
                   </Grid>
-                  {dataSource && (
+                  {dataSource && fileType && dataType && (
                     <>
                       {/* File Upload Button - moved above disclaimers */}
                       <Button
@@ -1229,7 +1233,7 @@ pip install -e .`}
                           borderRadius: 2,
                           position: 'relative'
                         }}
-                        disabled={!!data?.file_id || dataSource === 'other' || fileType === 'multi_individual'}
+                        disabled={!!data?.file_id || dataSource === 'other' || fileType === 'multi_individual' || !dataSource || !fileType}
                         onClick={() => { console.log('Upload File button pressed'); }}
                       >
                         Upload File
@@ -1259,6 +1263,7 @@ pip install -e .`}
                           accept={fileType === 'binary' ? '.zip' : fileType === 'multi_individual' ? '.zip' : '.csv'}
                           onChange={handleFileUpload}
                           ref={fileInputRef}
+                          disabled={!dataSource || !fileType}
                         />
                       </Button>
 
