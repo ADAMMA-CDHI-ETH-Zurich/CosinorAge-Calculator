@@ -30,8 +30,6 @@ import {
   Slider,
   Tabs,
   Tab,
-  Chip,
-  Link,
   DialogActions
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
@@ -388,7 +386,6 @@ function App() {
     pa_cutpoint_mv: 70
   });
   const [currentTab, setCurrentTab] = useState(0);
-  const [serverStatus, setServerStatus] = useState('Server Connected');
   const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
   // Add state for fileType
   const [fileType, setFileType] = useState('');
@@ -401,6 +398,8 @@ function App() {
       setDataType('accelerometer');
     } else if (fileType === 'csv') {
       setDataType('enmo');
+    } else if (fileType === 'multi_individual') {
+      setDataType('accelerometer');
     } else {
       setDataType('');
     }
@@ -438,27 +437,6 @@ function App() {
       localStorage.clear();
       localStorage.setItem('shouldClear', 'false');
     }
-  }, []);
-
-  // Check server status periodically
-  useEffect(() => {
-    const checkServerStatus = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/health');
-        if (!response.ok) {
-          setServerStatus('Server Disconnected');
-        } else {
-          setServerStatus('Server Connected');
-        }
-      } catch (error) {
-        setServerStatus('Server Disconnected');
-      }
-    };
-
-    checkServerStatus(); // Check immediately on mount
-
-    const interval = setInterval(checkServerStatus, 5000); // Check every 5 seconds
-    return () => clearInterval(interval);
   }, []);
 
   // Log when component re-renders
@@ -756,7 +734,6 @@ function App() {
       pa_cutpoint_lm: 35,
       pa_cutpoint_mv: 70
     });
-    setServerStatus('Server Connected');
   };
 
   // Scroll to top when changing tabs
@@ -794,17 +771,6 @@ function App() {
             </Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Chip
-                label={serverStatus}
-                color={serverStatus === 'Server Connected' ? 'success' : 'error'}
-                size="small"
-                sx={{ 
-                  '& .MuiChip-label': { 
-                    px: 1,
-                    fontSize: '0.75rem'
-                  }
-                }}
-              />
               <img 
                 src={logo} 
                 alt="Logo" 
@@ -1026,9 +992,64 @@ function App() {
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <Box sx={{ mb: 2, mt: 2, p: 3, bgcolor: 'background.paper', borderRadius: 3, boxShadow: 1, width: '100%' }}>
-                    <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 700 }}>
-                      Getting Started using API
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', fontWeight: 700 }}>
+                        Getting Started using API
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <a 
+                          href="https://github.com/ADAMMA-CDHI-ETH-Zurich/CosinorAge" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ textDecoration: 'none' }}
+                        >
+                          <img 
+                            src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" 
+                            alt="GitHub Badge"
+                            style={{ height: 28, borderRadius: '16px' }}
+                          />
+                        </a>
+                        <a 
+                          href="https://cosinorage-deployed.readthedocs.io/en/latest/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ textDecoration: 'none' }}
+                        >
+                          <img 
+                            src="https://img.shields.io/badge/Read%20the%20Docs-8CA1AF?style=for-the-badge&logo=readthedocs&logoColor=white" 
+                            alt="Read the Docs Badge"
+                            style={{ height: 28, borderRadius: '16px' }}
+                          />
+                        </a>
+                        <Box sx={{ position: 'relative' }}>
+                          <div style={{ display: 'inline-block' }}>
+                            <img 
+                              src="https://img.shields.io/badge/PyPI-3775A9?style=for-the-badge&logo=pypi&logoColor=white" 
+                              alt="PyPI Badge"
+                              style={{ height: 28, borderRadius: '16px' }}
+                            />
+                          </div>
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: -8,
+                              right: -8,
+                              bgcolor: 'warning.main',
+                              color: 'white',
+                              px: 1,
+                              py: 0.5,
+                              borderRadius: 1,
+                              fontSize: '0.7rem',
+                              fontWeight: 'bold',
+                              transform: 'rotate(15deg)',
+                              zIndex: 1
+                            }}
+                          >
+                            WIP
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Box>
 
                     <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
                       Prerequisites
@@ -1173,6 +1194,7 @@ pip install -e .`}
                         >
                           <MenuItem value="binary">Binary (Zipped)</MenuItem>
                           <MenuItem value="csv">CSV</MenuItem>
+                          <MenuItem value="multi_individual">Multi-individual (Zipped)</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
@@ -1188,6 +1210,7 @@ pip install -e .`}
                           <MenuItem value="accelerometer">Accelerometer</MenuItem>
                           <MenuItem value="enmo">ENMO</MenuItem>
                           <MenuItem value="raw">Raw</MenuItem>
+                          <MenuItem value="multi_individual">Multi-individual</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
@@ -1206,11 +1229,11 @@ pip install -e .`}
                           borderRadius: 2,
                           position: 'relative'
                         }}
-                        disabled={!!data?.file_id || dataSource === 'other'}
+                        disabled={!!data?.file_id || dataSource === 'other' || fileType === 'multi_individual'}
                         onClick={() => { console.log('Upload File button pressed'); }}
                       >
                         Upload File
-                        {dataSource === 'other' && (
+                        {(dataSource === 'other' || fileType === 'multi_individual') && (
                           <Box
                             sx={{
                               position: 'absolute',
@@ -1233,7 +1256,7 @@ pip install -e .`}
                         <input
                           type="file"
                           hidden
-                          accept={fileType === 'binary' ? '.zip' : '.csv'}
+                          accept={fileType === 'binary' ? '.zip' : fileType === 'multi_individual' ? '.zip' : '.csv'}
                           onChange={handleFileUpload}
                           ref={fileInputRef}
                         />
@@ -2870,13 +2893,45 @@ pip install -e .`}
                       CosinorLab is a research initiative developed at ADAMMA (Core for AI & Digital Biomarker Research) at ETH Zurich. Our mission is to advance health monitoring by pioneering innovative analysis of accelerometer data — including the prediction of biological age.
                     </Typography>
                     <Typography variant="body1" paragraph>
-                      This project was developed by Jinjoo Shim (Harvard University, formerly at ETH Zurich) and Jacob Hunecke (ETH Zurich) as part of ADAMMA's commitment to creating open-source tools for health innovation.
+                      This project was developed by Dr. Jinjoo Shim (Harvard University, formerly at ETH Zurich) and Jacob Leo Oskar Hunecke (ETH Zurich) as part of ADAMMA's commitment to creating open-source tools for health innovation.
                     </Typography>
                     <Typography variant="body1" paragraph>
-                      Learn more about ADAMMA at: <Link href="https://adamma.ethz.ch/" target="_blank" rel="noopener noreferrer">adamma.ethz.ch</Link>
+                      Learn more about ADAMMA at: 
                     </Typography>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      gap: 1, 
+                      justifyContent: 'center',
+                      mb: 2
+                    }}>
+                      <a 
+                        href="https://adamma.ethz.ch/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: 'none' }}
+                      >
+                        <img 
+                          src="https://img.shields.io/badge/Website-rgb(237,30,121)?style=for-the-badge&logo=google-chrome&logoColor=white" 
+                          alt="Website Badge"
+                          style={{ height: 28, borderRadius: '16px' }}
+                        />
+                      </a>
+                      <a 
+                        href="https://github.com/ADAMMA-CDHI-ETH-Zurich" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: 'none' }}
+                      >
+                        <img 
+                          src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" 
+                          alt="GitHub Badge"
+                          style={{ height: 28, borderRadius: '16px' }}
+                        />
+                      </a>
+                    </Box>
                   </Box>
 
+                  {/* Team Members Section - removed, kept only the one at the end */}
                   <Box sx={{ mt: 4 }}>
                     <Typography variant="h5" gutterBottom>
                       Our Mission
@@ -2926,61 +2981,430 @@ pip install -e .`}
                     </ul>
                   </Box>
 
+                  {/* Team Members Section - moved to end */}
                   <Box sx={{ mt: 4 }}>
                     <Typography variant="h5" gutterBottom>
-                      Contact
+                      Meet the Team
                     </Typography>
-                    <Typography variant="body1" paragraph>
-                      For support or inquiries, please contact us at: <Link href="mailto:jinjooshim@hsph.harvard.edu">jinjooshim@hsph.harvard.edu</Link> or <Link href="mailto:jhunecke@student.ethz.ch">jhunecke@student.ethz.ch</Link>
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Grid>
-            </Grid>
-          )}
-
-          {currentTab === 4 && (
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 4 }}>
-                  <Typography variant="h4" gutterBottom>
-                    About CosinorLab
-                  </Typography>
-                  <Typography variant="h6" color="text.secondary" gutterBottom>
-                    Advanced Analysis of Accelerometer Data
-                  </Typography>
-                  
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5" gutterBottom>
-                      Our Mission
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      CosinorLab is dedicated to advancing the analysis of accelerometer data through sophisticated cosinor analysis techniques. Our platform enables researchers and healthcare professionals to gain deeper insights into activity patterns and biological rhythms.
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5" gutterBottom>
-                      Key Features
-                    </Typography>
-                    <ul>
-                      <li><Typography variant="body1">Advanced cosinor analysis of accelerometer data</Typography></li>
-                      <li><Typography variant="body1">Interactive visualization of activity patterns</Typography></li>
-                      <li><Typography variant="body1">Biological age prediction based on activity rhythms</Typography></li>
-                      <li><Typography variant="body1">Comprehensive data processing and analysis tools</Typography></li>
-                    </ul>
-                  </Box>
-
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5" gutterBottom>
-                      Contact
-                    </Typography>
-                    <Typography variant="body1" paragraph>
-                      For questions, feedback, or support, please contact us at:
-                    </Typography>
-                    <Typography variant="body1">
-                      Email: support@cosinorlab.com
-                    </Typography>
+                    <Grid container spacing={4} sx={{ mt: 2 }}>
+                      <Grid item xs={12} md={4}>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          alignItems: 'center', 
+                          textAlign: 'center',
+                          p: 3,
+                          bgcolor: 'background.paper',
+                          borderRadius: 2,
+                          boxShadow: 1,
+                          height: 360
+                        }}>
+                          <img 
+                            src="https://adamma.ethz.ch/images/filipe.jpg" 
+                            alt="Dr. Filipe Barata" 
+                            style={{ 
+                              width: 120, 
+                              height: 120, 
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              marginBottom: 16,
+                              border: '3px solid',
+                              borderColor: 'primary.main'
+                            }} 
+                          />
+                          <Typography variant="h6" gutterBottom>
+                            Dr. Filipe Barata
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" paragraph>
+                            ADAMMA Group Leader
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            ETH Zurich
+                          </Typography>
+                          <Box sx={{ 
+                            mt: 1, 
+                            display: 'flex', 
+                            gap: 1, 
+                            flexWrap: 'wrap', 
+                            justifyContent: 'center',
+                            maxWidth: '100%'
+                          }}>
+                            <a 
+                              href="https://adamma.ethz.ch/members/filipe-barata.html" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: 'rgb(237, 30, 121)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: 'rgb(200, 25, 100)'
+                                }
+                              }}>
+                                W
+                              </Box>
+                            </a>
+                            <a 
+                              href="https://github.com/pipo3000" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#100000',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#333333'
+                                }
+                              }}>
+                                G
+                              </Box>
+                            </a>
+                            <a 
+                              href="https://www.linkedin.com/in/filipe-barata/" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#0077B5',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#005885'
+                                }
+                              }}>
+                                L
+                              </Box>
+                            </a>
+                            <a 
+                              href="mailto:fbarata@ethz.ch" 
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#D44638',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#B33A2E'
+                                }
+                              }}>
+                                M
+                              </Box>
+                            </a>
+                          </Box>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={4}>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          alignItems: 'center', 
+                          textAlign: 'center',
+                          p: 3,
+                          bgcolor: 'background.paper',
+                          borderRadius: 2,
+                          boxShadow: 1,
+                          height: 360
+                        }}>
+                          <img 
+                            src="https://jinjooshim.com/authors/admin/avatar_hu1948641559463300168.png" 
+                            alt="Dr. Jinjoo Shim" 
+                            style={{ 
+                              width: 120, 
+                              height: 120, 
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              marginBottom: 16,
+                              border: '3px solid',
+                              borderColor: 'primary.main'
+                            }} 
+                          />
+                          <Typography variant="h6" gutterBottom>
+                            Dr. Jinjoo Shim
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" paragraph>
+                            Postdoctoral Fellow
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Harvard University (Formerly at ETH Zurich)
+                          </Typography>
+                          <Box sx={{ 
+                            mt: 1, 
+                            display: 'flex', 
+                            gap: 1, 
+                            flexWrap: 'wrap', 
+                            justifyContent: 'center',
+                            maxWidth: '100%'
+                          }}>
+                            <a 
+                              href="https://adamma.ethz.ch/members/jinjoo-shim" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: 'rgb(237, 30, 121)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: 'rgb(200, 25, 100)'
+                                }
+                              }}>
+                                W
+                              </Box>
+                            </a>
+                            <a 
+                              href="https://github.com/jinjoo-shim" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#100000',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#333333'
+                                }
+                              }}>
+                                G
+                              </Box>
+                            </a>
+                            <a 
+                              href="https://www.linkedin.com/in/jinjooshim/" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#0077B5',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#005885'
+                                }
+                              }}>
+                                L
+                              </Box>
+                            </a>
+                            <a 
+                              href="mailto:jinjooshim@hsph.harvard.edu" 
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#D44638',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#B33A2E'
+                                }
+                              }}>
+                                M
+                              </Box>
+                            </a>
+                          </Box>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={4}>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          alignItems: 'center', 
+                          textAlign: 'center',
+                          p: 3,
+                          bgcolor: 'background.paper',
+                          borderRadius: 2,
+                          boxShadow: 1,
+                          height: 360
+                        }}>
+                          <img 
+                            src="https://adamma.ethz.ch/images/jacob.png" 
+                            alt="Jacob Leo Oskar Hunecke" 
+                            style={{ 
+                              width: 120, 
+                              height: 120, 
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              marginBottom: 16,
+                              border: '3px solid',
+                              borderColor: 'primary.main'
+                            }} 
+                          />
+                          <Typography variant="h6" gutterBottom>
+                            Jacob Leo Oskar Hunecke
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" paragraph>
+                            Master's Student
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            ETH Zurich
+                          </Typography>
+                          <Box sx={{ 
+                            mt: 1, 
+                            display: 'flex', 
+                            gap: 1, 
+                            flexWrap: 'wrap', 
+                            justifyContent: 'center',
+                            maxWidth: '100%'
+                          }}>
+                            <a 
+                              href="https://adamma.ethz.ch/members/jacob-hunecke.html" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: 'rgb(237, 30, 121)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: 'rgb(200, 25, 100)'
+                                }
+                              }}>
+                                W
+                              </Box>
+                            </a>
+                            <a 
+                              href="https://github.com/jlohunecke" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#100000',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#333333'
+                                }
+                              }}>
+                                G
+                              </Box>
+                            </a>
+                            <a 
+                              href="https://www.linkedin.com/in/jlohunecke/" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#0077B5',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#005885'
+                                }
+                              }}>
+                                L
+                              </Box>
+                            </a>
+                            <a 
+                              href="mailto:jhunecke@student.ethz.ch" 
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#D44638',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#B33A2E'
+                                }
+                              }}>
+                                M
+                              </Box>
+                            </a>
+                          </Box>
+                        </Box>
+                      </Grid>
+                    </Grid>
                   </Box>
                 </Paper>
               </Grid>
