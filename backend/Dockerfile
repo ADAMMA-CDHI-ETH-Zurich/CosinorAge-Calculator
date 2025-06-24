@@ -11,7 +11,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install local cosinorage package
-COPY ../cosinorage-0.1.4.tar.gz .
+COPY cosinorage-0.1.4.tar.gz .
 RUN pip install --no-cache-dir cosinorage-0.1.4.tar.gz
 
 # Copy backend code
