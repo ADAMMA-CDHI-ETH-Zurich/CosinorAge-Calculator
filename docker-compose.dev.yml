@@ -12,6 +12,7 @@ services:
     # Development: mount source code for hot reloading
     volumes:
       - ./backend:/app
+      - ./data:/app/data
       - backend_data:/app/extracted_files
     # Development: expose additional ports for debugging
     ports:
