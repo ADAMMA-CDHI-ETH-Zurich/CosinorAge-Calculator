@@ -20,6 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 venv/
+venv_new/
 .env
 
 # Node
@@ -46,26 +47,22 @@ Thumbs.db
 backend/extracted_files/
 backend/temp/
 *.zip
+test_data/
+test-data/
 
-/backend/extracted_files
-/backend/extracted_files/*
-/backend/extracted_files/**/*
-/backend/extracted_files/**/**/*
-/backend/extracted_files/**/**/**/*
-/backend/extracted_files/**/**/**/**/*
-/backend/extracted_files/**/**/**/**/**/*
-/backend/extracted_files/**/**/**/**/**/**/*
-
-/GalaxyWatch_Case1
-GalaxyWatch_Case1.zip
-
+# Runtime data
 extracted_files/
 extracted_files/*
-extracted_files/**/*
-extracted_files/**/**/*
-extracted_files/**/**/**/*
-extracted_files/**/**/**/**/*
-extracted_files/**/**/**/**/**/*
-extracted_files/**/**/**/**/**/**/*
 
-venv_new/
+# Docker
+.dockerignore
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
