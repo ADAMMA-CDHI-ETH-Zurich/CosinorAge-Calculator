@@ -55,9 +55,21 @@ async def startup_event():
     uploaded_data.clear()
     temp_dirs.clear()
     
-    # Clean up extracted files directory
+    # Clean up extracted files directory (handle volume mount)
     if os.path.exists(EXTRACTED_FILES_DIR):
-        shutil.rmtree(EXTRACTED_FILES_DIR)
+        try:
+            # Instead of removing the directory, clear its contents
+            for item in os.listdir(EXTRACTED_FILES_DIR):
+                item_path = os.path.join(EXTRACTED_FILES_DIR, item)
+                if os.path.isdir(item_path):
+                    shutil.rmtree(item_path)
+                else:
+                    os.remove(item_path)
+        except Exception as e:
+            logger.warning(f"Could not clear extracted_files directory: {str(e)}")
+            # Ensure the directory exists
+            os.makedirs(EXTRACTED_FILES_DIR, exist_ok=True)
+    else:
         os.makedirs(EXTRACTED_FILES_DIR, exist_ok=True)
     
     logger.info("Server started - all state cleared")

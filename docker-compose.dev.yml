@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=DEBUG
+    # Development: mount source code for hot reloading
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/extracted_files
+    # Development: expose additional ports for debugging
+    ports:
+      - "8000:8000"
+      - "5678:5678"  # For debugging if needed
+    # Development: run with debugger
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    # Development: no resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+
+  frontend:
+    # Development: mount source code for hot reloading
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    # Development: run in development mode
+    command: ["npm", "start"]
+    # Development: expose additional ports
+    ports:
+      - "80:3000"  # React dev server runs on 3000
+    # Development: no resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+# Development: use local volumes
+volumes:
+  backend_data:
+    driver: local 

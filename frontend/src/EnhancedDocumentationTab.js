@@ -1,5 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, CircularProgress, Tabs, Tab, Paper, Alert } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
+  TextField,
+  Button,
+  CircularProgress,
+  Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  Chip,
+  Link,
+  Breadcrumbs,
+  IconButton,
+  Tooltip,
+  Tabs,
+  Tab
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SearchIcon from '@mui/icons-material/Search';
+import HomeIcon from '@mui/icons-material/Home';
+import FolderIcon from '@mui/icons-material/Folder';
+import DescriptionIcon from '@mui/icons-material/Description';
+import config from './config';
 
 function EnhancedDocumentationTab() {
   const [activeTab, setActiveTab] = useState('dataloaders');
@@ -13,7 +44,7 @@ function EnhancedDocumentationTab() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`http://localhost:8000/docs/${module}`);
+        const response = await fetch(config.getApiUrl(`docs/${module}`));
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.detail || `Failed to fetch ${module} documentation`);
