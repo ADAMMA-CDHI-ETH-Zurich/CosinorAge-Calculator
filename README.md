@@ -17,7 +17,30 @@ A web application for analyzing accelerometer data with drag-and-drop functional
   Your browser does not support the video tag.
 </video>
 
-## Setup
+## Quick Start (Docker - Recommended)
+
+The easiest way to run the application is using Docker:
+
+### Development Environment (with hot reloading)
+```bash
+./cosinorlab.sh deploy-dev
+```
+
+### Production Environment
+```bash
+./cosinorlab.sh deploy-prod
+```
+
+### Other Commands
+```bash
+./cosinorlab.sh restart-dev      # Restart development containers and open browser
+./cosinorlab.sh restart-prod     # Restart production containers and open browser
+./cosinorlab.sh stop             # Stop all containers
+./cosinorlab.sh status           # Show container status
+./cosinorlab.sh open             # Open frontend in browser
+```
+
+## Manual Setup
 
 ### Backend Setup
 
@@ -57,7 +80,7 @@ The frontend will run on http://localhost:3000
 
 ## Usage
 
-1. Open your browser and navigate to http://localhost:3000
+1. Open your browser and navigate to http://localhost (Docker) or http://localhost:3000 (manual setup)
 2. Drag and drop your accelerometer data file (CSV or JSON) onto the upload area
 3. View the processed data and visualizations
 4. Interact with the charts to explore your data
