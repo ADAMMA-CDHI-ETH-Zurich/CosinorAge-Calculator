@@ -3462,7 +3462,7 @@ pip install -e .`}
               color="primary"
               onClick={() => {
                 const link = document.createElement('a');
-                link.href = '/sample_data2.csv';
+                link.href = '/data/sample/sample_data2.csv';
                 link.download = 'sample_data2.csv';
                 link.target = '_blank';
                 document.body.appendChild(link);

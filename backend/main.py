@@ -492,7 +492,7 @@ async def search_docs(query: str):
 @app.get("/download/sample")
 async def download_sample_data():
     """Download sample data file."""
-    sample_file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "SampleData", "sample_data2.csv")
+    sample_file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "sample", "sample_data2.csv")
     if not os.path.exists(sample_file_path):
         raise HTTPException(status_code=404, detail="Sample file not found")
     
