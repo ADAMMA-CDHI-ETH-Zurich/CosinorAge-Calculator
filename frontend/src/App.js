@@ -1523,7 +1523,8 @@ pip install -e .`}
                               value={preprocessParams.autocalib_sd_criter}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handlePreprocessParamChange('autocalib_sd_criter', value);
                                 }
                               }}
@@ -1541,7 +1542,8 @@ pip install -e .`}
                               value={preprocessParams.autocalib_sphere_crit}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handlePreprocessParamChange('autocalib_sphere_crit', value);
                                 }
                               }}
@@ -1573,7 +1575,8 @@ pip install -e .`}
                               value={preprocessParams.filter_cutoff}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handlePreprocessParamChange('filter_cutoff', value);
                                 }
                               }}
@@ -1591,7 +1594,8 @@ pip install -e .`}
                               value={preprocessParams.wear_sd_crit}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handlePreprocessParamChange('wear_sd_crit', value);
                                 }
                               }}
@@ -1609,7 +1613,8 @@ pip install -e .`}
                               value={preprocessParams.wear_range_crit}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handlePreprocessParamChange('wear_range_crit', value);
                                 }
                               }}
@@ -1627,12 +1632,13 @@ pip install -e .`}
                               value={preprocessParams.wear_window_length}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handlePreprocessParamChange('wear_window_length', value);
                                 }
                               }}
                               inputProps={{ 
-                                inputMode: "numeric",
+                                inputMode: "decimal",
                                 lang: "en-US"
                               }}
                             />
@@ -1645,7 +1651,8 @@ pip install -e .`}
                               value={preprocessParams.wear_window_skip}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handlePreprocessParamChange('wear_window_skip', value);
                                 }
                               }}
@@ -1674,7 +1681,8 @@ pip install -e .`}
                               value={preprocessParams.required_daily_coverage}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handlePreprocessParamChange('required_daily_coverage', value);
                                 }
                               }}
@@ -1718,7 +1726,8 @@ pip install -e .`}
                               value={featureParams.sleep_ck_sf}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handleFeatureParamChange('sleep_ck_sf', value);
                                 }
                               }}
@@ -1736,7 +1745,8 @@ pip install -e .`}
                               value={featureParams.pa_cutpoint_sl}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handleFeatureParamChange('pa_cutpoint_sl', value);
                                 }
                               }}
@@ -1754,7 +1764,8 @@ pip install -e .`}
                               value={featureParams.pa_cutpoint_lm}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handleFeatureParamChange('pa_cutpoint_lm', value);
                                 }
                               }}
@@ -1772,7 +1783,8 @@ pip install -e .`}
                               value={featureParams.pa_cutpoint_mv}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
-                                if (/^\d*\.?\d*$/.test(value) || value === "") {
+                                // Allow any positive numeric value with arbitrary precision
+                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                   handleFeatureParamChange('pa_cutpoint_mv', value);
                                 }
                               }}
