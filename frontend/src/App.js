@@ -688,16 +688,69 @@ function App() {
 
   // Add handler for parameter changes
   const handlePreprocessParamChange = (param, value) => {
+    // Convert numeric parameters to numbers, keep strings for non-numeric parameters
+    let processedValue = value;
+    
+    // List of numeric parameters
+    const numericParams = [
+      'autocalib_sd_criter',
+      'autocalib_sphere_crit', 
+      'filter_cutoff',
+      'wear_sd_crit',
+      'wear_range_crit',
+      'wear_window_length',
+      'wear_window_skip',
+      'required_daily_coverage'
+    ];
+    
+    // Convert to number if it's a numeric parameter and the value is not empty
+    if (numericParams.includes(param) && value !== '' && value !== null && value !== undefined) {
+      processedValue = parseFloat(value);
+      // If conversion fails, keep the original value
+      if (isNaN(processedValue)) {
+        processedValue = value;
+      }
+    }
+    
     setPreprocessParams(prev => ({
       ...prev,
-      [param]: value
+      [param]: processedValue
     }));
   };
 
   const handleFeatureParamChange = (param, value) => {
+    // Convert numeric parameters to numbers, keep booleans for boolean parameters
+    let processedValue = value;
+    
+    // List of numeric parameters
+    const numericParams = [
+      'sleep_ck_sf',
+      'pa_cutpoint_sl',
+      'pa_cutpoint_lm',
+      'pa_cutpoint_mv'
+    ];
+    
+    // List of boolean parameters
+    const booleanParams = [
+      'sleep_rescore'
+    ];
+    
+    // Convert to number if it's a numeric parameter and the value is not empty
+    if (numericParams.includes(param) && value !== '' && value !== null && value !== undefined) {
+      processedValue = parseFloat(value);
+      // If conversion fails, keep the original value
+      if (isNaN(processedValue)) {
+        processedValue = value;
+      }
+    }
+    // Keep boolean values as is for boolean parameters
+    else if (booleanParams.includes(param)) {
+      processedValue = value; // This should already be a boolean from the Switch component
+    }
+    
     setFeatureParams(prev => ({
       ...prev,
-      [param]: value
+      [param]: processedValue
     }));
   };
 
@@ -1611,7 +1664,7 @@ pip install -e .`}
                               min={0}
                               max={1}
                               step={0.01}
-                              onChange={(e, newValue) => setPreprocessParams(prev => ({ ...prev, required_daily_coverage: newValue }))}
+                              onChange={(e, newValue) => handlePreprocessParamChange('required_daily_coverage', newValue)}
                               valueLabelDisplay="auto"
                             />
                             <TextField
@@ -1622,7 +1675,7 @@ pip install -e .`}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, '.');
                                 if (/^\d*\.?\d*$/.test(value) || value === "") {
-                                  setPreprocessParams(prev => ({ ...prev, required_daily_coverage: value }));
+                                  handlePreprocessParamChange('required_daily_coverage', value);
                                 }
                               }}
                               inputProps={{
