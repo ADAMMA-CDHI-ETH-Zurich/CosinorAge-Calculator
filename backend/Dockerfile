@@ -14,10 +14,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY cosinorage-0.1.4.tar.gz .
 RUN pip install --no-cache-dir cosinorage-0.1.4.tar.gz
 
+<<<<<<< HEAD
 # Create data directory structure and copy sample data
 RUN mkdir -p data/sample
 COPY sample_data2.csv data/sample/
 
+=======
+>>>>>>> c5e7a85a79fc378fab2a77e8eca8862fa9b8f09b
 # Copy backend code
 COPY . .
 
