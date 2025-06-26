@@ -10,22 +10,14 @@ services:
     # Development: mount source code for hot reloading
     volumes:
       - ./backend:/app
-<<<<<<< HEAD
       - ./backend/sample_data2.csv:/app/data/sample/sample_data2.csv:ro
-=======
-      - ./data:/app/data
->>>>>>> c5e7a85a79fc378fab2a77e8eca8862fa9b8f09b
       - backend_data:/app/extracted_files
     # Development: expose additional ports for debugging
     ports:
       - "8000:8000"
       - "5678:5678"  # For debugging if needed
     # Development: run with debugger
-<<<<<<< HEAD
     command: ["sh", "-c", "mkdir -p /app/data/sample && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"]
-=======
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
->>>>>>> c5e7a85a79fc378fab2a77e8eca8862fa9b8f09b
     # Development: no resource limits
     deploy:
       resources:

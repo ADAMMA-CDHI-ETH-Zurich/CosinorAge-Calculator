@@ -9,10 +9,6 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     volumes:
-<<<<<<< HEAD
-=======
-      - ./data:/app/data
->>>>>>> c5e7a85a79fc378fab2a77e8eca8862fa9b8f09b
       - backend_data:/app/extracted_files
     networks:
       - cosinorlab-network
