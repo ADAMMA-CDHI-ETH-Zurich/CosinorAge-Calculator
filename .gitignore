@@ -47,7 +47,6 @@ Thumbs.db
 backend/extracted_files/
 backend/temp/
 *.zip
-data/test/
 
 # Runtime data
 extracted_files/
