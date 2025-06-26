@@ -1,0 +1,64 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cosinorlab-backend-dev
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=DEBUG
+    # Development: mount source code for hot reloading
+    volumes:
+      - ./backend:/app
+      - ./backend/sample_data2.csv:/app/data/sample/sample_data2.csv:ro
+      - backend_data:/app/extracted_files
+    # Development: expose additional ports for debugging
+    ports:
+      - "8000:8000"
+      - "5678:5678"  # For debugging if needed
+    # Development: run with debugger
+    command: ["sh", "-c", "mkdir -p /app/data/sample && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"]
+    # Development: no resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+    networks:
+      - cosinorlab-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: cosinorlab-frontend-dev
+    # Development: mount source code for hot reloading
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    # Development: run in development mode
+    command: ["npm", "start"]
+    # Development: expose additional ports
+    ports:
+      - "80:3000"  # React dev server runs on 3000
+    # Development: no resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+    networks:
+      - cosinorlab-network
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+# Development: use local volumes
+volumes:
+  backend_data:
+    driver: local
+
+networks:
+  cosinorlab-network:
+    driver: bridge 
