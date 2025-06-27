@@ -33,11 +33,27 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import config from './config';
 
 function EnhancedDocumentationTab() {
-  const [activeTab, setActiveTab] = useState('dataloaders');
-  const [documentationType, setDocumentationType] = useState('lab'); // 'api' or 'lab'
+  const [activeTab, setActiveTab] = useState(() => {
+    const savedTab = localStorage.getItem('documentationActiveTab');
+    return savedTab || 'dataloaders';
+  });
+  const [documentationType, setDocumentationType] = useState(() => {
+    const savedType = localStorage.getItem('documentationType');
+    return savedType || 'lab';
+  });
   const [documentation, setDocumentation] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Save activeTab to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('documentationActiveTab', activeTab);
+  }, [activeTab]);
+
+  // Save documentationType to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('documentationType', documentationType);
+  }, [documentationType]);
 
   useEffect(() => {
     const fetchDocumentation = async (module) => {

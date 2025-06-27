@@ -386,7 +386,10 @@ function App() {
     pa_cutpoint_lm: 35,
     pa_cutpoint_mv: 70
   });
-  const [currentTab, setCurrentTab] = useState(0);
+  const [currentTab, setCurrentTab] = useState(() => {
+    const savedTab = localStorage.getItem('currentTab');
+    return savedTab !== null ? parseInt(savedTab) : 0;
+  });
   const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
   // Add state for fileType
   const [fileType, setFileType] = useState('');
@@ -428,7 +431,8 @@ function App() {
     }
     localStorage.setItem('chronologicalAge', chronologicalAge);
     localStorage.setItem('gender', gender);
-  }, [data, dataSource, predictedAge, chronologicalAge, gender]);
+    localStorage.setItem('currentTab', currentTab.toString());
+  }, [data, dataSource, predictedAge, chronologicalAge, gender, currentTab]);
 
   // Clear all state on mount
   useEffect(() => {
@@ -3058,7 +3062,123 @@ pip install -e .`}
                       Meet the Team
                     </Typography>
                     <Grid container spacing={4} sx={{ mt: 2 }}>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={6}>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          alignItems: 'center', 
+                          textAlign: 'center',
+                          p: 3,
+                          bgcolor: 'background.paper',
+                          borderRadius: 2,
+                          boxShadow: 1,
+                          height: 360
+                        }}>
+                          <img 
+                            src="https://im.ethz.ch/people/efleisch/_jcr_content/par/twocolumn/par_left/fullwidthimage/image.imageformat.1286.1368744170.jpg" 
+                            alt="Prof. Dr. Elgar Fleisch" 
+                            style={{ 
+                              width: 120, 
+                              height: 120, 
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              objectPosition: 'center 30%',
+                              marginBottom: 16,
+                              border: '3px solid',
+                              borderColor: 'primary.main'
+                            }} 
+                          />
+                          <Typography variant="h6" gutterBottom>
+                            Prof. Dr. Elgar Fleisch
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" paragraph>
+                            Chair of Information Management
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            ETH Zurich
+                          </Typography>
+                          <Box sx={{ 
+                            mt: 1, 
+                            display: 'flex', 
+                            gap: 1, 
+                            flexWrap: 'wrap', 
+                            justifyContent: 'center',
+                            maxWidth: '100%'
+                          }}>
+                            <a 
+                              href="https://im.ethz.ch/people/efleisch.html" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: 'rgb(237, 30, 121)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: 'rgb(200, 25, 100)'
+                                }
+                              }}>
+                                W
+                              </Box>
+                            </a>
+                            <a 
+                              href="https://www.linkedin.com/in/elgar-fleisch-0bb72461/?originalSubdomain=ch" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#0077B5',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#005885'
+                                }
+                              }}>
+                                L
+                              </Box>
+                            </a>
+                            <a 
+                              href="mailto:efleisch@ethz.ch" 
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Box sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                bgcolor: '#D44638',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                '&:hover': {
+                                  bgcolor: '#B33A2E'
+                                }
+                              }}>
+                                M
+                              </Box>
+                            </a>
+                          </Box>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
                         <Box sx={{ 
                           display: 'flex', 
                           flexDirection: 'column', 
@@ -3197,7 +3317,7 @@ pip install -e .`}
                           </Box>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={6}>
                         <Box sx={{ 
                           display: 'flex', 
                           flexDirection: 'column', 
@@ -3336,7 +3456,7 @@ pip install -e .`}
                           </Box>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} md={4}>
+                      <Grid item xs={12} md={6}>
                         <Box sx={{ 
                           display: 'flex', 
                           flexDirection: 'column', 
