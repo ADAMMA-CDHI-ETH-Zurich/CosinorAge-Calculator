@@ -49,6 +49,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import logo from './assets/logo.png';
 import EnhancedDocumentationTab from './EnhancedDocumentationTab';
 import SGSBinaryZippedExample from './assets/SGS_Binary_Zipped_Example.png';
+import SGSCSVExample from './assets/SGS_CSV_Example.png';
 import config from './config';
 
 // Create a modern theme
@@ -401,19 +402,23 @@ function App() {
     if (fileType === 'binary') {
       setDataType('accelerometer');
     } else if (fileType === 'csv') {
-      setDataType('enmo');
+      // Only auto-set dataType if not 'other' data source
+      if (dataSource !== 'other') {
+        setDataType('enmo');
+      }
     } else if (fileType === 'multi_individual') {
       setDataType('accelerometer');
     } else {
       setDataType('');
     }
-  }, [fileType]);
+  }, [fileType, dataSource]);
 
   // Update fileType and dataType when dataSource changes
   useEffect(() => {
     if (dataSource === 'other') {
       setFileType('csv');
-      setDataType('raw');
+      // Don't auto-set dataType for 'other' - let user choose
+      setDataType('');
     } else if (dataSource === '') {
       setFileType('');
       setDataType('');
@@ -673,6 +678,7 @@ function App() {
     e.preventDefault();
     e.stopPropagation();
     if (!dataSource || !fileType) return; // Only allow drag if both dataSource and fileType are selected
+    if (dataSource === 'other' && !dataType) return; // Also require dataType for 'other' data source
     if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
     } else if (e.type === 'dragleave') {
@@ -684,6 +690,7 @@ function App() {
     e.preventDefault();
     e.stopPropagation();
     if (!dataSource || !fileType) return; // Only allow drop if both dataSource and fileType are selected
+    if (dataSource === 'other' && !dataType) return; // Also require dataType for 'other' data source
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload({ target: { files: e.dataTransfer.files } });
@@ -1214,10 +1221,10 @@ pip install -e .`}
                     background: dragActive ? 'rgba(33,150,243,0.05)' : undefined,
                     position: 'relative',
                   }}
-                  onDragEnter={dataSource ? handleDrag : undefined}
-                  onDragOver={dataSource ? handleDrag : undefined}
-                  onDragLeave={dataSource ? handleDrag : undefined}
-                  onDrop={dataSource ? handleDrop : undefined}
+                  onDragEnter={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrag : undefined}
+                  onDragOver={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrag : undefined}
+                  onDragLeave={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrag : undefined}
+                  onDrop={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrop : undefined}
                 >
                   <Typography variant="h6" gutterBottom>
                     Select Data & File Format
@@ -1261,23 +1268,29 @@ pip install -e .`}
                       </FormControl>
                     </Grid>
                     <Grid item xs={4}>
-                      <FormControl fullWidth disabled>
+                      <FormControl fullWidth disabled={dataSource !== 'other'}>
                         <InputLabel id="data-type-label">Data Type</InputLabel>
                         <Select
                           labelId="data-type-label"
                           value={dataType}
                           label="Data Type"
+                          onChange={(e) => setDataType(e.target.value)}
                           sx={{ minWidth: 120 }}
                         >
                           <MenuItem value="accelerometer">Accelerometer</MenuItem>
                           <MenuItem value="enmo">ENMO</MenuItem>
-                          <MenuItem value="raw">Raw</MenuItem>
-                          <MenuItem value="multi_individual">Multi-individual</MenuItem>
+                          <MenuItem value="alternative_count">Alternative Count</MenuItem>
+                          {dataSource !== 'other' && (
+                            <>
+                              <MenuItem value="raw">Raw</MenuItem>
+                              <MenuItem value="multi_individual">Multi-individual</MenuItem>
+                            </>
+                          )}
                         </Select>
                       </FormControl>
                     </Grid>
                   </Grid>
-                  {dataSource && fileType && dataType && (
+                  {((dataSource && fileType && dataType) || (dataSource === 'other' && fileType === 'csv' && dataType)) && (
                     <>
                       {/* File Upload Button - moved above disclaimers */}
                       <Button
@@ -1344,10 +1357,7 @@ pip install -e .`}
                           <Typography variant="body2" paragraph sx={{ mb: 2 }}>
                             The uploaded ZIP file is expected to follow a specific structure: it should contain a single top-level parent directory, within which there are subdirectories organized by day. These daily subdirectories must contain binary files. This layout corresponds to the default export format (see example below).
                           </Typography>
-                          <Typography variant="body2" paragraph sx={{ mb: 2 }}>
-                            Each binary file is expected to contain raw accelerometer data in a 4-column format: <strong>'unix_timestamp_in_ms'</strong>, <strong>'acceleration_x'</strong>, <strong>'acceleration_y'</strong>, and <strong>'acceleration_z'</strong>.
-                          </Typography>
-                          <Box sx={{ 
+                                                    <Box sx={{ 
                             display: 'flex', 
                             justifyContent: 'center', 
                             mt: 2,
@@ -1366,6 +1376,10 @@ pip install -e .`}
                               }} 
                             />
                           </Box>
+                          <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                            Each binary file is expected to contain raw accelerometer data in a 4-column format: <strong>'unix_timestamp_in_ms'</strong>, <strong>'acceleration_x'</strong>, <strong>'acceleration_y'</strong>, and <strong>'acceleration_z'</strong>.
+                          </Typography>
+
                         </Box>
                       )}
 
@@ -1386,8 +1400,34 @@ pip install -e .`}
                             Data Format Requirements
                           </Typography>
                           <Typography variant="body2" paragraph sx={{ mb: 2 }}>
-                            The uploaded CSV file is expected to contain ENMO data in milligravitational (mg) units. It must include exactly two columns: <strong>'time'</strong> and <strong>'enmo_mg'</strong>.
+                            {dataType === 'accelerometer' && (
+                              <span dangerouslySetInnerHTML={{
+                                __html: "The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in g-force units (typically ranging from -2g to +2g)."
+                              }} />
+                            )}
+                            {dataType === 'enmo' && (
+                              <span dangerouslySetInnerHTML={{
+                                __html: "The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in milligravitational (mg) units, representing the magnitude of acceleration minus 1g."
+                              }} />
+                            )}
+                            {dataType === 'alternative_count' && (
+                              <span dangerouslySetInnerHTML={{
+                                __html: "The uploaded CSV file must contain alternative count data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'count'</strong>. Count values should represent activity counts or step counts over the specified time intervals."
+                              }} />
+                            )}
+                            {!dataType && (
+                              <span dangerouslySetInnerHTML={{
+                                __html: "The uploaded CSV file must contain time series data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>. Please select a data type above to see specific requirements."
+                              }} />
+                            )}
                           </Typography>
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                            <img 
+                              src={SGSCSVExample} 
+                              alt="Samsung Galaxy Smartwatch CSV ENMO Data Structure Example" 
+                              style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} 
+                            />
+                          </Box>
                         </Box>
                       )}
 
@@ -1433,7 +1473,26 @@ pip install -e .`}
                               Data Format Requirements
                             </Typography>
                             <Typography variant="body2" paragraph sx={{ mb: 2 }}>
-                              The uploaded CSV file must contain raw, 1-dimensional time series data (e.g., ENMO) collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>.
+                              {dataType === 'accelerometer' && (
+                                <span dangerouslySetInnerHTML={{
+                                  __html: "The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in g-force units (typically ranging from -2g to +2g)."
+                                }} />
+                              )}
+                              {dataType === 'enmo' && (
+                                <span dangerouslySetInnerHTML={{
+                                  __html: "The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in milligravitational (mg) units, representing the magnitude of acceleration minus 1g."
+                                }} />
+                              )}
+                              {dataType === 'alternative_count' && (
+                                <span dangerouslySetInnerHTML={{
+                                  __html: "The uploaded CSV file must contain alternative count data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'count'</strong>. Count values should represent activity counts or step counts over the specified time intervals."
+                                }} />
+                              )}
+                              {!dataType && (
+                                <span dangerouslySetInnerHTML={{
+                                  __html: "The uploaded CSV file must contain time series data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>. Please select a data type above to see specific requirements."
+                                }} />
+                              )}
                             </Typography>
                           </Box>
                         </>
