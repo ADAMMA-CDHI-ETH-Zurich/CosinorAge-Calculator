@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse
 from typing import Dict, Any
 from cosinorage.bioages.cosinorage import CosinorAge
 from cosinorage.datahandlers import GalaxyDataHandler
+from cosinorage.datahandlers.genericdatahandler import GenericDataHandler
 import os
 import shutil
 import tempfile
@@ -12,6 +13,7 @@ import zipfile
 from datetime import datetime
 from cosinorage.features.features import WearableFeatures
 from pydantic import BaseModel
+import pandas as pd
 try:
     from docs_service import setup_docs_routes
 except ImportError:
@@ -96,8 +98,49 @@ def create_directory_tree(path: str) -> Dict[str, Any]:
     
     return result
 
+@app.get("/columns/{file_id}")
+async def get_csv_columns(file_id: str) -> Dict[str, Any]:
+    """
+    Get column names from the uploaded CSV file
+    """
+    try:
+        if file_id not in uploaded_data:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        file_info = uploaded_data[file_id]
+        file_path = file_info.get("file_path")
+        
+        if not file_path or not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found on disk")
+        
+        # Read the CSV file to get column names
+        try:
+            df = pd.read_csv(file_path, nrows=1)  # Only read first row to get headers
+            columns = df.columns.tolist()
+            return {
+                "columns": columns,
+                "data_type": file_info.get("data_type"),
+                "data_source": file_info.get("data_source")
+            }
+        except Exception as e:
+            logger.error(f"Error reading CSV file: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Error reading CSV file: {str(e)}")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting columns: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...), data_source: str = Form(...)) -> Dict[str, Any]:
+async def upload_file(
+    file: UploadFile = File(...),
+    data_source: str = Form(...),
+    data_type: str = Form(None),
+    time_format: str = Form(None),
+    time_column: str = Form(None),
+    data_columns: str = Form(None)
+) -> Dict[str, Any]:
     """
     Handle file upload and extraction
     """
@@ -156,13 +199,35 @@ async def upload_file(file: UploadFile = File(...), data_source: str = Form(...)
                 raise HTTPException(status_code=400, detail="Only CSV files are supported for CSV data")
                 
             logger.info("File is a CSV file, storing path...")
-            uploaded_data[file_id] = {
+            file_info = {
                 "filename": file.filename,
                 "file_path": file_path,
                 "temp_dir": temp_dir,
                 "data_source": "samsung_galaxy_csv"
             }
             
+            # Store data_type if provided (for alternative_counts)
+            if data_type:
+                file_info["data_type"] = data_type
+                logger.info(f"Storing data_type: {data_type}")
+            
+            uploaded_data[file_id] = file_info
+            
+            return {
+                "file_id": file_id,
+                "filename": file.filename
+            }
+        elif data_source == "other":
+            uploaded_data[file_id] = {
+                "filename": file.filename,
+                "file_path": file_path,
+                "temp_dir": temp_dir,
+                "data_source": "other",
+                "data_type": data_type,
+                "time_format": time_format,
+                "time_column": time_column,
+                "data_columns": data_columns.split(",") if data_columns else None
+            }
             return {
                 "file_id": file_id,
                 "filename": file.filename
@@ -185,8 +250,8 @@ async def extract_files(file_id: str) -> Dict[str, Any]:
 
         file_data = uploaded_data[file_id]
         
-        # Skip extraction for CSV files
-        if file_data.get("data_source") == "samsung_galaxy_csv":
+        # Skip extraction for CSV files and other data sources
+        if file_data.get("data_source") in ["samsung_galaxy_csv", "other"]:
             return {"message": "No extraction needed for CSV files"}
 
         temp_dir = file_data["temp_dir"]
@@ -262,15 +327,70 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
         
         # Choose the appropriate data handler based on data source
         if file_data.get("data_source") == "samsung_galaxy_csv":
-            logger.info(f"Using GalaxyCSVDataHandler for CSV file: {file_data['file_path']}")
-            handler = GalaxyDataHandler(
-                galaxy_file_path=file_data["file_path"], 
+            # Check if column selections are available (for alternative_counts)
+            if "time_column" in file_data and "data_columns" in file_data:
+                # Use selected columns for alternative_counts
+                time_column = file_data["time_column"]
+                data_columns = file_data["data_columns"]
+                logger.info(f"Using GalaxyCSVDataHandler for CSV file: {file_data['file_path']} with selected columns: time_column={time_column}, data_columns={data_columns}")
+                handler = GalaxyDataHandler(
+                    galaxy_file_path=file_data["file_path"], 
+                    preprocess_args=request.preprocess_args,
+                    verbose=False,
+                    data_format='csv',
+                    data_type='alternative_count',
+                    time_column=time_column,
+                    data_columns=data_columns
+                )
+            else:
+                # Use hardcoded parameters for default ENMO
+                logger.info(f"Using GalaxyCSVDataHandler for CSV file: {file_data['file_path']} with hardcoded parameters for Samsung Galaxy CSV")
+                handler = GalaxyDataHandler(
+                    galaxy_file_path=file_data["file_path"], 
+                    preprocess_args=request.preprocess_args,
+                    verbose=False,
+                    data_format='csv',
+                    data_type='enmo',
+                    time_column='time',
+                    data_columns=['enmo_mg']
+                )
+        elif file_data.get("data_source") == "other":
+            # Set parameters based on data type and selected columns
+            data_type = file_data["data_type"]
+            time_column = file_data["time_column"]
+            data_columns = file_data["data_columns"]
+            time_format = file_data["time_format"]
+            
+            # Log the parameters being used
+            logger.info(f"Using GenericDataHandler for CSV file: {file_data['file_path']}")
+            logger.info(f"Data type: {data_type}")
+            logger.info(f"Time format: {time_format}")
+            logger.info(f"Time column: {time_column}")
+            logger.info(f"Data columns: {data_columns}")
+            
+            # Validate column selections based on data type
+            if data_type.startswith("accelerometer-"):
+                if len(data_columns) != 3:
+                    raise HTTPException(status_code=400, detail=f"Accelerometer data requires exactly 3 columns (X, Y, Z), but {len(data_columns)} were selected")
+                logger.info(f"Processing accelerometer data with columns: {data_columns}")
+            elif data_type == "enmo":
+                if len(data_columns) != 1:
+                    raise HTTPException(status_code=400, detail=f"ENMO data requires exactly 1 column, but {len(data_columns)} were selected")
+                logger.info(f"Processing ENMO data with column: {data_columns[0]}")
+            elif data_type == "alternative_counts":
+                if len(data_columns) != 1:
+                    raise HTTPException(status_code=400, detail=f"Alternative counts data requires exactly 1 column, but {len(data_columns)} were selected")
+                logger.info(f"Processing alternative counts data with column: {data_columns[0]}")
+            
+            handler = GenericDataHandler(
+                file_path=file_data["file_path"],
+                data_format="csv",
+                data_type=data_type,
+                time_format=time_format,
+                time_column=time_column,
+                data_columns=data_columns,
                 preprocess_args=request.preprocess_args,
-                verbose=False,
-                data_format='csv',
-                data_type='enmo',
-                time_column='time',
-                data_columns=['enmo_mg']
+                verbose=True
             )
         else:
             if "child_dir" not in file_data:
@@ -396,9 +516,42 @@ async def cleanup():
     
     logger.info("Application state cleaned up successfully")
 
+class ColumnSelectionRequest(BaseModel):
+    time_column: str
+    data_columns: list[str]
+
 class AgePredictionRequest(BaseModel):
     chronological_age: float
     gender: str
+
+@app.post("/update_columns/{file_id}")
+async def update_column_selections(file_id: str, request: ColumnSelectionRequest):
+    """
+    Update column selections for the uploaded file
+    """
+    try:
+        if file_id not in uploaded_data:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        file_info = uploaded_data[file_id]
+        
+        # Update the column selections
+        file_info["time_column"] = request.time_column
+        file_info["data_columns"] = request.data_columns
+        
+        logger.info(f"Updated column selections for file {file_id}: time_column={request.time_column}, data_columns={request.data_columns}")
+        
+        return {
+            "message": "Column selections updated successfully",
+            "time_column": request.time_column,
+            "data_columns": request.data_columns
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating column selections: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict_age/{file_id}")
 async def predict_age(file_id: str, request: AgePredictionRequest):

@@ -30,7 +30,8 @@ import {
   Slider,
   Tabs,
   Tab,
-  DialogActions
+  DialogActions,
+  FormHelperText
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -396,6 +397,22 @@ function App() {
   const [fileType, setFileType] = useState('');
   // Add state for dataType
   const [dataType, setDataType] = useState('');
+  // Add state for data unit selection
+  const [dataUnit, setDataUnit] = useState('');
+  // Add state for timestamp format selection
+  const [timestampFormat, setTimestampFormat] = useState('');
+  const [isGeneric, setIsGeneric] = useState(false);
+  const [genericDataType, setGenericDataType] = useState('accelerometer-g');
+  const [genericTimeFormat, setGenericTimeFormat] = useState('unix-ms');
+  const [genericTimeColumn, setGenericTimeColumn] = useState('timestamp');
+  const [genericDataColumns, setGenericDataColumns] = useState('x,y,z');
+  
+  // Column selection state
+  const [csvColumns, setCsvColumns] = useState([]);
+  const [showColumnSelection, setShowColumnSelection] = useState(false);
+  const [selectedTimeColumn, setSelectedTimeColumn] = useState('');
+  const [selectedDataColumns, setSelectedDataColumns] = useState([]);
+  const [columnSelectionComplete, setColumnSelectionComplete] = useState(false);
 
   // Update dataType when fileType changes
   useEffect(() => {
@@ -423,6 +440,13 @@ function App() {
       setFileType('');
       setDataType('');
     }
+    
+    // Reset column selection state when data source changes
+    setShowColumnSelection(false);
+    setColumnSelectionComplete(false);
+    setSelectedTimeColumn('');
+    setSelectedDataColumns([]);
+    setCsvColumns([]);
   }, [dataSource]);
 
   // Save state to localStorage whenever it changes
@@ -503,6 +527,58 @@ function App() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const fetchColumnNames = async (fileId) => {
+    try {
+      const response = await fetch(config.getApiUrl(`columns/${fileId}`));
+      if (!response.ok) {
+        throw new Error('Failed to fetch column names');
+      }
+      const result = await response.json();
+      setCsvColumns(result.columns);
+      setShowColumnSelection(true);
+      
+      // Set default selections based on data type
+      if (dataType === 'accelerometer') {
+        setSelectedTimeColumn(result.columns.find(col => col.toLowerCase().includes('time') || col.toLowerCase().includes('timestamp')) || result.columns[0]);
+        setSelectedDataColumns(['x', 'y', 'z'].filter(col => result.columns.includes(col)));
+      } else if (dataType === 'enmo') {
+        setSelectedTimeColumn(result.columns.find(col => col.toLowerCase().includes('time') || col.toLowerCase().includes('timestamp')) || result.columns[0]);
+        setSelectedDataColumns([result.columns.find(col => col.toLowerCase().includes('enmo')) || result.columns[1]]);
+              } else if (dataType === 'alternative_count') {
+        setSelectedTimeColumn(result.columns.find(col => col.toLowerCase().includes('time') || col.toLowerCase().includes('timestamp')) || result.columns[0]);
+        setSelectedDataColumns([result.columns.find(col => col.toLowerCase().includes('count')) || result.columns[1]]);
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleColumnSelection = async () => {
+    try {
+      const response = await fetch(config.getApiUrl(`update_columns/${data.file_id}`), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          time_column: selectedTimeColumn,
+          data_columns: selectedDataColumns
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to update column selections');
+      }
+
+      setColumnSelectionComplete(true);
+      setShowColumnSelection(false);
+      setSuccess('Column selections updated successfully. Click "Process Data" to continue.');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const handleFileUpload = async (event) => {
     console.log('handleFileUpload called', event);
     console.log('Current dataSource:', dataSource);
@@ -524,8 +600,32 @@ function App() {
 
     const formData = new FormData();
     formData.append('file', file);
-    // Set data_source based on fileType for backend compatibility
-    formData.append('data_source', fileType === 'binary' ? 'samsung_galaxy_binary' : 'samsung_galaxy_csv');
+    // Set data_source based on dataSource for backend compatibility
+    formData.append('data_source', dataSource === 'other' ? 'other' : (fileType === 'binary' ? 'samsung_galaxy_binary' : 'samsung_galaxy_csv'));
+    
+    // Add parameters for other data source
+    if (dataSource === 'other') {
+      // For accelerometer/enmo/alternative_counts with specific unit and timestamp format, use those values
+              if (fileType === 'csv' && (dataType === 'accelerometer' || dataType === 'enmo' || dataType === 'alternative_count')) {
+          if (dataType === 'alternative_count') {
+          formData.append('data_type', dataType);
+        } else {
+          formData.append('data_type', `${dataType}-${dataUnit}`);
+        }
+        formData.append('time_format', timestampFormat);
+      } else {
+        // For other cases, use generic parameters
+        formData.append('data_type', genericDataType);
+        formData.append('time_format', genericTimeFormat);
+      }
+      formData.append('time_column', genericTimeColumn);
+      formData.append('data_columns', genericDataColumns);
+    }
+    
+    // Add data_type for Samsung Galaxy CSV with alternative_counts
+            if (dataSource === 'samsung_galaxy_csv' && dataType === 'alternative_count') {
+      formData.append('data_type', 'alternative_counts');
+    }
 
     try {
       const xhr = new XMLHttpRequest();
@@ -541,8 +641,15 @@ function App() {
         if (xhr.status >= 200 && xhr.status < 300) {
           const result = JSON.parse(xhr.responseText);
           setData(result);
-          setSuccess('File uploaded successfully. Click "Process Data" to continue.');
           setUploadProgress(100);
+          
+          // If this is an "other" data source with CSV, or Samsung Galaxy CSV with alternative_counts, fetch column names
+          if ((dataSource === 'other' && fileType === 'csv') || 
+              (dataSource === 'samsung_galaxy_csv' && dataType === 'alternative_count')) {
+            fetchColumnNames(result.file_id);
+          } else {
+            setSuccess('File uploaded successfully. Click "Process Data" to continue.');
+          }
         } else {
           const errorData = JSON.parse(xhr.responseText);
           throw new Error(errorData.detail || 'Failed to upload file');
@@ -564,6 +671,13 @@ function App() {
   const handleProcessData = async () => {
     if (!data?.file_id) {
       setError('No file uploaded');
+      return;
+    }
+
+    // For "other" data sources or Samsung Galaxy CSV with alternative_counts, ensure column selection is complete
+    if ((dataSource === 'other' && !columnSelectionComplete) || 
+        (dataSource === 'samsung_galaxy_csv' && dataType === 'alternative_count' && !columnSelectionComplete)) {
+      setError('Please complete column selection before processing data');
       return;
     }
 
@@ -679,6 +793,7 @@ function App() {
     e.stopPropagation();
     if (!dataSource || !fileType) return; // Only allow drag if both dataSource and fileType are selected
     if (dataSource === 'other' && !dataType) return; // Also require dataType for 'other' data source
+    if (dataSource === 'other' && fileType === 'csv' && (dataType === 'accelerometer' || dataType === 'enmo' || dataType === 'alternative_count') && (!dataUnit || !timestampFormat)) return; // Also require data unit and timestamp format for other > csv > accelerometer/enmo/alternative_count
     if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
     } else if (e.type === 'dragleave') {
@@ -691,6 +806,7 @@ function App() {
     e.stopPropagation();
     if (!dataSource || !fileType) return; // Only allow drop if both dataSource and fileType are selected
     if (dataSource === 'other' && !dataType) return; // Also require dataType for 'other' data source
+    if (dataSource === 'other' && fileType === 'csv' && (dataType === 'accelerometer' || dataType === 'enmo' || dataType === 'alternative_count') && (!dataUnit || !timestampFormat)) return; // Also require data unit and timestamp format for other > csv > accelerometer/enmo/alternative_count
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload({ target: { files: e.dataTransfer.files } });
@@ -774,6 +890,8 @@ function App() {
     setDataSource('');
     setFileType('');
     setDataType('');
+    setDataUnit('');
+    setTimestampFormat('');
     setError(null);
     setSuccess(null);
     setProcessing(false);
@@ -1290,7 +1408,124 @@ pip install -e .`}
                       </FormControl>
                     </Grid>
                   </Grid>
-                  {((dataSource && fileType && dataType) || (dataSource === 'other' && fileType === 'csv' && dataType)) && (
+                  
+                  {/* Data Unit and Timestamp Format Selection for Other > CSV > Accelerometer */}
+                  {dataSource === 'other' && fileType === 'csv' && dataType === 'accelerometer' && (
+                    <>
+                      <Typography variant="body2" sx={{ mb: 2, color: 'primary.main', textAlign: 'left' }}>
+                        Please select the timestamp format and the unit of the Accelerometer data
+                      </Typography>
+                      <Grid container spacing={2} sx={{ mb: 2, mt: 2 }}>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth>
+                          <InputLabel id="timestamp-format-label">Timestamp Format</InputLabel>
+                          <Select
+                            labelId="timestamp-format-label"
+                            value={timestampFormat}
+                            label="Timestamp Format"
+                            onChange={(e) => setTimestampFormat(e.target.value)}
+                            sx={{ minWidth: 120 }}
+                          >
+                            <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
+                            <MenuItem value="unix-s">Unix - seconds</MenuItem>
+                            <MenuItem value="datetime">Datetime</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth>
+                          <InputLabel id="data-unit-label">Data Unit</InputLabel>
+                          <Select
+                            labelId="data-unit-label"
+                            value={dataUnit}
+                            label="Data Unit"
+                            onChange={(e) => setDataUnit(e.target.value)}
+                            sx={{ minWidth: 120 }}
+                          >
+                            <MenuItem value="g">g</MenuItem>
+                            <MenuItem value="mg">mg</MenuItem>
+                            <MenuItem value="m/s^2">m/s²</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                    </>
+                  )}
+
+                  {/* Data Unit and Timestamp Format Selection for Other > CSV > ENMO */}
+                  {dataSource === 'other' && fileType === 'csv' && dataType === 'enmo' && (
+                    <>
+                      <Typography variant="body2" sx={{ mb: 2, color: 'primary.main', textAlign: 'left' }}>
+                        Please select the timestamp format and the unit of the ENMO data
+                      </Typography>
+                      <Grid container spacing={2} sx={{ mb: 2, mt: 2 }}>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth>
+                          <InputLabel id="timestamp-format-enmo-label">Timestamp Format</InputLabel>
+                          <Select
+                            labelId="timestamp-format-enmo-label"
+                            value={timestampFormat}
+                            label="Timestamp Format"
+                            onChange={(e) => setTimestampFormat(e.target.value)}
+                            sx={{ minWidth: 120 }}
+                          >
+                            <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
+                            <MenuItem value="unix-s">Unix - seconds</MenuItem>
+                            <MenuItem value="datetime">Datetime</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth>
+                          <InputLabel id="data-unit-enmo-label">Data Unit</InputLabel>
+                          <Select
+                            labelId="data-unit-enmo-label"
+                            value={dataUnit}
+                            label="Data Unit"
+                            onChange={(e) => setDataUnit(e.target.value)}
+                            sx={{ minWidth: 120 }}
+                          >
+                            <MenuItem value="m">m</MenuItem>
+                            <MenuItem value="mg">mg</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                    </>
+                  )}
+
+                  {/* Timestamp Format Selection for Other > CSV > Alternative Count */}
+                  {dataSource === 'other' && fileType === 'csv' && dataType === 'alternative_count' && (
+                    <>
+                      <Typography variant="body2" sx={{ mb: 2, color: 'primary.main', textAlign: 'left' }}>
+                        Please select the timestamp format for the Alternative Count data
+                      </Typography>
+                      <Grid container spacing={2} sx={{ mb: 2, mt: 2 }}>
+                        <Grid item xs={6}>
+                          <FormControl fullWidth>
+                            <InputLabel id="timestamp-format-alternative-label">Timestamp Format</InputLabel>
+                            <Select
+                              labelId="timestamp-format-alternative-label"
+                              value={timestampFormat}
+                              label="Timestamp Format"
+                              onChange={(e) => setTimestampFormat(e.target.value)}
+                              sx={{ minWidth: 120 }}
+                              displayEmpty
+                            >
+                              <MenuItem value="">
+                                <em>Select timestamp format</em>
+                              </MenuItem>
+                              <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
+                              <MenuItem value="unix-s">Unix - seconds</MenuItem>
+                              <MenuItem value="datetime">Datetime</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                      </Grid>
+                    </>
+                  )}
+                  
+                  {((dataSource && fileType && dataType) || (dataSource === 'other' && fileType === 'csv' && dataType && ((dataType !== 'accelerometer' && dataType !== 'enmo' && dataType !== 'alternative_count') || (dataUnit && timestampFormat) || (dataType === 'alternative_count' && timestampFormat)))) && (
                     <>
                       {/* File Upload Button - moved above disclaimers */}
                       <Button
@@ -1304,11 +1539,11 @@ pip install -e .`}
                           borderRadius: 2,
                           position: 'relative'
                         }}
-                        disabled={!!data?.file_id || dataSource === 'other' || fileType === 'multi_individual' || !dataSource || !fileType}
+                        disabled={!!data?.file_id || fileType === 'multi_individual' || !dataSource || !fileType || (dataSource === 'other' && (!genericDataType || !genericTimeFormat || !genericTimeColumn || !genericDataColumns))}
                         onClick={() => { console.log('Upload File button pressed'); }}
                       >
                         Upload File
-                        {(dataSource === 'other' || fileType === 'multi_individual') && (
+                        {fileType === 'multi_individual' && (
                           <Box
                             sx={{
                               position: 'absolute',
@@ -1410,7 +1645,7 @@ pip install -e .`}
                                 __html: "The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in milligravitational (mg) units, representing the magnitude of acceleration minus 1g."
                               }} />
                             )}
-                            {dataType === 'alternative_count' && (
+                            {dataType === 'alternative_counts' && (
                               <span dangerouslySetInnerHTML={{
                                 __html: "The uploaded CSV file must contain alternative count data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'count'</strong>. Count values should represent activity counts or step counts over the specified time intervals."
                               }} />
@@ -1458,43 +1693,41 @@ pip install -e .`}
                           </Box>
 
                           {/* Data Format Requirements in Blue Box */}
-                          <Box sx={{ 
-                            mt: 2, 
-                            mb: 3, 
-                            p: 3, 
-                            bgcolor: 'background.paper', 
-                            borderRadius: 2, 
-                            border: '1px solid',
-                            borderColor: 'primary.main',
-                            maxWidth: 600,
-                            mx: 'auto'
-                          }}>
-                            <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
-                              Data Format Requirements
-                            </Typography>
-                            <Typography variant="body2" paragraph sx={{ mb: 2 }}>
-                              {dataType === 'accelerometer' && (
-                                <span dangerouslySetInnerHTML={{
-                                  __html: "The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in g-force units (typically ranging from -2g to +2g)."
-                                }} />
-                              )}
-                              {dataType === 'enmo' && (
-                                <span dangerouslySetInnerHTML={{
-                                  __html: "The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in milligravitational (mg) units, representing the magnitude of acceleration minus 1g."
-                                }} />
-                              )}
-                              {dataType === 'alternative_count' && (
-                                <span dangerouslySetInnerHTML={{
-                                  __html: "The uploaded CSV file must contain alternative count data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'count'</strong>. Count values should represent activity counts or step counts over the specified time intervals."
-                                }} />
-                              )}
-                              {!dataType && (
-                                <span dangerouslySetInnerHTML={{
-                                  __html: "The uploaded CSV file must contain time series data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>. Please select a data type above to see specific requirements."
-                                }} />
-                              )}
-                            </Typography>
-                          </Box>
+                          {dataType !== 'alternative_count' && (
+                            <Box sx={{ 
+                              mt: 2, 
+                              mb: 3, 
+                              p: 3, 
+                              bgcolor: 'background.paper', 
+                              borderRadius: 2, 
+                              border: '1px solid',
+                              borderColor: 'primary.main',
+                              maxWidth: 600,
+                              mx: 'auto'
+                            }}>
+                              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
+                                Data Format Requirements
+                              </Typography>
+                              <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                                {dataType === 'accelerometer' && (
+                                  <span dangerouslySetInnerHTML={{
+                                    __html: `The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in ${dataUnit} units. The timestamp column should be in ${timestampFormat === 'unix-ms' ? 'Unix milliseconds' : timestampFormat === 'unix-s' ? 'Unix seconds' : 'datetime'} format.`
+                                  }} />
+                                )}
+                                {dataType === 'enmo' && (
+                                  <span dangerouslySetInnerHTML={{
+                    __html: `The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in ${dataUnit} units, representing the magnitude of acceleration minus 1g. The timestamp column should be in ${timestampFormat === 'unix-ms' ? 'Unix milliseconds' : timestampFormat === 'unix-s' ? 'Unix seconds' : 'datetime'} format.`
+                  }} />
+                                )}
+
+                                {!dataType && (
+                                  <span dangerouslySetInnerHTML={{
+                                    __html: "The uploaded CSV file must contain time series data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>. Please select a data type above to see specific requirements."
+                                  }} />
+                                )}
+                              </Typography>
+                            </Box>
+                          )}
                         </>
                       )}
                     </>
@@ -3663,6 +3896,136 @@ pip install -e .`}
         </Container>
       </Box>
 
+      {/* Column Selection Dialog */}
+      <Dialog 
+        open={showColumnSelection} 
+        onClose={() => setShowColumnSelection(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Select CSV Column Names
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" paragraph>
+            Please select the appropriate column names from your CSV file for the {dataType} data type.
+          </Typography>
+          
+          <Grid container spacing={3}>
+            {/* Time Column Selection */}
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Timestamp Column</InputLabel>
+                <Select
+                  value={selectedTimeColumn}
+                  onChange={(e) => setSelectedTimeColumn(e.target.value)}
+                  label="Timestamp Column"
+                >
+                  {csvColumns.map((column) => (
+                    <MenuItem key={column} value={column}>
+                      {column}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  Select the column containing timestamp data
+                </FormHelperText>
+              </FormControl>
+            </Grid>
+
+            {/* Data Columns Selection */}
+            <Grid item xs={12} md={6}>
+              {dataType === 'accelerometer' ? (
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Accelerometer Columns (X, Y, Z)
+                  </Typography>
+                  {['x', 'y', 'z'].map((axis) => (
+                    <FormControl key={axis} fullWidth sx={{ mb: 2 }}>
+                      <InputLabel>{axis.toUpperCase()} Column</InputLabel>
+                      <Select
+                        value={selectedDataColumns.find(col => col.toLowerCase().includes(axis)) || ''}
+                        onChange={(e) => {
+                          const newColumns = selectedDataColumns.filter(col => !col.toLowerCase().includes(axis));
+                          if (e.target.value) {
+                            newColumns.push(e.target.value);
+                          }
+                          setSelectedDataColumns(newColumns);
+                        }}
+                        label={`${axis.toUpperCase()} Column`}
+                      >
+                        <MenuItem value="">
+                          <em>None</em>
+                        </MenuItem>
+                        {csvColumns.map((column) => (
+                          <MenuItem key={column} value={column}>
+                            {column}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  ))}
+                </Box>
+              ) : dataType === 'enmo' ? (
+                <FormControl fullWidth>
+                  <InputLabel>ENMO Column</InputLabel>
+                  <Select
+                    value={selectedDataColumns[0] || ''}
+                    onChange={(e) => setSelectedDataColumns([e.target.value])}
+                    label="ENMO Column"
+                  >
+                    {csvColumns.map((column) => (
+                      <MenuItem key={column} value={column}>
+                        {column}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>
+                    Select the column containing ENMO data
+                  </FormHelperText>
+                </FormControl>
+              ) : dataType === 'alternative_count' ? (
+                <FormControl fullWidth>
+                  <InputLabel>Counts Column</InputLabel>
+                  <Select
+                    value={selectedDataColumns[0] || ''}
+                    onChange={(e) => setSelectedDataColumns([e.target.value])}
+                    label="Counts Column"
+                  >
+                    {csvColumns.map((column) => (
+                      <MenuItem key={column} value={column}>
+                        {column}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>
+                    Select the column containing activity counts
+                  </FormHelperText>
+                </FormControl>
+              ) : null}
+            </Grid>
+          </Grid>
+
+          <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Available columns:</strong> {csvColumns.join(', ')}
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowColumnSelection(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleColumnSelection}
+            variant="contained"
+            disabled={!selectedTimeColumn || selectedDataColumns.length === 0}
+          >
+            Confirm Selection
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Getting Started Dialog */}
       <Dialog 
         open={gettingStartedOpen} 
@@ -3696,7 +4059,11 @@ pip install -e .`}
             <Typography variant="body2" color="text.secondary">
               • Data Source: <strong>Other</strong><br/>
               • File Type: <strong>CSV</strong><br/>
-              • Data Type: <strong>Accelerometer</strong>
+              • Data Type: <strong>Accelerometer</strong><br/>
+              • Timestamp Format: <strong>Unix - milliseconds</strong><br/>
+              • Data Unit: <strong>g</strong><br/>
+              • Time Column: <strong>timestamp</strong><br/>
+              • Data Columns: <strong>x,y,z</strong><br/>
             </Typography>
           </Box>
 
