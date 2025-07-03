@@ -3,8 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from typing import Dict, Any
 from cosinorage.bioages.cosinorage import CosinorAge
-from cosinorage.datahandlers.galaxydatahandler import GalaxyDataHandler
-from cosinorage.datahandlers.galaxycsvdatahandler import GalaxyCSVDataHandler
+from cosinorage.datahandlers import GalaxyDataHandler
 import os
 import shutil
 import tempfile
@@ -21,7 +20,7 @@ import uvicorn
 
 
 # Configure logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Create a permanent directory for extracted files
@@ -103,7 +102,11 @@ async def upload_file(file: UploadFile = File(...), data_source: str = Form(...)
     Handle file upload and extraction
     """
     try:
-        logger.info(f"Received file upload request for file: {file.filename} with data source: {data_source}")
+        logger.info(f"=== FILE UPLOAD REQUEST ===")
+        logger.info(f"File name: {file.filename}")
+        logger.info(f"File content type: {file.content_type}")
+        logger.info(f"Data source: {data_source}")
+        logger.info(f"File size: {file.size if hasattr(file, 'size') else 'Unknown'}")
         
         # Create a temporary directory to store the uploaded files
         temp_dir = tempfile.mkdtemp()  # Create a temporary directory that won't be automatically deleted
@@ -116,6 +119,7 @@ async def upload_file(file: UploadFile = File(...), data_source: str = Form(...)
         with open(file_path, "wb") as buffer:
             contents = await file.read()
             buffer.write(contents)
+            logger.info(f"File saved successfully. File size on disk: {len(contents)} bytes")
         
         file_id = str(len(uploaded_data))
         
@@ -244,15 +248,30 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
     Process the data using appropriate data handler
     """
     try:
+        logger.info(f"=== DATA PROCESSING REQUEST ===")
+        logger.info(f"File ID: {file_id}")
+        logger.info(f"Preprocessing arguments: {request.preprocess_args}")
+        logger.info(f"Features arguments: {request.features_args}")
+        
         if file_id not in uploaded_data:
+            logger.error(f"File ID {file_id} not found in uploaded_data")
             raise HTTPException(status_code=404, detail="File not found")
         
         file_data = uploaded_data[file_id]
+        logger.info(f"File data found: {file_data}")
         
         # Choose the appropriate data handler based on data source
         if file_data.get("data_source") == "samsung_galaxy_csv":
             logger.info(f"Using GalaxyCSVDataHandler for CSV file: {file_data['file_path']}")
-            handler = GalaxyCSVDataHandler(file_data["file_path"], preprocess_args=request.preprocess_args)
+            handler = GalaxyDataHandler(
+                galaxy_file_path=file_data["file_path"], 
+                preprocess_args=request.preprocess_args,
+                verbose=False,
+                data_format='csv',
+                data_type='enmo',
+                time_column='time',
+                data_columns=['enmo_mg']
+            )
         else:
             if "child_dir" not in file_data:
                 raise HTTPException(status_code=400, detail="No child directory found")
@@ -263,7 +282,15 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
                 child_dir = child_dir + '/'
             
             logger.info(f"Using GalaxyDataHandler with directory: {child_dir}")
-            handler = GalaxyDataHandler(galaxy_file_dir=child_dir, preprocess_args=request.preprocess_args)
+            handler = GalaxyDataHandler(
+                galaxy_file_path=child_dir, 
+                preprocess_args=request.preprocess_args,
+                verbose=False,
+                data_format='binary',
+                data_type='accelerometer',
+                time_column='unix_timestamp_in_ms',
+                data_columns=['acceleration_x', 'acceleration_y', 'acceleration_z']
+            )
         
         logger.info(f"Using preprocessing args: {request.preprocess_args}")
         logger.info(f"Using features args: {request.features_args}")
@@ -276,6 +303,8 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
         features = wf.get_features()
         df = wf.get_ml_data()
         df = df.reset_index()
+        df = df.rename(columns={'timestamp': 'TIMESTAMP', 'enmo': 'ENMO'})
+        logger.info(f"ML data: {df.head()}")
         
         # Keep all columns as they are, just ensure TIMESTAMP is the index name
         df = df.rename(columns={'index': 'TIMESTAMP'})
@@ -287,6 +316,15 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
         physical_activity_features = features['physical_activity']
         sleep_features = features['sleep']
 
+        # Log the processed data summary
+        logger.info(f"=== PROCESSING RESULTS ===")
+        logger.info(f"Data points processed: {len(df_json)}")
+        logger.info(f"Metadata: {metadata}")
+        logger.info(f"Cosinor features keys: {list(cosinor_features.keys()) if cosinor_features else 'None'}")
+        logger.info(f"Non-parametric features keys: {list(non_parametric_features.keys()) if non_parametric_features else 'None'}")
+        logger.info(f"Physical activity features keys: {list(physical_activity_features.keys()) if physical_activity_features else 'None'}")
+        logger.info(f"Sleep features keys: {list(sleep_features.keys()) if sleep_features else 'None'}")
+        
         # Store all the processed data in uploaded_data
         uploaded_data[file_id].update({
             'handler': handler,
@@ -368,18 +406,28 @@ async def predict_age(file_id: str, request: AgePredictionRequest):
     Predict biological age based on cosinor features and demographic information.
     """
     try:
+        logger.info(f"=== AGE PREDICTION REQUEST ===")
+        logger.info(f"File ID: {file_id}")
+        logger.info(f"Chronological age: {request.chronological_age}")
+        logger.info(f"Gender: {request.gender}")
+        
         # Get the processed data
         if file_id not in uploaded_data:
+            logger.error(f"File ID {file_id} not found in uploaded_data")
             raise HTTPException(status_code=404, detail="File not found or not processed")
         
         data = uploaded_data[file_id]
         if 'handler' not in data:
+            logger.error(f"Data handler not available for file ID {file_id}")
             raise HTTPException(status_code=400, detail="Data handler not available")
         
         # Log the data we're working with
-        logging.info(f"Handler type: {type(data['handler'])}")
-        logging.info(f"Age: {request.chronological_age}")
-        logging.info(f"Gender: {request.gender}")
+        logger.info(f"Handler type: {type(data['handler'])}")
+        logger.info(f"Available data keys: {list(data.keys())}")
+        if 'features' in data:
+            logger.info(f"Available features: {list(data['features'].keys())}")
+            if 'cosinor' in data['features']:
+                logger.info(f"Cosinor features: {data['features']['cosinor']}")
         
         # Create record in the correct format
         record = [{

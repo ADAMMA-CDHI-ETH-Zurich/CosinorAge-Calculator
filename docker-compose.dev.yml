@@ -10,7 +10,7 @@ services:
     # Development: mount source code for hot reloading
     volumes:
       - ./backend:/app
-      - ./backend/sample_data2.csv:/app/data/sample/sample_data2.csv:ro
+      - ./backend/data/sample/sample_data2.csv:/app/data/sample/sample_data2.csv:ro
       - backend_data:/app/extracted_files
     # Development: expose additional ports for debugging
     ports:
@@ -42,6 +42,7 @@ services:
     # Development: expose additional ports
     ports:
       - "80:3000"  # React dev server runs on 3000
+      - "3000:3000"  # Expose WebSocket port for hot reloading
     # Development: no resource limits
     deploy:
       resources:
