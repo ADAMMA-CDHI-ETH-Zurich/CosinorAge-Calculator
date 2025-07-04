@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from cosinorage.bioages.cosinorage import CosinorAge
 from cosinorage.datahandlers import GalaxyDataHandler
 from cosinorage.datahandlers.genericdatahandler import GenericDataHandler
@@ -12,8 +12,10 @@ import logging
 import zipfile
 from datetime import datetime
 from cosinorage.features.features import WearableFeatures
+from cosinorage.features.bulk_features import BulkWearableFeatures
 from pydantic import BaseModel
 import pandas as pd
+import numpy as np
 try:
     from docs_service import setup_docs_routes
 except ImportError:
@@ -461,6 +463,27 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
                 data_columns=['acceleration_x', 'acceleration_y', 'acceleration_z']
             )
         
+        # Accept any valid numeric value for all preprocess_args
+        default_preprocess = {
+            'required_daily_coverage': 0.5,
+            'autocalib_sd_criter': 0.00013,
+            'autocalib_sphere_crit': 0.02,
+            'filter_type': 'lowpass',
+            'filter_cutoff': 2,
+            'wear_sd_crit': 0.00013,
+            'wear_range_crit': 0.00067,
+            'wear_window_length': 45,
+            'wear_window_skip': 7,
+        }
+        for k, v in request.preprocess_args.items():
+            if isinstance(v, (int, float)):
+                continue
+            try:
+                request.preprocess_args[k] = float(v)
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid value for {k}: {v}, setting to default {default_preprocess.get(k)}")
+                request.preprocess_args[k] = default_preprocess.get(k)
+        
         logger.info(f"Using preprocessing args: {request.preprocess_args}")
         logger.info(f"Using features args: {request.features_args}")
         
@@ -765,6 +788,435 @@ async def download_sample_data():
         filename="sample_data2.csv",
         media_type="text/csv"
     )
+
+class BulkProcessRequest(BaseModel):
+    files: List[Dict[str, Any]]  # List of file configurations
+    preprocess_args: dict = {
+        'required_daily_coverage': 0.5,
+        'autocalib_sd_criter': 0.00013,
+        'autocalib_sphere_crit': 0.02,
+        'filter_type': 'lowpass',
+        'filter_cutoff': 2,
+        'wear_sd_crit': 0.00013,
+        'wear_range_crit': 0.00067,
+        'wear_window_length': 45,
+        'wear_window_skip': 7,
+    }
+    features_args: dict = {
+        'sleep_ck_sf': 0.0025,
+        'sleep_rescore': True,
+        'pa_cutpoint_sl': 15,
+        'pa_cutpoint_lm': 35,
+        'pa_cutpoint_mv': 70,
+    }
+
+@app.get("/get_columns/{file_id}")
+async def get_columns(file_id: str) -> List[str]:
+    """
+    Get column names from a CSV file
+    """
+    try:
+        if file_id not in uploaded_data:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        file_data = uploaded_data[file_id]
+        file_path = file_data.get("file_path")
+        
+        if not file_path or not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found on disk")
+        
+        # Read the first few lines to get column names
+        import pandas as pd
+        try:
+            df = pd.read_csv(file_path, nrows=1)
+            return df.columns.tolist()
+        except Exception as e:
+            logger.error(f"Error reading CSV file: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error reading CSV file: {str(e)}")
+            
+    except Exception as e:
+        logger.error(f"Error getting columns: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/bulk_upload")
+async def bulk_upload_files(files: List[UploadFile] = File(...)) -> Dict[str, Any]:
+    """
+    Handle multiple file uploads for bulk processing
+    """
+    try:
+        logger.info(f"=== BULK FILE UPLOAD REQUEST ===")
+        logger.info(f"Number of files: {len(files)}")
+        
+        uploaded_files = []
+        
+        for i, file in enumerate(files):
+            logger.info(f"Processing file {i+1}: {file.filename}")
+            
+            # Create a temporary directory for each file
+            temp_dir = tempfile.mkdtemp()
+            temp_dirs[str(len(uploaded_data))] = temp_dir
+            
+            # Save the uploaded file
+            file_path = os.path.join(temp_dir, file.filename)
+            
+            with open(file_path, "wb") as buffer:
+                contents = await file.read()
+                buffer.write(contents)
+            
+            file_id = str(len(uploaded_data))
+            
+            # Store file info
+            uploaded_data[file_id] = {
+                "filename": file.filename,
+                "file_path": file_path,
+                "temp_dir": temp_dir,
+                "data_source": "bulk_csv"
+            }
+            
+            uploaded_files.append({
+                "file_id": file_id,
+                "filename": file.filename
+            })
+        
+        return {
+            "message": f"Successfully uploaded {len(files)} files",
+            "files": uploaded_files
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing bulk upload: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/validate_bulk_columns")
+async def validate_bulk_columns(file_ids: List[str]) -> Dict[str, Any]:
+    """
+    Validate that all uploaded files have the same column names
+    """
+    try:
+        logger.info(f"=== VALIDATING BULK COLUMNS ===")
+        logger.info(f"Number of files to validate: {len(file_ids)}")
+        
+        if len(file_ids) < 2:
+            return {
+                "valid": True,
+                "message": "Only one file uploaded, no validation needed",
+                "columns": None
+            }
+        
+        # Get column names for each file
+        file_columns = {}
+        for file_id in file_ids:
+            if file_id not in uploaded_data:
+                logger.error(f"File {file_id} not found in uploaded_data")
+                raise HTTPException(status_code=404, detail=f"File {file_id} not found")
+            
+            file_data = uploaded_data[file_id]
+            file_path = file_data["file_path"]
+            
+            # Check if file still exists on disk
+            if not os.path.exists(file_path):
+                logger.error(f"File {file_id} path no longer exists: {file_path}")
+                raise HTTPException(status_code=404, detail=f"File {file_id} no longer exists on disk")
+            
+            logger.info(f"Reading columns from file {file_id}: {file_data['filename']} at path: {file_path}")
+            
+            try:
+                df = pd.read_csv(file_path, nrows=1)  # Only read first row to get headers
+                columns = df.columns.tolist()
+                logger.info(f"Columns for file {file_id}: {columns}")
+                file_columns[file_id] = {
+                    "filename": file_data["filename"],
+                    "columns": columns
+                }
+            except Exception as e:
+                logger.error(f"Error reading CSV file {file_data['filename']}: {str(e)}")
+                raise HTTPException(status_code=400, detail=f"Error reading CSV file {file_data['filename']}: {str(e)}")
+        
+        # Check if all files have the same columns
+        first_file_id = file_ids[0]
+        first_columns = set(file_columns[first_file_id]["columns"])
+        logger.info(f"Reference columns from file {first_file_id}: {list(first_columns)}")
+        
+        mismatched_files = []
+        for file_id in file_ids[1:]:
+            current_columns = set(file_columns[file_id]["columns"])
+            logger.info(f"Comparing file {file_id} columns: {list(current_columns)}")
+            if current_columns != first_columns:
+                missing_columns = first_columns - current_columns
+                extra_columns = current_columns - first_columns
+                logger.warning(f"File {file_id} has mismatched columns. Missing: {list(missing_columns)}, Extra: {list(extra_columns)}")
+                mismatched_files.append({
+                    "file_id": file_id,
+                    "filename": file_columns[file_id]["filename"],
+                    "missing_columns": list(missing_columns),
+                    "extra_columns": list(extra_columns)
+                })
+            else:
+                logger.info(f"File {file_id} columns match reference")
+        
+        if mismatched_files:
+            return {
+                "valid": False,
+                "message": "Files have different column structures",
+                "reference_file": file_columns[first_file_id]["filename"],
+                "reference_columns": list(first_columns),
+                "mismatched_files": mismatched_files
+            }
+        else:
+            return {
+                "valid": True,
+                "message": "All files have the same column structure",
+                "columns": list(first_columns)
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error validating bulk columns: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/bulk_process")
+async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
+    """
+    Process multiple files using BulkWearableFeatures and return distribution statistics
+    """
+    try:
+        logger.info(f"=== BULK DATA PROCESSING REQUEST ===")
+        logger.info(f"Number of files to process: {len(request.files)}")
+        logger.info(f"Preprocessing arguments: {request.preprocess_args}")
+        logger.info(f"Features arguments: {request.features_args}")
+        
+        # Validate that all files have the same column structure
+        file_ids = [file_config["file_id"] for file_config in request.files]
+        logger.info(f"Files to validate: {file_ids}")
+        logger.info(f"Available files in uploaded_data: {list(uploaded_data.keys())}")
+        
+        # Check if all files exist
+        for file_id in file_ids:
+            if file_id not in uploaded_data:
+                logger.error(f"File {file_id} not found in uploaded_data during bulk process")
+                raise HTTPException(status_code=404, detail=f"File {file_id} not found. Files may have been cleared from server memory.")
+        
+        validation_result = await validate_bulk_columns(file_ids)
+        
+        if not validation_result["valid"]:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Column validation failed: {validation_result['message']}. Files must have identical column structures."
+            )
+        
+        handlers = []
+        
+        for file_config in request.files:
+            file_id = file_config["file_id"]
+            
+            if file_id not in uploaded_data:
+                raise HTTPException(status_code=404, detail=f"File {file_id} not found")
+            
+            file_data = uploaded_data[file_id]
+            
+            # Create data type string
+            if file_config["data_type"] and '-' in file_config["data_type"]:
+                data_type = file_config["data_type"]
+            elif file_config["data_type"] and file_config.get("data_unit"):
+                data_type = file_config["data_type"] + '-' + file_config["data_unit"]
+            else:
+                data_type = file_config["data_type"] or "unknown"
+            
+            # Set default values for column names if not provided
+            time_column = file_config.get("time_column")
+            data_columns = file_config.get("data_columns", [])
+            
+            # If time_column is not provided, try to infer it
+            if not time_column:
+                # Try common time column names
+                common_time_columns = ['timestamp', 'time', 'datetime', 'date', 't']
+                available_columns = validation_result.get("columns", [])
+                for col in common_time_columns:
+                    if col in available_columns:
+                        time_column = col
+                        break
+                if not time_column and available_columns:
+                    # Use the first column as fallback
+                    time_column = available_columns[0]
+                    logger.warning(f"No time column specified for file {file_id}, using first column: {time_column}")
+            
+            # Ensure time_column is not None
+            if not time_column:
+                raise HTTPException(status_code=400, detail=f"Could not determine time column for file {file_id}. Please specify a time column.")
+            
+            # If data_columns is not provided, try to infer them based on data type
+            if not data_columns:
+                available_columns = validation_result.get("columns", [])
+                if data_type.startswith("accelerometer"):
+                    # For accelerometer data, look for X, Y, Z columns
+                    accel_columns = []
+                    for axis in ['x', 'y', 'z']:
+                        for col in available_columns:
+                            if axis in col.lower() and col != time_column:
+                                accel_columns.append(col)
+                                break
+                    if len(accel_columns) == 3:
+                        data_columns = accel_columns
+                    elif len(available_columns) >= 4:  # Assuming first 3 non-time columns are X, Y, Z
+                        data_columns = [col for col in available_columns if col != time_column][:3]
+                elif data_type.startswith("enmo"):
+                    # For ENMO data, look for ENMO column
+                    for col in available_columns:
+                        if 'enmo' in col.lower() and col != time_column:
+                            data_columns = [col]
+                            break
+                    if not data_columns and len(available_columns) >= 2:
+                        data_columns = [col for col in available_columns if col != time_column][:1]
+                else:
+                    # For other data types, use all non-time columns
+                    data_columns = [col for col in available_columns if col != time_column]
+                
+                if not data_columns:
+                    logger.warning(f"No data columns found for file {file_id}, using all columns except time column")
+                    data_columns = [col for col in available_columns if col != time_column]
+            
+            # Set default timestamp format if not provided
+            timestamp_format = file_config.get("timestamp_format", "datetime")
+            
+            logger.info(f"Using inferred columns for file {file_id}: time_column={time_column}, data_columns={data_columns}, timestamp_format={timestamp_format}")
+            
+            # Create GenericDataHandler for each file
+            handler = GenericDataHandler(
+                file_path=file_data["file_path"],
+                data_format="csv",
+                data_type=data_type,
+                time_format=timestamp_format,
+                time_column=time_column,
+                data_columns=data_columns,
+                preprocess_args=request.preprocess_args,
+                verbose=True
+            )
+            
+            handlers.append(handler)
+        
+        # Accept any valid numeric value for all preprocess_args
+        default_preprocess = {
+            'required_daily_coverage': 0.5,
+            'autocalib_sd_criter': 0.00013,
+            'autocalib_sphere_crit': 0.02,
+            'filter_type': 'lowpass',
+            'filter_cutoff': 2,
+            'wear_sd_crit': 0.00013,
+            'wear_range_crit': 0.00067,
+            'wear_window_length': 45,
+            'wear_window_skip': 7,
+        }
+        for k, v in request.preprocess_args.items():
+            if isinstance(v, (int, float)):
+                continue
+            try:
+                request.preprocess_args[k] = float(v)
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid value for {k}: {v}, setting to default {default_preprocess.get(k)}")
+                request.preprocess_args[k] = default_preprocess.get(k)
+        
+        logger.info(f"Using preprocessing args: {request.preprocess_args}")
+        logger.info(f"Using features args: {request.features_args}")
+        
+        # Update handlers with validated parameters
+        for handler in handlers:
+            handler.preprocess_args = request.preprocess_args
+        
+        # Use BulkWearableFeatures to process all handlers
+        bulk_features = BulkWearableFeatures(
+            handlers=handlers, 
+            features_args=request.features_args,
+        )
+        
+        # Get distribution statistics
+        distribution_stats = bulk_features.get_distribution_stats()
+        
+        # Get individual features
+        individual_features = bulk_features.get_individual_features()
+        
+        # Get failed handlers
+        failed_handlers = bulk_features.get_failed_handlers()
+        
+        # Get summary dataframe
+        summary_df = bulk_features.get_summary_dataframe()
+        
+        # Get correlation matrix
+        correlation_matrix = bulk_features.get_feature_correlation_matrix()
+        
+        # Clean the data to handle NaN and infinity values for JSON serialization
+        def clean_for_json(obj):
+            if isinstance(obj, dict):
+                return {k: clean_for_json(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [clean_for_json(v) for v in obj]
+            elif isinstance(obj, float):
+                if pd.isna(obj) or np.isinf(obj):
+                    return None
+                return obj
+            elif isinstance(obj, (int, str, bool)) or obj is None:
+                return obj
+            else:
+                return str(obj)
+        
+        def safe_isinf(value):
+            """Safely check if a value is infinite, handling non-numeric types"""
+            try:
+                if isinstance(value, (int, float, np.number)):
+                    return np.isinf(value)
+                return False
+            except:
+                return False
+        
+        # Clean the distribution stats
+        cleaned_distribution_stats = clean_for_json(distribution_stats)
+        
+        # Clean the individual results
+        cleaned_individual_results = []
+        for i, features in enumerate(individual_features):
+            if features is not None:
+                cleaned_individual_results.append({
+                    "file_id": request.files[i]["file_id"],
+                    "filename": uploaded_data[request.files[i]["file_id"]]["filename"],
+                    "features": clean_for_json(features)
+                })
+        
+        # Clean the summary dataframe
+        cleaned_summary_df = []
+        if not summary_df.empty:
+            for _, row in summary_df.iterrows():
+                cleaned_row = {}
+                for col, value in row.items():
+                    if pd.isna(value) or safe_isinf(value):
+                        cleaned_row[col] = None
+                    else:
+                        cleaned_row[col] = value
+                cleaned_summary_df.append(cleaned_row)
+        
+        # Clean the correlation matrix
+        cleaned_correlation_matrix = {}
+        if not correlation_matrix.empty:
+            for col in correlation_matrix.columns:
+                cleaned_correlation_matrix[col] = {}
+                for idx in correlation_matrix.index:
+                    value = correlation_matrix.loc[idx, col]
+                    if pd.isna(value) or safe_isinf(value):
+                        cleaned_correlation_matrix[col][idx] = None
+                    else:
+                        cleaned_correlation_matrix[col][idx] = value
+        
+        return {
+            "message": f"Successfully processed {len(handlers)} files",
+            "distribution_stats": cleaned_distribution_stats,
+            "individual_results": cleaned_individual_results,
+            "failed_handlers": failed_handlers,
+            "summary_dataframe": cleaned_summary_df,
+            "correlation_matrix": cleaned_correlation_matrix
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing bulk data: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000) 

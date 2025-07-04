@@ -31,7 +31,22 @@ import {
   Tabs,
   Tab,
   DialogActions,
-  FormHelperText
+  FormHelperText,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Alert,
+  Tooltip
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -47,11 +62,1273 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import WarningIcon from '@mui/icons-material/Warning';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import logo from './assets/logo.png';
 import EnhancedDocumentationTab from './EnhancedDocumentationTab';
 import SGSBinaryZippedExample from './assets/SGS_Binary_Zipped_Example.png';
 import SGSCSVExample from './assets/SGS_CSV_Example.png';
 import config from './config';
+
+// Multi Individual Tab Component
+const MultiIndividualTab = () => {
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [bulkData, setBulkData] = useState(null);
+  const [bulkError, setBulkError] = useState(null);
+  const [bulkSuccess, setBulkSuccess] = useState(null);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [bulkProcessingTime, setBulkProcessingTime] = useState(0);
+  const [bulkTimerInterval, setBulkTimerInterval] = useState(null);
+  const [bulkDragActive, setBulkDragActive] = useState(false);
+  const [bulkUploadProgress, setBulkUploadProgress] = useState(0);
+  const bulkFileInputRef = useRef(null);
+  const [bulkDataType, setBulkDataType] = useState('');
+  const [bulkDataUnit, setBulkDataUnit] = useState('');
+  const [bulkTimestampFormat, setBulkTimestampFormat] = useState('');
+  const [bulkTimeColumn, setBulkTimeColumn] = useState('');
+  const [bulkDataColumns, setBulkDataColumns] = useState([]);
+  const [bulkXColumn, setBulkXColumn] = useState('');
+  const [bulkYColumn, setBulkYColumn] = useState('');
+  const [bulkZColumn, setBulkZColumn] = useState('');
+  const [bulkColumnNames, setBulkColumnNames] = useState([]);
+  const [bulkColumnSelectionComplete, setBulkColumnSelectionComplete] = useState(false);
+  const [columnValidationResult, setColumnValidationResult] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const [bulkPreprocessParams, setBulkPreprocessParams] = useState({
+    autocalib_sd_criter: 0.00013,
+    autocalib_sphere_crit: 0.02,
+    filter_type: 'lowpass',
+    filter_cutoff: 2,
+    wear_sd_criter: 0.00013,
+    wear_range_crit: 0.00067,
+    wear_window_length: 45,
+    wear_window_skip: 7,
+    required_daily_coverage: 0.5
+  });
+  const [bulkFeatureParams, setBulkFeatureParams] = useState({
+    sleep_rescore: true,
+    sleep_ck_sf: 0.0025,
+    pa_cutpoint_sl: 15,
+    pa_cutpoint_lm: 35,
+    pa_cutpoint_mv: 70
+  });
+
+  const startBulkTimer = () => {
+    setBulkProcessingTime(0);
+    const interval = setInterval(() => {
+      setBulkProcessingTime(prev => prev + 1);
+    }, 1000);
+    setBulkTimerInterval(interval);
+  };
+
+  const stopBulkTimer = () => {
+    if (bulkTimerInterval) {
+      clearInterval(bulkTimerInterval);
+      setBulkTimerInterval(null);
+    }
+  };
+
+  const fetchBulkColumnNames = async (fileId) => {
+    try {
+      const response = await fetch(config.getApiUrl(`get_columns/${fileId}`));
+      if (!response.ok) {
+        throw new Error('Failed to fetch column names');
+      }
+      const columnNames = await response.json();
+      setBulkColumnNames(columnNames);
+      
+      // Set default column selections
+      setDefaultColumnSelections(columnNames);
+    } catch (err) {
+      setBulkError(err.message);
+    }
+  };
+
+  const setDefaultColumnSelections = (columnNames) => {
+    // Set default time column
+    const commonTimeColumns = ['timestamp', 'time', 'datetime', 'date', 't'];
+    let defaultTimeColumn = '';
+    for (const col of commonTimeColumns) {
+      if (columnNames.includes(col)) {
+        defaultTimeColumn = col;
+        break;
+      }
+    }
+    if (!defaultTimeColumn && columnNames.length > 0) {
+      defaultTimeColumn = columnNames[0];
+    }
+    setBulkTimeColumn(defaultTimeColumn);
+
+    // Set default data columns based on data type
+    if (bulkDataType === 'accelerometer') {
+      // Look for X, Y, Z columns
+      const accelColumns = { x: '', y: '', z: '' };
+      for (const col of columnNames) {
+        const lowerCol = col.toLowerCase();
+        if (lowerCol.includes('x') && col !== defaultTimeColumn) {
+          accelColumns.x = col;
+        } else if (lowerCol.includes('y') && col !== defaultTimeColumn) {
+          accelColumns.y = col;
+        } else if (lowerCol.includes('z') && col !== defaultTimeColumn) {
+          accelColumns.z = col;
+        }
+      }
+      
+      // If we found X, Y, Z columns, use them
+      if (accelColumns.x && accelColumns.y && accelColumns.z) {
+        setBulkXColumn(accelColumns.x);
+        setBulkYColumn(accelColumns.y);
+        setBulkZColumn(accelColumns.z);
+      } else {
+        // Otherwise, use first 3 non-time columns
+        const nonTimeColumns = columnNames.filter(col => col !== defaultTimeColumn);
+        if (nonTimeColumns.length >= 3) {
+          setBulkXColumn(nonTimeColumns[0]);
+          setBulkYColumn(nonTimeColumns[1]);
+          setBulkZColumn(nonTimeColumns[2]);
+        }
+      }
+      
+      // Update column selection completion status
+      const nonTimeColumns = columnNames.filter(col => col !== defaultTimeColumn);
+      setBulkColumnSelectionComplete(defaultTimeColumn !== '' && 
+        (accelColumns.x || (nonTimeColumns.length > 0 ? nonTimeColumns[0] : '')) && 
+        (accelColumns.y || (nonTimeColumns.length > 1 ? nonTimeColumns[1] : '')) && 
+        (accelColumns.z || (nonTimeColumns.length > 2 ? nonTimeColumns[2] : '')));
+        
+    } else if (bulkDataType === 'enmo') {
+      // For ENMO data, look for ENMO column
+      let defaultDataColumns = [];
+      for (const col of columnNames) {
+        if (col.toLowerCase().includes('enmo') && col !== defaultTimeColumn) {
+          defaultDataColumns = [col];
+          break;
+        }
+      }
+      if (defaultDataColumns.length === 0) {
+        const nonTimeColumns = columnNames.filter(col => col !== defaultTimeColumn);
+        if (nonTimeColumns.length > 0) {
+          defaultDataColumns = [nonTimeColumns[0]];
+        }
+      }
+      
+      setBulkDataColumns(defaultDataColumns);
+      setBulkColumnSelectionComplete(defaultTimeColumn !== '' && defaultDataColumns.length > 0);
+      
+    } else if (bulkDataType) {
+      // For other data types, use all non-time columns
+      const defaultDataColumns = columnNames.filter(col => col !== defaultTimeColumn);
+      setBulkDataColumns(defaultDataColumns);
+      setBulkColumnSelectionComplete(defaultTimeColumn !== '' && defaultDataColumns.length > 0);
+      
+    } else {
+      // If no data type is set yet, set basic defaults
+      const nonTimeColumns = columnNames.filter(col => col !== defaultTimeColumn);
+      if (nonTimeColumns.length > 0) {
+        setBulkDataColumns([nonTimeColumns[0]]);
+        setBulkColumnSelectionComplete(defaultTimeColumn !== '' && nonTimeColumns.length > 0);
+      }
+    }
+  };
+
+  const fetchFilePreview = async (fileId) => {
+    try {
+      const response = await fetch(config.getApiUrl(`preview/${fileId}`));
+      if (!response.ok) {
+        throw new Error('Failed to fetch file preview');
+      }
+      const previewData = await response.json();
+      setFilePreview(previewData);
+    } catch (err) {
+      setBulkError(err.message);
+    }
+  };
+
+  const validateBulkColumns = async (fileIds = null) => {
+    const filesToValidate = fileIds || uploadedFiles.map(file => file.file_id);
+    
+    if (filesToValidate.length < 2) {
+      return { valid: true, message: "Only one file uploaded, no validation needed" };
+    }
+
+    try {
+      const response = await fetch(config.getApiUrl('validate_bulk_columns'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(filesToValidate)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to validate columns');
+      }
+
+      return await response.json();
+    } catch (err) {
+      throw new Error(`Column validation failed: ${err.message}`);
+    }
+  };
+
+  const handleBulkFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+
+    setBulkError(null);
+    setBulkSuccess(null);
+    setBulkUploadProgress(0);
+    setColumnValidationResult(null);
+
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    try {
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = (event.loaded / event.total) * 100;
+          setBulkUploadProgress(progress);
+        }
+      });
+
+      xhr.addEventListener('load', async () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const result = JSON.parse(xhr.responseText);
+          setUploadedFiles(result.files);
+          setBulkUploadProgress(100);
+          
+          // Fetch column names from the first file to get column options
+          if (result.files.length > 0) {
+            fetchBulkColumnNames(result.files[0].file_id);
+          }
+          
+          // Immediately validate column structure if multiple files
+          if (result.files.length > 1) {
+            try {
+              console.log('Validating columns after upload...');
+              const fileIds = result.files.map(file => file.file_id);
+              console.log('File IDs to validate:', fileIds);
+              const validationResult = await validateBulkColumns(fileIds);
+              console.log('Upload validation result:', validationResult);
+              
+              setColumnValidationResult(validationResult);
+              
+              if (!validationResult.valid) {
+                setBulkError(`Column validation failed: ${validationResult.message}. Files must have identical column structures.`);
+                setBulkSuccess(null);
+                // Clear uploaded files when validation fails
+                setUploadedFiles([]);
+                setBulkColumnNames([]);
+                setBulkTimeColumn('');
+                setBulkDataColumns([]);
+                setBulkXColumn('');
+                setBulkYColumn('');
+                setBulkZColumn('');
+                setBulkColumnSelectionComplete(false);
+                setColumnValidationResult(null);
+                setFilePreview(null);
+              } else {
+                // Fetch preview of the first file
+                if (result.files.length > 0) {
+                  fetchFilePreview(result.files[0].file_id);
+                }
+              }
+            } catch (validationErr) {
+              setBulkError(validationErr.message);
+              setBulkSuccess(null);
+              setColumnValidationResult({ valid: false, message: validationErr.message });
+              // Clear uploaded files when validation fails
+              setUploadedFiles([]);
+              setBulkColumnNames([]);
+              setBulkTimeColumn('');
+              setBulkDataColumns([]);
+              setBulkXColumn('');
+              setBulkYColumn('');
+              setBulkZColumn('');
+              setBulkColumnSelectionComplete(false);
+              setColumnValidationResult(null);
+              setFilePreview(null);
+            }
+          } else {
+            setColumnValidationResult({ valid: true, message: "Single file uploaded, no validation needed" });
+            // Fetch preview of the first file for single file uploads
+            if (result.files.length > 0) {
+              fetchFilePreview(result.files[0].file_id);
+            }
+          }
+        } else {
+          const errorData = JSON.parse(xhr.responseText);
+          throw new Error(errorData.detail || 'Failed to upload files');
+        }
+      });
+
+      xhr.addEventListener('error', () => {
+        throw new Error('Network error occurred during upload');
+      });
+
+      xhr.open('POST', config.getApiUrl('bulk_upload'));
+      xhr.send(formData);
+    } catch (err) {
+      setBulkError(err.message);
+      setBulkUploadProgress(0);
+    }
+  };
+
+  const handleBulkProcessData = async () => {
+    if (uploadedFiles.length === 0) {
+      setBulkError('No files uploaded');
+      return;
+    }
+
+    if (!bulkDataType || !bulkDataUnit || !bulkTimestampFormat) {
+      setBulkError('Please select data type, data unit, and timestamp format');
+      return;
+    }
+
+    if (!bulkColumnSelectionComplete) {
+      setBulkError('Please complete column selection before processing data');
+      return;
+    }
+
+    setBulkProcessing(true);
+    setBulkError(null);
+    setBulkSuccess(null);
+    startBulkTimer();
+
+    try {
+      // First validate that all files have the same column structure
+      console.log('Validating columns before processing...');
+      const validationResult = await validateBulkColumns();
+      console.log('Validation result:', validationResult);
+      
+      if (!validationResult.valid) {
+        throw new Error(`Column validation failed: ${validationResult.message}. Files must have identical column structures.`);
+      }
+
+      const fileConfigs = uploadedFiles.map(file => ({
+        file_id: file.file_id,
+        data_type: bulkDataType,
+        data_unit: bulkDataUnit,
+        timestamp_format: bulkTimestampFormat,
+        time_column: bulkTimeColumn,
+        data_columns: bulkDataType === 'accelerometer' ? [bulkXColumn, bulkYColumn, bulkZColumn] : bulkDataColumns
+      }));
+
+      const processResponse = await fetch(config.getApiUrl('bulk_process'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          files: fileConfigs,
+          preprocess_args: bulkPreprocessParams,
+          features_args: bulkFeatureParams
+        }),
+      });
+
+      if (!processResponse.ok) {
+        const errorData = await processResponse.json();
+        throw new Error(errorData.detail || 'Failed to process data');
+      }
+
+      const processResult = await processResponse.json();
+      setBulkData(processResult);
+      setBulkSuccess(`Successfully processed ${uploadedFiles.length} files`);
+      
+    } catch (err) {
+      setBulkError(err.message);
+    } finally {
+      setBulkProcessing(false);
+      stopBulkTimer();
+    }
+  };
+
+  const handleBulkPreprocessParamChange = (param, value) => {
+    let processedValue = value;
+    const numericParams = [
+      'autocalib_sd_criter', 'autocalib_sphere_crit', 'filter_cutoff',
+      'wear_sd_criter', 'wear_range_crit', 'wear_window_length',
+      'wear_window_skip', 'required_daily_coverage'
+    ];
+    
+    if (numericParams.includes(param) && value !== '' && value !== null && value !== undefined) {
+      processedValue = parseFloat(value);
+      if (isNaN(processedValue)) {
+        processedValue = value;
+      }
+    }
+    
+    setBulkPreprocessParams(prev => ({
+      ...prev,
+      [param]: processedValue
+    }));
+  };
+
+  const handleBulkFeatureParamChange = (param, value) => {
+    let processedValue = value;
+    const numericParams = ['sleep_ck_sf', 'pa_cutpoint_sl', 'pa_cutpoint_lm', 'pa_cutpoint_mv'];
+    const booleanParams = ['sleep_rescore'];
+    
+    if (numericParams.includes(param) && value !== '' && value !== null && value !== undefined) {
+      processedValue = parseFloat(value);
+      if (isNaN(processedValue)) {
+        processedValue = value;
+      }
+    } else if (booleanParams.includes(param)) {
+      processedValue = value;
+    }
+    
+    setBulkFeatureParams(prev => ({
+      ...prev,
+      [param]: processedValue
+    }));
+  };
+
+  const handleBulkDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setBulkDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setBulkDragActive(false);
+    }
+  };
+
+  const handleBulkDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setBulkDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleBulkFileUpload({ target: { files: e.dataTransfer.files } });
+    }
+  };
+
+  return (
+    <>
+      {/* File Upload Section */}
+      <Grid item xs={12}>
+        <Card sx={{ p: 3, mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+            Upload Multiple CSV Files
+          </Typography>
+
+          {/* File Upload Area */}
+          <Box
+            onDragEnter={handleBulkDrag}
+            onDragLeave={handleBulkDrag}
+            onDragOver={handleBulkDrag}
+            onDrop={handleBulkDrop}
+            sx={{
+              border: '2px dashed',
+              borderColor: bulkDragActive ? 'primary.main' : 'grey.300',
+              borderRadius: 2,
+              p: 4,
+              textAlign: 'center',
+              bgcolor: bulkDragActive ? 'primary.50' : 'background.paper',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                borderColor: 'primary.main',
+                bgcolor: 'primary.50'
+              }
+            }}
+            onClick={() => bulkFileInputRef.current?.click()}
+          >
+            <input
+              ref={bulkFileInputRef}
+              type="file"
+              multiple
+              accept=".csv"
+              onChange={handleBulkFileUpload}
+              style={{ display: 'none' }}
+            />
+            <UploadIcon sx={{ fontSize: 48, color: 'grey.500', mb: 2 }} />
+            <Typography variant="h6" gutterBottom>
+              Drop CSV files here or click to select
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Select multiple CSV files for bulk processing
+            </Typography>
+          </Box>
+
+          {/* Upload Progress */}
+          {bulkUploadProgress > 0 && bulkUploadProgress < 100 && (
+            <Box sx={{ mt: 2 }}>
+              <LinearProgress variant="determinate" value={bulkUploadProgress} />
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                Uploading... {Math.round(bulkUploadProgress)}%
+              </Typography>
+            </Box>
+          )}
+
+          {/* Uploaded Files List */}
+          {uploadedFiles.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Uploaded Files ({uploadedFiles.length}):
+              </Typography>
+              <List dense>
+                {uploadedFiles.map((file, index) => (
+                  <ListItem key={index}>
+                    <ListItemIcon>
+                      <CheckCircleIcon color="success" />
+                    </ListItemIcon>
+                    <ListItemText primary={file.filename} />
+                  </ListItem>
+                ))}
+              </List>
+
+            </Box>
+          )}
+
+          {/* Column Validation Banner */}
+          {columnValidationResult && columnValidationResult.valid && (
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+              <Typography
+                variant="body2"
+                color="success.main"
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(76, 175, 80, 0.08)', px: 2, py: 1, borderRadius: 2 }}
+              >
+                <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
+                All files have the same column structure
+              </Typography>
+            </Box>
+          )}
+
+          {/* File Preview */}
+          {filePreview && (
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1, border: '1px solid', borderColor: 'grey.300' }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
+                CSV Preview (First 2 rows including header):
+              </Typography>
+              <Box sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+                <table style={{ 
+                  width: '100%', 
+                  borderCollapse: 'collapse', 
+                  fontSize: '0.875rem',
+                  fontFamily: 'monospace'
+                }}>
+                  <thead>
+                    <tr>
+                      {filePreview.preview[0] && Object.keys(filePreview.preview[0]).map((column, index) => (
+                        <th key={index} style={{ 
+                          border: '1px solid #ccc', 
+                          padding: '8px', 
+                          backgroundColor: '#f5f5f5',
+                          fontWeight: 600,
+                          textAlign: 'left'
+                        }}>
+                          {column}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filePreview.preview.slice(0, 2).map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {Object.keys(filePreview.preview[0] || {}).map((column, colIndex) => (
+                          <td key={colIndex} style={{ 
+                            border: '1px solid #ccc', 
+                            padding: '8px',
+                            backgroundColor: rowIndex % 2 === 0 ? '#ffffff' : '#fafafa'
+                          }}>
+                            {row[column] !== undefined ? String(row[column]).substring(0, 50) : ''}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                Note: Values are truncated to 50 characters for display. Use this preview to identify the correct column names.
+              </Typography>
+            </Box>
+          )}
+
+          {/* Data Configuration */}
+          {columnValidationResult && columnValidationResult.valid && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Data Configuration
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Data Type</InputLabel>
+                    <Select
+                      value={bulkDataType}
+                      label="Data Type"
+                      onChange={(e) => {
+                        setBulkDataType(e.target.value);
+                        // Reset column selections when data type changes
+                        setBulkDataColumns([]);
+                        setBulkXColumn('');
+                        setBulkYColumn('');
+                        setBulkZColumn('');
+                        setBulkColumnSelectionComplete(false);
+                        // Reset data unit if switching to ENMO and current unit is m/s²
+                        if (e.target.value === 'enmo' && bulkDataUnit === 'm/s²') {
+                          setBulkDataUnit('');
+                        }
+                        // Update default column selections when data type changes
+                        if (bulkColumnNames.length > 0) {
+                          setDefaultColumnSelections(bulkColumnNames);
+                        }
+                      }}
+                    >
+                      <MenuItem value="enmo">ENMO</MenuItem>
+                      <MenuItem value="accelerometer">Accelerometer</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Data Unit</InputLabel>
+                    
+                    {/* Accelerometer Data Unit */}
+                    {bulkDataType === 'accelerometer' && (
+                      <Select
+                        value={bulkDataUnit}
+                        label="Data Unit"
+                        onChange={(e) => {
+                          setBulkDataUnit(e.target.value);
+                          // Update default column selections when data unit changes
+                          if (bulkColumnNames.length > 0) {
+                            setDefaultColumnSelections(bulkColumnNames);
+                          }
+                        }}
+                      >
+                        <MenuItem value="mg">mg</MenuItem>
+                        <MenuItem value="g">g</MenuItem>
+                        <MenuItem value="m/s²">m/s²</MenuItem>
+                      </Select>
+                    )}
+                    
+                    {/* ENMO Data Unit */}
+                    {bulkDataType === 'enmo' && (
+                      <Select
+                        value={bulkDataUnit}
+                        label="Data Unit"
+                        onChange={(e) => {
+                          setBulkDataUnit(e.target.value);
+                          // Update default column selections when data unit changes
+                          if (bulkColumnNames.length > 0) {
+                            setDefaultColumnSelections(bulkColumnNames);
+                          }
+                        }}
+                      >
+                        <MenuItem value="mg">mg</MenuItem>
+                        <MenuItem value="g">g</MenuItem>
+                      </Select>
+                    )}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Timestamp Format</InputLabel>
+                    <Select
+                      value={bulkTimestampFormat}
+                      label="Timestamp Format"
+                      onChange={(e) => {
+                        setBulkTimestampFormat(e.target.value);
+                        // Update default column selections when timestamp format changes
+                        if (bulkColumnNames.length > 0) {
+                          setDefaultColumnSelections(bulkColumnNames);
+                        }
+                      }}
+                    >
+                      <MenuItem value="datetime">Datetime (YYYY-MM-DD HH:MM:SS)</MenuItem>
+                      <MenuItem value="unix-s">Unix Timestamp (seconds)</MenuItem>
+                      <MenuItem value="unix-ms">Unix Timestamp (milliseconds)</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+
+          {/* Column Selection */}
+          {bulkColumnNames.length > 0 && bulkDataType && bulkDataUnit && bulkTimestampFormat && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Column Selection
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Timestamp Column</InputLabel>
+                    <Select
+                      value={bulkTimeColumn}
+                      label="Timestamp Column"
+                      onChange={(e) => {
+                        setBulkTimeColumn(e.target.value);
+                        if (bulkDataType === 'accelerometer') {
+                          setBulkColumnSelectionComplete(bulkXColumn !== '' && bulkYColumn !== '' && bulkZColumn !== '');
+                        } else {
+                          setBulkColumnSelectionComplete(bulkDataColumns.length > 0);
+                        }
+                      }}
+                    >
+                      {bulkColumnNames.map((column) => (
+                        <MenuItem key={column} value={column}>
+                          {column}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                {bulkDataType === 'accelerometer' ? (
+                  <>
+                    <Grid item xs={12} md={2}>
+                      <FormControl fullWidth>
+                        <InputLabel>X Column</InputLabel>
+                        <Select
+                          value={bulkXColumn}
+                          label="X Column"
+                          onChange={(e) => {
+                            setBulkXColumn(e.target.value);
+                            setBulkColumnSelectionComplete(bulkTimeColumn !== '' && bulkYColumn !== '' && bulkZColumn !== '');
+                          }}
+                        >
+                          {bulkColumnNames.map((column) => (
+                            <MenuItem key={column} value={column}>
+                              {column}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <FormControl fullWidth>
+                        <InputLabel>Y Column</InputLabel>
+                        <Select
+                          value={bulkYColumn}
+                          label="Y Column"
+                          onChange={(e) => {
+                            setBulkYColumn(e.target.value);
+                            setBulkColumnSelectionComplete(bulkTimeColumn !== '' && bulkXColumn !== '' && bulkZColumn !== '');
+                          }}
+                        >
+                          {bulkColumnNames.map((column) => (
+                            <MenuItem key={column} value={column}>
+                              {column}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <FormControl fullWidth>
+                        <InputLabel>Z Column</InputLabel>
+                        <Select
+                          value={bulkZColumn}
+                          label="Z Column"
+                          onChange={(e) => {
+                            setBulkZColumn(e.target.value);
+                            setBulkColumnSelectionComplete(bulkTimeColumn !== '' && bulkXColumn !== '' && bulkYColumn !== '');
+                          }}
+                        >
+                          {bulkColumnNames.map((column) => (
+                            <MenuItem key={column} value={column}>
+                              {column}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </>
+                ) : (
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Data Columns</InputLabel>
+                      <Select
+                        multiple
+                        value={bulkDataColumns}
+                        label="Data Columns"
+                        onChange={(e) => {
+                          setBulkDataColumns(e.target.value);
+                          setBulkColumnSelectionComplete(bulkTimeColumn !== '');
+                        }}
+                        renderValue={(selected) => selected.join(', ')}
+                      >
+                        {bulkColumnNames.map((column) => (
+                          <MenuItem key={column} value={column}>
+                            {column}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+          )}
+
+          {/* Process Button */}
+          {uploadedFiles.length > 0 && (
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleBulkProcessData}
+                disabled={bulkProcessing || !bulkDataType || !bulkDataUnit || !bulkTimestampFormat || !bulkColumnSelectionComplete}
+                startIcon={bulkProcessing ? <CircularProgress size={20} /> : <PlayArrowIcon />}
+                sx={{ px: 4, py: 1.5 }}
+              >
+                {bulkProcessing ? `Processing... (${bulkProcessingTime}s)` : 'Process All Files'}
+              </Button>
+            </Box>
+          )}
+        </Card>
+      </Grid>
+
+      {/* Processing Parameters */}
+      {uploadedFiles.length > 0 && (
+        <Grid item xs={12}>
+          <Card sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Processing Parameters
+            </Typography>
+            <Grid container spacing={3}>
+              {/* Preprocessing Parameters */}
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Preprocessing Parameters
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Auto-calibration SD Criterion"
+                      type="text"
+                      value={bulkPreprocessParams.autocalib_sd_criter}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/,/g, '.');
+                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                          handleBulkPreprocessParamChange('autocalib_sd_criter', value);
+                        }
+                      }}
+                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Auto-calibration Sphere Criterion"
+                      type="text"
+                      value={bulkPreprocessParams.autocalib_sphere_crit}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/,/g, '.');
+                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                          handleBulkPreprocessParamChange('autocalib_sphere_crit', value);
+                        }
+                      }}
+                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Filter Cutoff"
+                      type="text"
+                      value={bulkPreprocessParams.filter_cutoff}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/,/g, '.');
+                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                          handleBulkPreprocessParamChange('filter_cutoff', value);
+                        }
+                      }}
+                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Required Daily Coverage"
+                      type="text"
+                      value={bulkPreprocessParams.required_daily_coverage}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/,/g, '.');
+                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                          handleBulkPreprocessParamChange('required_daily_coverage', value);
+                        }
+                      }}
+                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                    />
+                  </Grid>
+                </Grid>
+              </Grid>
+
+              {/* Feature Parameters */}
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Feature Parameters
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={bulkFeatureParams.sleep_rescore}
+                            onChange={(e) => handleBulkFeatureParamChange('sleep_rescore', e.target.checked)}
+                          />
+                        }
+                        label="Sleep Rescore"
+                      />
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Sleep CK SF"
+                      type="text"
+                      value={bulkFeatureParams.sleep_ck_sf}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/,/g, '.');
+                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                          handleBulkFeatureParamChange('sleep_ck_sf', value);
+                        }
+                      }}
+                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="PA Cutpoint SL"
+                      type="text"
+                      value={bulkFeatureParams.pa_cutpoint_sl}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/,/g, '.');
+                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                          handleBulkFeatureParamChange('pa_cutpoint_sl', value);
+                        }
+                      }}
+                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                    />
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Card>
+        </Grid>
+      )}
+
+      {/* Results Section */}
+      {bulkData && (
+        <Grid item xs={12}>
+          <Card sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Distribution Statistics
+            </Typography>
+            
+            {/* Summary Statistics */}
+            {bulkData.summary_dataframe && bulkData.summary_dataframe.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Feature Summary
+                </Typography>
+                <Box sx={{ overflowX: 'auto' }}>
+                  <TableContainer component={Paper}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Feature</TableCell>
+                          <TableCell>Count</TableCell>
+                          <TableCell>Mean</TableCell>
+                          <TableCell>Std</TableCell>
+                          <TableCell>Min</TableCell>
+                          <TableCell>Max</TableCell>
+                          <TableCell>Median</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {bulkData.summary_dataframe.map((row, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{cleanFeatureName(row.feature)}</TableCell>
+                            <TableCell>{row.count}</TableCell>
+                            <TableCell>{row.mean?.toFixed(4)}</TableCell>
+                            <TableCell>{row.std?.toFixed(4)}</TableCell>
+                            <TableCell>{row.min?.toFixed(4)}</TableCell>
+                            <TableCell>{row.max?.toFixed(4)}</TableCell>
+                            <TableCell>{row.median?.toFixed(4)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              </Box>
+            )}
+
+            {/* Failed Handlers */}
+            {bulkData.failed_handlers && bulkData.failed_handlers.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" gutterBottom color="error">
+                  Failed Processing ({bulkData.failed_handlers.length} files)
+                </Typography>
+                <List dense>
+                  {bulkData.failed_handlers.map((failed, index) => (
+                    <ListItem key={index}>
+                      <ListItemIcon>
+                        <WarningIcon color="error" />
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={`File ${failed[0] + 1}`}
+                        secondary={failed[1]}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+            )}
+
+            {/* Correlation Matrix Heatmap */}
+            {bulkData.correlation_matrix && Object.keys(bulkData.correlation_matrix).length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Feature Correlation Matrix
+                </Typography>
+                
+                {/* Heatmap Grid */}
+                <Box sx={{ 
+                  display: 'grid',
+                  gridTemplateColumns: `auto repeat(${Object.keys(bulkData.correlation_matrix).length}, 1fr)`,
+                  gap: 1,
+                  maxWidth: '100%',
+                  overflow: 'hidden'
+                }}>
+                  {/* Header row with feature names */}
+                  <Box sx={{ 
+                    height: 40, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '0.75rem',
+                    color: 'text.secondary'
+                  }}>
+                    Features
+                  </Box>
+                  {Object.keys(bulkData.correlation_matrix).map((feature) => (
+                    <Box
+                      key={feature}
+                      sx={{
+                        height: 40,
+                        display: 'flex',
+                        alignItems: 'flex-end', // bottom align
+                        justifyContent: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '0.7rem',
+                        color: 'text.secondary',
+                        textAlign: 'center',
+                        overflow: 'visible',
+                        px: 1,
+                        writingMode: 'vertical-rl',
+                        textOrientation: 'mixed',
+                        transform: 'rotate(180deg)',
+                        minHeight: '120px',
+                        pb: 8,
+                        alignSelf: 'flex-end',
+                        justifyContent: 'flex-start'
+                      }}
+                    >
+                      {cleanFeatureName(feature)}
+                    </Box>
+                  ))}
+                  
+                  {/* Data rows */}
+                  {Object.keys(bulkData.correlation_matrix).map((rowFeature, rowIndex) => (
+                    <React.Fragment key={rowFeature}>
+                      {/* Row label */}
+                      <Box
+                        sx={{
+                          height: 30,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
+                          fontWeight: 'bold',
+                          fontSize: '0.7rem',
+                          color: 'text.secondary',
+                          pr: 1,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {cleanFeatureName(rowFeature)}
+                      </Box>
+                      
+                      {/* Correlation cells */}
+                      {Object.keys(bulkData.correlation_matrix).map((colFeature, colIndex) => {
+                        const value = bulkData.correlation_matrix[colFeature][rowFeature];
+                        const numValue = typeof value === 'number' ? value : 0;
+                        
+                        // Skip diagonal (self-correlation)
+                        if (rowIndex === colIndex) {
+                          return (
+                            <Box
+                              key={colFeature}
+                              sx={{
+                                height: 30,
+                                backgroundColor: '#f0f0f0',
+                                border: '1px solid #e0e0e0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.6rem',
+                                color: '#999'
+                              }}
+                            >
+                              -
+                            </Box>
+                          );
+                        }
+                        
+                        // Continuous color scale from blue (1) to red (-1)
+                        const getColor = (value) => {
+                          // Clamp value between -1 and 1
+                          const clampedValue = Math.max(-1, Math.min(1, value));
+                          
+                          if (clampedValue >= 0) {
+                            // Blue to white for positive correlations
+                            const intensity = Math.floor(255 * clampedValue);
+                            return `rgb(${255 - intensity}, ${255 - intensity}, 255)`;
+                          } else {
+                            // White to red for negative correlations
+                            const intensity = Math.floor(255 * Math.abs(clampedValue));
+                            return `rgb(255, ${255 - intensity}, ${255 - intensity})`;
+                          }
+                        };
+                        
+                        const bgColor = getColor(numValue);
+                        
+                        return (
+                          <Tooltip
+                            key={colFeature}
+                            title={`${cleanFeatureName(rowFeature)} vs ${cleanFeatureName(colFeature)}: ${typeof value === 'number' ? value.toFixed(3) : 'N/A'}`}
+                            arrow
+                            placement="top"
+                          >
+                            <Box
+                              sx={{
+                                height: 30,
+                                backgroundColor: bgColor,
+                                border: '1px solid #e0e0e0',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                '&:hover': {
+                                  transform: 'scale(1.05)',
+                                  zIndex: 1,
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                                }
+                              }}
+                            />
+                          </Tooltip>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
+                </Box>
+                
+                                      {/* Legend */}
+                      <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Correlation Scale</Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0.5 }}>
+                          <Box
+                            sx={{
+                              width: '50%',
+                              height: 20,
+                              background: 'linear-gradient(to right, rgb(255, 0, 0), rgb(255, 255, 255), rgb(0, 0, 255))',
+                              borderRadius: 1,
+                              border: '1px solid #ccc',
+                              position: 'relative'
+                            }}
+                          />
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '50%' }}>
+                            <Typography variant="caption" sx={{ fontSize: '0.6rem' }}>-1.0</Typography>
+                            <Typography variant="caption" sx={{ fontSize: '0.6rem' }}>0.0</Typography>
+                            <Typography variant="caption" sx={{ fontSize: '0.6rem' }}>1.0</Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+              </Box>
+            )}
+
+            {/* Individual Results */}
+            {bulkData.individual_results && bulkData.individual_results.length > 0 && (
+              <Box>
+                <Typography variant="subtitle1" gutterBottom>
+                  Individual Results ({bulkData.individual_results.length} files)
+                </Typography>
+                <Accordion>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography>View Individual File Results</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Grid container spacing={2}>
+                      {bulkData.individual_results.map((result, index) => (
+                        <Grid item xs={12} key={index}>
+                          <Card variant="outlined">
+                            <CardContent>
+                              <Typography variant="h6" gutterBottom>
+                                {result.filename}
+                              </Typography>
+                              {result.features && (
+                                <Grid container spacing={2}>
+                                  {Object.entries(result.features).map(([category, features]) => (
+                                    <Grid item xs={12} md={6} key={category}>
+                                      <Typography variant="subtitle2" gutterBottom>
+                                        {category.replace(/_/g, ' ').toUpperCase()}
+                                      </Typography>
+                                      <Box sx={{ pl: 2 }}>
+                                        {Object.entries(features).map(([key, value]) => (
+                                          <Typography key={key} variant="body2">
+                                            {key}: {typeof value === 'number' ? value.toFixed(4) : value}
+                                          </Typography>
+                                        ))}
+                                      </Box>
+                                    </Grid>
+                                  ))}
+                                </Grid>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </AccordionDetails>
+                </Accordion>
+              </Box>
+            )}
+          </Card>
+        </Grid>
+      )}
+
+      {/* Error and Success Messages */}
+      {bulkError && (
+        <Grid item xs={12}>
+          <Alert severity="error" onClose={() => setBulkError(null)}>
+            {bulkError}
+          </Alert>
+        </Grid>
+      )}
+      
+      {bulkSuccess && (
+        <Grid item xs={12}>
+          <Alert severity="success" onClose={() => setBulkSuccess(null)}>
+            {bulkSuccess}
+          </Alert>
+        </Grid>
+      )}
+    </>
+  );
+};
 
 // Create a modern theme
 const appTheme = createTheme({
@@ -348,6 +1625,37 @@ function getDateForIndex(key, index, data) {
   }
   return `Day ${index + 1}`;
 }
+
+// Helper to clean and format feature names for display
+const cleanFeatureName = (featureName) => {
+  // Remove category prefixes from feature names
+  const prefixes = ['sleep_', 'cosinor_', 'physical_activity_', 'nonparam_'];
+  let cleanedName = featureName;
+  for (const prefix of prefixes) {
+    if (cleanedName.startsWith(prefix)) {
+      cleanedName = cleanedName.substring(prefix.length);
+      break;
+    }
+  }
+  // Replace underscores with spaces
+  cleanedName = cleanedName.replace(/_/g, ' ');
+  // Special case for MESOR - keep it in all caps
+  if (cleanedName.toLowerCase() === 'mesor') {
+    return 'MESOR';
+  }
+  // Preserve original capitalization, only apply title case to all-lowercase words
+  return cleanedName.split(' ').map(word => {
+    if (word.toLowerCase() === 'mesor') {
+      return 'MESOR';
+    }
+    // If the word is all lowercase, capitalize it
+    if (word === word.toLowerCase()) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+    // Otherwise, keep the original capitalization
+    return word;
+  }).join(' ');
+};
 
 function App() {
   const [data, setData] = useState(() => {
@@ -2031,7 +3339,7 @@ pip install -e .`}
                                   />
                                 </FormControl>
                               </Grid>
-                              <Grid item xs={12}>
+                              <Grid item xs={12} sm={6}>
                                 <TextField
                                   fullWidth
                                   label="Sleep CK SF"
@@ -2050,10 +3358,10 @@ pip install -e .`}
                                   }}
                                 />
                               </Grid>
-                              <Grid item xs={12} sm={4}>
+                              <Grid item xs={12} sm={6}>
                                 <TextField
                                   fullWidth
-                                  label="PA Cutpoint Sedentary-Light"
+                                  label="PA Cutpoint SL"
                                   type="text"
                                   value={featureParams.pa_cutpoint_sl}
                                   onChange={(e) => {
@@ -2061,44 +3369,6 @@ pip install -e .`}
                                     // Allow any positive numeric value with arbitrary precision
                                     if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                       handleFeatureParamChange('pa_cutpoint_sl', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={4}>
-                                <TextField
-                                  fullWidth
-                                  label="PA Cutpoint Light-Moderate"
-                                  type="text"
-                                  value={featureParams.pa_cutpoint_lm}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handleFeatureParamChange('pa_cutpoint_lm', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={4}>
-                                <TextField
-                                  fullWidth
-                                  label="PA Cutpoint Moderate-Vigorous"
-                                  type="text"
-                                  value={featureParams.pa_cutpoint_mv}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handleFeatureParamChange('pa_cutpoint_mv', value);
                                     }
                                   }}
                                   inputProps={{ 
@@ -3359,64 +4629,10 @@ pip install -e .`}
                 </>
               )}
 
-              {/* Multi-individual Tab Content (to be implemented) */}
-                              {labSubTab === 'multi' && (
-                  <Grid item xs={12}>
-                    <Paper elevation={2} sx={{ 
-                      p: 5, 
-                      textAlign: 'center',
-                      bgcolor: 'background.paper',
-                      borderRadius: 2,
-                      border: '1px solid',
-                      borderColor: 'divider'
-                    }}>
-                      {/* Status Badge */}
-                      <Box 
-                        component="a"
-                        href="https://github.com/jlohunecke/CosinorAge/blob/main/cosinorage/features/bulk_features.py"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 1.5,
-                          bgcolor: 'warning.light',
-                          color: 'warning.dark',
-                          px: 3,
-                          py: 1.5,
-                          borderRadius: 2,
-                          border: '1px solid',
-                          borderColor: 'warning.main',
-                          boxShadow: '0 1px 3px rgba(255, 152, 0, 0.2)',
-                          textDecoration: 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease-in-out',
-                          '&:hover': {
-                            bgcolor: 'warning.main',
-                            color: 'white',
-                            boxShadow: '0 2px 6px rgba(255, 152, 0, 0.3)',
-                            transform: 'translateY(-1px)'
-                          }
-                        }}
-                      >
-                        <Box sx={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: '50%',
-                          bgcolor: 'warning.main'
-                        }} />
-                        <Typography variant="body2" sx={{ 
-                          fontWeight: 500,
-                          letterSpacing: '0.3px',
-                          textTransform: 'uppercase',
-                          fontSize: '0.75rem'
-                        }}>
-                          In Development
-                        </Typography>
-                      </Box>
-                    </Paper>
-                  </Grid>
-                )}
+              {/* Multi-individual Tab Content */}
+              {labSubTab === 'multi' && (
+                <MultiIndividualTab />
+              )}
             </Grid>
           )}
 
