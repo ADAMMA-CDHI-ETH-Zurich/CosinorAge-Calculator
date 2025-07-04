@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from cosinorage.bioages.cosinorage import CosinorAge
 from cosinorage.datahandlers import GalaxyDataHandler
 from cosinorage.datahandlers.genericdatahandler import GenericDataHandler
@@ -132,11 +132,44 @@ async def get_csv_columns(file_id: str) -> Dict[str, Any]:
         logger.error(f"Error getting columns: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/preview/{file_id}")
+async def get_csv_preview(file_id: str) -> Dict[str, Any]:
+    """
+    Get preview data (first 2 rows) from the uploaded CSV file
+    """
+    try:
+        if file_id not in uploaded_data:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        file_info = uploaded_data[file_id]
+        file_path = file_info.get("file_path")
+        
+        if not file_path or not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found on disk")
+        
+        # Read the CSV file to get preview data
+        try:
+            df = pd.read_csv(file_path, nrows=2)  # Read first 2 rows
+            preview_data = df.to_dict(orient='records')
+            return {
+                "preview": preview_data
+            }
+        except Exception as e:
+            logger.error(f"Error reading CSV file for preview: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Error reading CSV file for preview: {str(e)}")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting preview: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
     data_source: str = Form(...),
     data_type: str = Form(None),
+    data_unit: str = Form(None),
     time_format: str = Form(None),
     time_column: str = Form(None),
     data_columns: str = Form(None)
@@ -149,6 +182,8 @@ async def upload_file(
         logger.info(f"File name: {file.filename}")
         logger.info(f"File content type: {file.content_type}")
         logger.info(f"Data source: {data_source}")
+        logger.info(f"Data type: {data_type}")
+        logger.info(f"Data unit: {data_unit}")
         logger.info(f"File size: {file.size if hasattr(file, 'size') else 'Unknown'}")
         
         # Create a temporary directory to store the uploaded files
@@ -224,6 +259,7 @@ async def upload_file(
                 "temp_dir": temp_dir,
                 "data_source": "other",
                 "data_type": data_type,
+                "data_unit": data_unit,
                 "time_format": time_format,
                 "time_column": time_column,
                 "data_columns": data_columns.split(",") if data_columns else None
@@ -355,8 +391,21 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
                     data_columns=['enmo_mg']
                 )
         elif file_data.get("data_source") == "other":
+            # Validate that data_type is available for processing
+            if not file_data.get("data_type"):
+                raise HTTPException(status_code=400, detail="data_type is required for processing 'other' data source. Please complete column selection first.")
+            
             # Set parameters based on data type and selected columns
-            data_type = file_data["data_type"]
+            # The frontend sends the combined data_type (e.g., "accelerometer-g")
+            # If data_type already contains a hyphen, use it as is
+            # Otherwise, combine data_type and data_unit
+            if file_data["data_type"] and '-' in file_data["data_type"]:
+                data_type = file_data["data_type"]
+            elif file_data["data_type"] and file_data.get("data_unit"):
+                data_type = file_data["data_type"] + '-' + file_data["data_unit"]
+            else:
+                data_type = file_data["data_type"] or "unknown"
+            
             time_column = file_data["time_column"]
             data_columns = file_data["data_columns"]
             time_format = file_data["time_format"]
@@ -369,7 +418,7 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
             logger.info(f"Data columns: {data_columns}")
             
             # Validate column selections based on data type
-            if data_type.startswith("accelerometer-"):
+            if data_type == "accelerometer":
                 if len(data_columns) != 3:
                     raise HTTPException(status_code=400, detail=f"Accelerometer data requires exactly 3 columns (X, Y, Z), but {len(data_columns)} were selected")
                 logger.info(f"Processing accelerometer data with columns: {data_columns}")
@@ -519,6 +568,9 @@ async def cleanup():
 class ColumnSelectionRequest(BaseModel):
     time_column: str
     data_columns: list[str]
+    data_type: Optional[str] = None
+    data_unit: Optional[str] = None
+    time_format: Optional[str] = None
 
 class AgePredictionRequest(BaseModel):
     chronological_age: float
@@ -539,12 +591,23 @@ async def update_column_selections(file_id: str, request: ColumnSelectionRequest
         file_info["time_column"] = request.time_column
         file_info["data_columns"] = request.data_columns
         
-        logger.info(f"Updated column selections for file {file_id}: time_column={request.time_column}, data_columns={request.data_columns}")
+        # Update additional fields if provided
+        if request.data_type is not None:
+            file_info["data_type"] = request.data_type
+        if request.data_unit is not None:
+            file_info["data_unit"] = request.data_unit
+        if request.time_format is not None:
+            file_info["time_format"] = request.time_format
+        
+        logger.info(f"Updated column selections for file {file_id}: time_column={request.time_column}, data_columns={request.data_columns}, data_type={request.data_type}, data_unit={request.data_unit}, time_format={request.time_format}")
         
         return {
             "message": "Column selections updated successfully",
             "time_column": request.time_column,
-            "data_columns": request.data_columns
+            "data_columns": request.data_columns,
+            "data_type": request.data_type,
+            "data_unit": request.data_unit,
+            "time_format": request.time_format
         }
         
     except HTTPException:

@@ -409,6 +409,7 @@ function App() {
   
   // Column selection state
   const [csvColumns, setCsvColumns] = useState([]);
+  const [csvPreview, setCsvPreview] = useState([]);
   const [showColumnSelection, setShowColumnSelection] = useState(false);
   const [selectedTimeColumn, setSelectedTimeColumn] = useState('');
   const [selectedDataColumns, setSelectedDataColumns] = useState([]);
@@ -423,8 +424,7 @@ function App() {
       if (dataSource !== 'other') {
         setDataType('enmo');
       }
-    } else if (fileType === 'multi_individual') {
-      setDataType('accelerometer');
+
     } else {
       setDataType('');
     }
@@ -447,6 +447,7 @@ function App() {
     setSelectedTimeColumn('');
     setSelectedDataColumns([]);
     setCsvColumns([]);
+    setCsvPreview([]);
   }, [dataSource]);
 
   // Save state to localStorage whenever it changes
@@ -476,7 +477,18 @@ function App() {
   // Log when component re-renders
   useEffect(() => {
     console.log('App component re-rendered at:', new Date().toISOString());
+    console.log('Current dataUnit state:', dataUnit);
+    console.log('Current dataType state:', dataType);
+    console.log('Current timestampFormat state:', timestampFormat);
   });
+
+  // Log when dataType changes
+  useEffect(() => {
+    console.log('dataType changed to:', dataType);
+    console.log('dataUnit state when dataType changes:', dataUnit);
+  }, [dataType, dataUnit]);
+
+
 
   // Prevent unnecessary re-renders on initial load
   useEffect(() => {
@@ -529,25 +541,58 @@ function App() {
 
   const fetchColumnNames = async (fileId) => {
     try {
-      const response = await fetch(config.getApiUrl(`columns/${fileId}`));
-      if (!response.ok) {
-        throw new Error('Failed to fetch column names');
+      // For CSV files, fetch column names and preview
+      if (fileType === 'csv') {
+        const response = await fetch(config.getApiUrl(`columns/${fileId}`));
+        if (!response.ok) {
+          throw new Error('Failed to fetch column names');
+        }
+        const result = await response.json();
+        setCsvColumns(result.columns);
+        
+        // Fetch CSV preview data
+        try {
+          const previewResponse = await fetch(config.getApiUrl(`preview/${fileId}`));
+          if (previewResponse.ok) {
+            const previewResult = await previewResponse.json();
+            setCsvPreview(previewResult.preview || []);
+          } else {
+            console.warn('Failed to fetch CSV preview, continuing without preview');
+            setCsvPreview([]);
+          }
+        } catch (err) {
+          console.warn('Error fetching CSV preview:', err);
+          setCsvPreview([]);
+        }
+        
+        // Set default selections based on data type
+        if (dataType === 'accelerometer') {
+          setSelectedTimeColumn(result.columns.find(col => col.toLowerCase().includes('time') || col.toLowerCase().includes('timestamp')) || result.columns[0]);
+          setSelectedDataColumns(['x', 'y', 'z'].filter(col => result.columns.includes(col)));
+        } else if (dataType === 'enmo') {
+          setSelectedTimeColumn(result.columns.find(col => col.toLowerCase().includes('time') || col.toLowerCase().includes('timestamp')) || result.columns[0]);
+          setSelectedDataColumns([result.columns.find(col => col.toLowerCase().includes('enmo')) || result.columns[1]]);
+        } else if (dataType === 'alternative_count') {
+          setSelectedTimeColumn(result.columns.find(col => col.toLowerCase().includes('time') || col.toLowerCase().includes('timestamp')) || result.columns[0]);
+          setSelectedDataColumns([result.columns.find(col => col.toLowerCase().includes('count')) || result.columns[1]]);
+        }
+      } else {
+        // For non-CSV files, just set empty arrays
+        setCsvColumns([]);
+        setCsvPreview([]);
       }
-      const result = await response.json();
-      setCsvColumns(result.columns);
-      setShowColumnSelection(true);
       
-      // Set default selections based on data type
-      if (dataType === 'accelerometer') {
-        setSelectedTimeColumn(result.columns.find(col => col.toLowerCase().includes('time') || col.toLowerCase().includes('timestamp')) || result.columns[0]);
-        setSelectedDataColumns(['x', 'y', 'z'].filter(col => result.columns.includes(col)));
-      } else if (dataType === 'enmo') {
-        setSelectedTimeColumn(result.columns.find(col => col.toLowerCase().includes('time') || col.toLowerCase().includes('timestamp')) || result.columns[0]);
-        setSelectedDataColumns([result.columns.find(col => col.toLowerCase().includes('enmo')) || result.columns[1]]);
-              } else if (dataType === 'alternative_count') {
-        setSelectedTimeColumn(result.columns.find(col => col.toLowerCase().includes('time') || col.toLowerCase().includes('timestamp')) || result.columns[0]);
-        setSelectedDataColumns([result.columns.find(col => col.toLowerCase().includes('count')) || result.columns[1]]);
-      }
+      console.log('=== Opening Column Selection Dialog ===');
+      console.log('fileType:', fileType);
+      console.log('dataType:', dataType);
+      console.log('dataUnit:', dataUnit);
+      console.log('timestampFormat:', timestampFormat);
+      console.log('csvColumns:', csvColumns);
+      console.log('csvPreview length:', csvPreview.length);
+      
+      // Reset dataUnit to empty string when opening dialog
+      setDataUnit('');
+      setShowColumnSelection(true);
     } catch (err) {
       setError(err.message);
     }
@@ -555,15 +600,76 @@ function App() {
 
   const handleColumnSelection = async () => {
     try {
+      // Validate required parameters
+      if (!timestampFormat) {
+        throw new Error('Please select a timestamp format');
+      }
+      
+      if (dataType !== 'alternative_count' && !dataUnit) {
+        throw new Error('Please select a data unit');
+      }
+      
+      if (fileType === 'csv' && (!selectedTimeColumn || selectedDataColumns.length === 0)) {
+        throw new Error('Please select time and data columns');
+      }
+      
+      // Log current state
+      console.log('=== Column Selection Debug ===');
+      console.log('dataType:', dataType);
+      console.log('dataUnit:', dataUnit);
+      console.log('timestampFormat:', timestampFormat);
+      console.log('selectedTimeColumn:', selectedTimeColumn);
+      console.log('selectedDataColumns:', selectedDataColumns);
+      console.log('fileType:', fileType);
+      console.log('genericTimeFormat:', genericTimeFormat);
+      
+      // Construct data_type from dataType and dataUnit
+      let data_type;
+      
+      if (dataType === 'alternative_count') {
+        data_type = 'alternative_count';
+      } else if (dataType === 'accelerometer' && dataUnit) {
+        data_type = `accelerometer-${dataUnit}`;
+      } else if (dataType === 'enmo' && dataUnit) {
+        data_type = `enmo-${dataUnit}`;
+      } else if (dataType) {
+        // Fallback to just dataType if no unit is selected
+        data_type = dataType;
+      } else {
+        // If dataType is null/undefined, set a default
+        data_type = 'unknown';
+      }
+      
+      console.log('Using data_type:', data_type);
+
+      // For non-CSV files, use generic parameters; for CSV files, use selected columns
+      const requestBody = {
+        time_format: fileType === 'csv' ? timestampFormat : genericTimeFormat,
+        data_unit: dataUnit,
+        data_type: data_type
+      };
+
+      console.log('=== Final Request Body ===');
+      console.log('time_format:', requestBody.time_format);
+      console.log('data_unit:', requestBody.data_unit);
+      console.log('data_type:', requestBody.data_type);
+
+      if (fileType === 'csv') {
+        requestBody.time_column = selectedTimeColumn;
+        requestBody.data_columns = selectedDataColumns;
+      } else {
+        requestBody.time_column = genericTimeColumn;
+        requestBody.data_columns = genericDataColumns;
+      }
+
+      console.log('Request body being sent to backend:', requestBody);
+      
       const response = await fetch(config.getApiUrl(`update_columns/${data.file_id}`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          time_column: selectedTimeColumn,
-          data_columns: selectedDataColumns
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -603,29 +709,34 @@ function App() {
     // Set data_source based on dataSource for backend compatibility
     formData.append('data_source', dataSource === 'other' ? 'other' : (fileType === 'binary' ? 'samsung_galaxy_binary' : 'samsung_galaxy_csv'));
     
+    console.log('=== Upload Debug ===');
+    console.log('dataSource:', dataSource);
+    console.log('fileType:', fileType);
+    console.log('dataType:', dataType);
+    console.log('dataUnit:', dataUnit);
+    console.log('timestampFormat:', timestampFormat);
+    
     // Add parameters for other data source
     if (dataSource === 'other') {
-      // For accelerometer/enmo/alternative_counts with specific unit and timestamp format, use those values
-              if (fileType === 'csv' && (dataType === 'accelerometer' || dataType === 'enmo' || dataType === 'alternative_count')) {
-          if (dataType === 'alternative_count') {
-          formData.append('data_type', dataType);
-        } else {
-          formData.append('data_type', `${dataType}-${dataUnit}`);
-        }
-        formData.append('time_format', timestampFormat);
+      // For CSV files, we'll handle data_type in the column selection step
+      if (fileType === 'csv') {
+        // Don't set data_type here - it will be set in handleColumnSelection
+        formData.append('time_format', timestampFormat || 'unix-ms'); // Default timestamp format
+        console.log('Added time_format (CSV):', timestampFormat || 'unix-ms');
       } else {
         // For other cases, use generic parameters
-        formData.append('data_type', genericDataType);
+        // Don't set data_type here - it will be set in handleColumnSelection
         formData.append('time_format', genericTimeFormat);
+        console.log('Added time_format (non-CSV):', genericTimeFormat);
       }
       formData.append('time_column', genericTimeColumn);
       formData.append('data_columns', genericDataColumns);
+      console.log('Added time_column:', genericTimeColumn);
+      console.log('Added data_columns:', genericDataColumns);
     }
     
-    // Add data_type for Samsung Galaxy CSV with alternative_counts
-            if (dataSource === 'samsung_galaxy_csv' && dataType === 'alternative_count') {
-      formData.append('data_type', 'alternative_counts');
-    }
+    // For Samsung Galaxy CSV with alternative_counts, we'll handle data_type in the column selection step
+    // Don't set data_type here - it will be set in handleColumnSelection
 
     try {
       const xhr = new XMLHttpRequest();
@@ -643,9 +754,10 @@ function App() {
           setData(result);
           setUploadProgress(100);
           
-          // If this is an "other" data source with CSV, or Samsung Galaxy CSV with alternative_counts, fetch column names
+          // For all cases where data_type needs to be computed from dataType + dataUnit, fetch column names
           if ((dataSource === 'other' && fileType === 'csv') || 
-              (dataSource === 'samsung_galaxy_csv' && dataType === 'alternative_count')) {
+              (dataSource === 'samsung_galaxy_csv' && dataType === 'alternative_count') ||
+              (dataSource === 'other' && fileType !== 'csv')) {
             fetchColumnNames(result.file_id);
           } else {
             setSuccess('File uploaded successfully. Click "Process Data" to continue.');
@@ -674,7 +786,7 @@ function App() {
       return;
     }
 
-    // For "other" data sources or Samsung Galaxy CSV with alternative_counts, ensure column selection is complete
+    // For all cases where data_type needs to be computed from dataType + dataUnit, ensure column selection is complete
     if ((dataSource === 'other' && !columnSelectionComplete) || 
         (dataSource === 'samsung_galaxy_csv' && dataType === 'alternative_count' && !columnSelectionComplete)) {
       setError('Please complete column selection before processing data');
@@ -793,7 +905,6 @@ function App() {
     e.stopPropagation();
     if (!dataSource || !fileType) return; // Only allow drag if both dataSource and fileType are selected
     if (dataSource === 'other' && !dataType) return; // Also require dataType for 'other' data source
-    if (dataSource === 'other' && fileType === 'csv' && (dataType === 'accelerometer' || dataType === 'enmo' || dataType === 'alternative_count') && (!dataUnit || !timestampFormat)) return; // Also require data unit and timestamp format for other > csv > accelerometer/enmo/alternative_count
     if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
     } else if (e.type === 'dragleave') {
@@ -806,7 +917,6 @@ function App() {
     e.stopPropagation();
     if (!dataSource || !fileType) return; // Only allow drop if both dataSource and fileType are selected
     if (dataSource === 'other' && !dataType) return; // Also require dataType for 'other' data source
-    if (dataSource === 'other' && fileType === 'csv' && (dataType === 'accelerometer' || dataType === 'enmo' || dataType === 'alternative_count') && (!dataUnit || !timestampFormat)) return; // Also require data unit and timestamp format for other > csv > accelerometer/enmo/alternative_count
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload({ target: { files: e.dataTransfer.files } });
@@ -1381,7 +1491,6 @@ pip install -e .`}
                         >
                           <MenuItem value="binary">Binary (Zipped)</MenuItem>
                           <MenuItem value="csv">CSV</MenuItem>
-                          <MenuItem value="multi_individual">Multi-individual (Zipped)</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
@@ -1401,7 +1510,6 @@ pip install -e .`}
                           {dataSource !== 'other' && (
                             <>
                               <MenuItem value="raw">Raw</MenuItem>
-                              <MenuItem value="multi_individual">Multi-individual</MenuItem>
                             </>
                           )}
                         </Select>
@@ -1409,123 +1517,9 @@ pip install -e .`}
                     </Grid>
                   </Grid>
                   
-                  {/* Data Unit and Timestamp Format Selection for Other > CSV > Accelerometer */}
-                  {dataSource === 'other' && fileType === 'csv' && dataType === 'accelerometer' && (
-                    <>
-                      <Typography variant="body2" sx={{ mb: 2, color: 'primary.main', textAlign: 'left' }}>
-                        Please select the timestamp format and the unit of the Accelerometer data
-                      </Typography>
-                      <Grid container spacing={2} sx={{ mb: 2, mt: 2 }}>
-                      <Grid item xs={6}>
-                        <FormControl fullWidth>
-                          <InputLabel id="timestamp-format-label">Timestamp Format</InputLabel>
-                          <Select
-                            labelId="timestamp-format-label"
-                            value={timestampFormat}
-                            label="Timestamp Format"
-                            onChange={(e) => setTimestampFormat(e.target.value)}
-                            sx={{ minWidth: 120 }}
-                          >
-                            <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
-                            <MenuItem value="unix-s">Unix - seconds</MenuItem>
-                            <MenuItem value="datetime">Datetime</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <FormControl fullWidth>
-                          <InputLabel id="data-unit-label">Data Unit</InputLabel>
-                          <Select
-                            labelId="data-unit-label"
-                            value={dataUnit}
-                            label="Data Unit"
-                            onChange={(e) => setDataUnit(e.target.value)}
-                            sx={{ minWidth: 120 }}
-                          >
-                            <MenuItem value="g">g</MenuItem>
-                            <MenuItem value="mg">mg</MenuItem>
-                            <MenuItem value="m/s^2">m/s²</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                    </>
-                  )}
 
-                  {/* Data Unit and Timestamp Format Selection for Other > CSV > ENMO */}
-                  {dataSource === 'other' && fileType === 'csv' && dataType === 'enmo' && (
-                    <>
-                      <Typography variant="body2" sx={{ mb: 2, color: 'primary.main', textAlign: 'left' }}>
-                        Please select the timestamp format and the unit of the ENMO data
-                      </Typography>
-                      <Grid container spacing={2} sx={{ mb: 2, mt: 2 }}>
-                      <Grid item xs={6}>
-                        <FormControl fullWidth>
-                          <InputLabel id="timestamp-format-enmo-label">Timestamp Format</InputLabel>
-                          <Select
-                            labelId="timestamp-format-enmo-label"
-                            value={timestampFormat}
-                            label="Timestamp Format"
-                            onChange={(e) => setTimestampFormat(e.target.value)}
-                            sx={{ minWidth: 120 }}
-                          >
-                            <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
-                            <MenuItem value="unix-s">Unix - seconds</MenuItem>
-                            <MenuItem value="datetime">Datetime</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <FormControl fullWidth>
-                          <InputLabel id="data-unit-enmo-label">Data Unit</InputLabel>
-                          <Select
-                            labelId="data-unit-enmo-label"
-                            value={dataUnit}
-                            label="Data Unit"
-                            onChange={(e) => setDataUnit(e.target.value)}
-                            sx={{ minWidth: 120 }}
-                          >
-                            <MenuItem value="m">m</MenuItem>
-                            <MenuItem value="mg">mg</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                    </>
-                  )}
-
-                  {/* Timestamp Format Selection for Other > CSV > Alternative Count */}
-                  {dataSource === 'other' && fileType === 'csv' && dataType === 'alternative_count' && (
-                    <>
-                      <Typography variant="body2" sx={{ mb: 2, color: 'primary.main', textAlign: 'left' }}>
-                        Please select the timestamp format for the Alternative Count data
-                      </Typography>
-                      <Grid container spacing={2} sx={{ mb: 2, mt: 2 }}>
-                        <Grid item xs={6}>
-                          <FormControl fullWidth>
-                            <InputLabel id="timestamp-format-alternative-label">Timestamp Format</InputLabel>
-                            <Select
-                              labelId="timestamp-format-alternative-label"
-                              value={timestampFormat}
-                              label="Timestamp Format"
-                              onChange={(e) => setTimestampFormat(e.target.value)}
-                              sx={{ minWidth: 120 }}
-                              displayEmpty
-                            >
-                              <MenuItem value="">
-                                <em>Select timestamp format</em>
-                              </MenuItem>
-                              <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
-                              <MenuItem value="unix-s">Unix - seconds</MenuItem>
-                              <MenuItem value="datetime">Datetime</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                      </Grid>
-                    </>
-                  )}
                   
-                  {((dataSource && fileType && dataType) || (dataSource === 'other' && fileType === 'csv' && dataType && ((dataType !== 'accelerometer' && dataType !== 'enmo' && dataType !== 'alternative_count') || (dataUnit && timestampFormat) || (dataType === 'alternative_count' && timestampFormat)))) && (
+                  {((dataSource && fileType && dataType) || (dataSource === 'other' && fileType === 'csv' && dataType)) && (
                     <>
                       {/* File Upload Button - moved above disclaimers */}
                       <Button
@@ -1539,34 +1533,14 @@ pip install -e .`}
                           borderRadius: 2,
                           position: 'relative'
                         }}
-                        disabled={!!data?.file_id || fileType === 'multi_individual' || !dataSource || !fileType || (dataSource === 'other' && (!genericDataType || !genericTimeFormat || !genericTimeColumn || !genericDataColumns))}
+                        disabled={!!data?.file_id || !dataSource || !fileType || (dataSource === 'other' && (!genericDataType || !genericTimeFormat || !genericTimeColumn || !genericDataColumns))}
                         onClick={() => { console.log('Upload File button pressed'); }}
                       >
                         Upload File
-                        {fileType === 'multi_individual' && (
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              top: -8,
-                              right: -8,
-                              bgcolor: 'warning.main',
-                              color: 'white',
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: 1,
-                              fontSize: '0.7rem',
-                              fontWeight: 'bold',
-                              transform: 'rotate(15deg)',
-                              zIndex: 1
-                            }}
-                          >
-                            WIP
-                          </Box>
-                        )}
                         <input
                           type="file"
                           hidden
-                          accept={fileType === 'binary' ? '.zip' : fileType === 'multi_individual' ? '.zip' : '.csv'}
+                          accept={fileType === 'binary' ? '.zip' : '.csv'}
                           onChange={handleFileUpload}
                           ref={fileInputRef}
                           disabled={!dataSource || !fileType}
@@ -2378,6 +2352,104 @@ pip install -e .`}
               {(() => {
                 return data?.data && (
                   <Grid item xs={12}>
+                    {/* Check if data contains x, y, z columns */}
+                    {(() => {
+                      const hasXYZColumns = data.data[0] && 
+                        'x' in data.data[0] && 
+                        'y' in data.data[0] && 
+                        'z' in data.data[0];
+                      
+                      if (hasXYZColumns) {
+                        return (
+                          <>
+                            {/* X, Y, Z Accelerometer Data Plot */}
+                            <Card style={{ marginTop: '20px', padding: '20px', marginBottom: '20px' }}>
+                              <Typography variant="h6" gutterBottom>
+                                Raw Accelerometer Data (X, Y, Z axes)
+                              </Typography>
+                              <ResponsiveContainer width="100%" height={400}>
+                                <LineChart 
+                                  data={data.data}
+                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                >
+                                  <XAxis 
+                                    dataKey="TIMESTAMP" 
+                                    label={{ value: 'Time', position: 'insideBottom', offset: -5 }}
+                                    tickFormatter={(timestamp) => {
+                                      const date = new Date(timestamp);
+                                      return date.toLocaleDateString();
+                                    }}
+                                    interval={0}
+                                    tick={(props) => {
+                                      const { x, y, payload } = props;
+                                      const date = new Date(payload.value);
+                                      const isStartOfDay = date.getHours() === 0 && date.getMinutes() === 0;
+                                      return isStartOfDay ? (
+                                        <g transform={`translate(${x},${y})`}>
+                                          <text x={0} y={0} dy={16} textAnchor="middle" fill="#666">
+                                            {date.toLocaleDateString()}
+                                          </text>
+                                        </g>
+                                      ) : null;
+                                    }}
+                                  />
+                                  <YAxis 
+                                    label={{ value: 'Acceleration (g)', angle: -90, position: 'insideLeft' }}
+                                  />
+                                  <RechartsTooltip 
+                                    content={({ active, payload, label }) => {
+                                      if (active && payload && payload.length) {
+                                        return (
+                                          <div style={{ 
+                                            backgroundColor: 'white', 
+                                            padding: '10px', 
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px'
+                                          }}>
+                                            <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                            {payload.map((entry, index) => (
+                                              <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                {`${entry.name}: ${entry.value.toFixed(4)} g`}
+                                              </p>
+                                            ))}
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    }}
+                                  />
+                                  <Legend />
+                                  <Line 
+                                    type="monotone" 
+                                    dataKey="x" 
+                                    stroke="#ff0000" 
+                                    dot={false}
+                                    name="X-axis"
+                                  />
+                                  <Line 
+                                    type="monotone" 
+                                    dataKey="y" 
+                                    stroke="#00ff00" 
+                                    dot={false}
+                                    name="Y-axis"
+                                  />
+                                  <Line 
+                                    type="monotone" 
+                                    dataKey="z" 
+                                    stroke="#0000ff" 
+                                    dot={false}
+                                    name="Z-axis"
+                                  />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </Card>
+                          </>
+                        );
+                      }
+                      return null;
+                    })()}
+                    
+                    {/* ENMO Data Plot */}
                     <Card style={{ marginTop: '20px', padding: '20px' }}>
                       <Typography variant="h6" gutterBottom>
                         ENMO time series (incl. wear/non-wear segments)
@@ -3904,113 +3976,338 @@ pip install -e .`}
         fullWidth
       >
         <DialogTitle>
-          Select CSV Column Names
+          {fileType === 'csv' ? 'Select CSV Column Names' : 'Configure Data Format'}
         </DialogTitle>
         <DialogContent>
           <Typography variant="body1" paragraph>
-            Please select the appropriate column names from your CSV file for the {dataType} data type.
+            {fileType === 'csv' 
+              ? `Please select the appropriate column names from your CSV file for the ${dataType} data type.`
+              : `Please configure the data format for your ${fileType} file with ${dataType} data type.`
+            }
           </Typography>
           
+          {/* CSV Preview Section - Only for CSV files */}
+          {fileType === 'csv' && csvPreview.length > 0 && (
+            <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1, border: '1px solid', borderColor: 'grey.300' }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
+                CSV Preview (First 2 rows including header):
+              </Typography>
+              <Box sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+                <table style={{ 
+                  width: '100%', 
+                  borderCollapse: 'collapse', 
+                  fontSize: '0.875rem',
+                  fontFamily: 'monospace'
+                }}>
+                  <thead>
+                    <tr>
+                      {csvColumns.map((column, index) => (
+                        <th key={index} style={{ 
+                          border: '1px solid #ccc', 
+                          padding: '8px', 
+                          backgroundColor: '#f5f5f5',
+                          fontWeight: 600,
+                          textAlign: 'left'
+                        }}>
+                          {column}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {csvPreview.slice(0, 2).map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {csvColumns.map((column, colIndex) => (
+                          <td key={colIndex} style={{ 
+                            border: '1px solid #ccc', 
+                            padding: '8px',
+                            backgroundColor: rowIndex % 2 === 0 ? '#ffffff' : '#fafafa'
+                          }}>
+                            {row[column] !== undefined ? String(row[column]).substring(0, 50) : ''}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                Note: Values are truncated to 50 characters for display. Use this preview to identify the correct column names.
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Column Selection Grid - Only for CSV files */}
+          {fileType === 'csv' && (
+            <Grid container spacing={3}>
+              {/* Time Column Selection */}
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Timestamp Column</InputLabel>
+                  <Select
+                    value={selectedTimeColumn || ''}
+                    onChange={(e) => setSelectedTimeColumn(e.target.value)}
+                    label="Timestamp Column"
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                          zIndex: 9999
+                        }
+                      },
+                      container: document.body
+                    }}
+                  >
+                    {csvColumns.map((column) => (
+                      <MenuItem key={column} value={column}>
+                        {column}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>
+                    Select the column containing timestamp data
+                  </FormHelperText>
+                </FormControl>
+              </Grid>
+
+              {/* Data Columns Selection */}
+              <Grid item xs={12} md={6}>
+                {dataType === 'accelerometer' ? (
+                  <Box>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Accelerometer Columns (X, Y, Z)
+                    </Typography>
+                    {['x', 'y', 'z'].map((axis) => (
+                      <FormControl key={axis} fullWidth sx={{ mb: 2 }}>
+                        <InputLabel>{axis.toUpperCase()} Column</InputLabel>
+                        <Select
+                          value={selectedDataColumns.find(col => col.toLowerCase().includes(axis)) || ''}
+                          onChange={(e) => {
+                            const newColumns = selectedDataColumns.filter(col => !col.toLowerCase().includes(axis));
+                            if (e.target.value) {
+                              newColumns.push(e.target.value);
+                            }
+                            setSelectedDataColumns(newColumns);
+                          }}
+                          label={`${axis.toUpperCase()} Column`}
+                          MenuProps={{
+                            PaperProps: {
+                              style: {
+                                maxHeight: 300,
+                                zIndex: 9999
+                              }
+                            },
+                            container: document.body
+                          }}
+                        >
+                          <MenuItem value="">
+                            <em>None</em>
+                          </MenuItem>
+                          {csvColumns.map((column) => (
+                            <MenuItem key={column} value={column}>
+                              {column}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    ))}
+                  </Box>
+                ) : dataType === 'enmo' ? (
+                  <FormControl fullWidth>
+                    <InputLabel>ENMO Column</InputLabel>
+                    <Select
+                      value={selectedDataColumns[0] || ''}
+                      onChange={(e) => setSelectedDataColumns([e.target.value])}
+                      label="ENMO Column"
+                      MenuProps={{
+                        PaperProps: {
+                          style: {
+                            maxHeight: 300,
+                            zIndex: 9999
+                          }
+                        },
+                        container: document.body
+                      }}
+                    >
+                      {csvColumns.map((column) => (
+                        <MenuItem key={column} value={column}>
+                          {column}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>
+                      Select the column containing ENMO data
+                    </FormHelperText>
+                  </FormControl>
+                ) : dataType === 'alternative_count' ? (
+                  <FormControl fullWidth>
+                    <InputLabel>Counts Column</InputLabel>
+                    <Select
+                      value={selectedDataColumns[0] || ''}
+                      onChange={(e) => setSelectedDataColumns([e.target.value])}
+                      label="Counts Column"
+                      MenuProps={{
+                        PaperProps: {
+                          style: {
+                            maxHeight: 300,
+                            zIndex: 9999
+                          }
+                        },
+                        container: document.body
+                      }}
+                    >
+                      {csvColumns.map((column) => (
+                        <MenuItem key={column} value={column}>
+                          {column}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>
+                      Select the column containing activity counts
+                    </FormHelperText>
+                  </FormControl>
+                ) : null}
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Data Format Settings - Always shown */}
           <Grid container spacing={3}>
-            {/* Time Column Selection */}
+            {/* Timestamp Format and Data Unit Selection */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle2" gutterBottom sx={{ mt: 2, color: 'primary.main' }}>
+                Data Format Settings
+              </Typography>
+            </Grid>
+            
+            {/* Timestamp Format Selection */}
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
-                <InputLabel>Timestamp Column</InputLabel>
+                <InputLabel>Timestamp Format</InputLabel>
                 <Select
-                  value={selectedTimeColumn}
-                  onChange={(e) => setSelectedTimeColumn(e.target.value)}
-                  label="Timestamp Column"
+                  value={timestampFormat || ''}
+                  onChange={(e) => {
+                    console.log('=== Timestamp Format Selection Debug ===');
+                    console.log('Previous timestampFormat:', timestampFormat);
+                    console.log('New timestampFormat value:', e.target.value);
+                    setTimestampFormat(e.target.value);
+                  }}
+                  label="Timestamp Format"
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 300,
+                        zIndex: 9999
+                      }
+                    },
+                    container: document.body
+                  }}
                 >
-                  {csvColumns.map((column) => (
-                    <MenuItem key={column} value={column}>
-                      {column}
-                    </MenuItem>
-                  ))}
+                  <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
+                  <MenuItem value="unix-s">Unix - seconds</MenuItem>
+                  <MenuItem value="datetime">Datetime</MenuItem>
                 </Select>
                 <FormHelperText>
-                  Select the column containing timestamp data
+                  Select the format of your timestamp column
                 </FormHelperText>
               </FormControl>
             </Grid>
 
-            {/* Data Columns Selection */}
+            {/* Data Unit Selection */}
             <Grid item xs={12} md={6}>
-              {dataType === 'accelerometer' ? (
-                <Box>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Accelerometer Columns (X, Y, Z)
-                  </Typography>
-                  {['x', 'y', 'z'].map((axis) => (
-                    <FormControl key={axis} fullWidth sx={{ mb: 2 }}>
-                      <InputLabel>{axis.toUpperCase()} Column</InputLabel>
-                      <Select
-                        value={selectedDataColumns.find(col => col.toLowerCase().includes(axis)) || ''}
-                        onChange={(e) => {
-                          const newColumns = selectedDataColumns.filter(col => !col.toLowerCase().includes(axis));
-                          if (e.target.value) {
-                            newColumns.push(e.target.value);
-                          }
-                          setSelectedDataColumns(newColumns);
-                        }}
-                        label={`${axis.toUpperCase()} Column`}
-                      >
-                        <MenuItem value="">
-                          <em>None</em>
-                        </MenuItem>
-                        {csvColumns.map((column) => (
-                          <MenuItem key={column} value={column}>
-                            {column}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  ))}
-                </Box>
-              ) : dataType === 'enmo' ? (
-                <FormControl fullWidth>
-                  <InputLabel>ENMO Column</InputLabel>
+              <FormControl fullWidth>
+                <InputLabel>Data Unit</InputLabel>
+                
+                {/* Accelerometer Data Unit */}
+                {(dataType === 'accelerometer') && (
                   <Select
-                    value={selectedDataColumns[0] || ''}
-                    onChange={(e) => setSelectedDataColumns([e.target.value])}
-                    label="ENMO Column"
+                    value={dataUnit || ''}
+                    onChange={(e) => {
+                      console.log('=== Data Unit Selection Debug ===');
+                      console.log('Previous dataUnit:', dataUnit);
+                      console.log('New dataUnit value:', e.target.value);
+                      console.log('Setting dataUnit to:', e.target.value);
+                      setDataUnit(e.target.value);
+                    }}
+                    label="Data Unit"
+                    displayEmpty
                   >
-                    {csvColumns.map((column) => (
-                      <MenuItem key={column} value={column}>
-                        {column}
-                      </MenuItem>
-                    ))}
+                    <MenuItem value="g">g</MenuItem>
+                    <MenuItem value="mg">mg</MenuItem>
+                    <MenuItem value="m/s^2">m/s²</MenuItem>
                   </Select>
-                  <FormHelperText>
-                    Select the column containing ENMO data
-                  </FormHelperText>
-                </FormControl>
-              ) : dataType === 'alternative_count' ? (
-                <FormControl fullWidth>
-                  <InputLabel>Counts Column</InputLabel>
+                )}
+                
+                {/* ENMO Data Unit */}
+                {(dataType === 'enmo') && (
                   <Select
-                    value={selectedDataColumns[0] || ''}
-                    onChange={(e) => setSelectedDataColumns([e.target.value])}
-                    label="Counts Column"
+                    value={dataUnit || ''}
+                    onChange={(e) => {
+                      console.log('=== Data Unit Selection Debug ===');
+                      console.log('Previous dataUnit:', dataUnit);
+                      console.log('New dataUnit value:', e.target.value);
+                      console.log('Setting dataUnit to:', e.target.value);
+                      setDataUnit(e.target.value);
+                    }}
+                    label="Data Unit"
+                    displayEmpty
                   >
-                    {csvColumns.map((column) => (
-                      <MenuItem key={column} value={column}>
-                        {column}
-                      </MenuItem>
-                    ))}
+                    <MenuItem value="g">g</MenuItem>
+                    <MenuItem value="mg">mg</MenuItem>
                   </Select>
-                  <FormHelperText>
-                    Select the column containing activity counts
-                  </FormHelperText>
-                </FormControl>
-              ) : null}
+                )}
+                
+                {/* Alternative Count Data Unit */}
+                {dataType === 'alternative_count' && (
+                  <Select
+                    value={dataUnit || ''}
+                    onChange={(e) => {
+                      console.log('=== Data Unit Selection Debug ===');
+                      console.log('Previous dataUnit:', dataUnit);
+                      console.log('New dataUnit value:', e.target.value);
+                      console.log('Setting dataUnit to:', e.target.value);
+                      setDataUnit(e.target.value);
+                    }}
+                    label="Data Unit"
+                    displayEmpty
+                  >
+                    <MenuItem value="">No unit required</MenuItem>
+                  </Select>
+                )}
+                
+                {/* Default Data Unit */}
+                {!['accelerometer', 'enmo', 'alternative_count'].includes(dataType) && (
+                  <Select
+                    value={dataUnit || ''}
+                    onChange={(e) => {
+                      console.log('=== Data Unit Selection Debug ===');
+                      console.log('Previous dataUnit:', dataUnit);
+                      console.log('New dataUnit value:', e.target.value);
+                      console.log('Setting dataUnit to:', e.target.value);
+                      setDataUnit(e.target.value);
+                    }}
+                    label="Data Unit"
+                    displayEmpty
+                  >
+                    <MenuItem value="">No unit required</MenuItem>
+                  </Select>
+                )}
+                
+                <FormHelperText>
+                  Select the unit of your data values
+                </FormHelperText>
+              </FormControl>
             </Grid>
           </Grid>
 
-          <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              <strong>Available columns:</strong> {csvColumns.join(', ')}
-            </Typography>
-          </Box>
+          {/* Available columns info - Only for CSV files */}
+          {fileType === 'csv' && (
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Available columns:</strong> {csvColumns.join(', ')}
+              </Typography>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowColumnSelection(false)}>
@@ -4019,7 +4316,11 @@ pip install -e .`}
           <Button 
             onClick={handleColumnSelection}
             variant="contained"
-            disabled={!selectedTimeColumn || selectedDataColumns.length === 0}
+            disabled={
+              (fileType === 'csv' && (!selectedTimeColumn || selectedDataColumns.length === 0)) ||
+              !timestampFormat || 
+              (dataType !== 'alternative_count' && !dataUnit && !dataType.includes('-'))
+            }
           >
             Confirm Selection
           </Button>
