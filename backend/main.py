@@ -1233,6 +1233,42 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
         # Get correlation matrix
         correlation_matrix = bulk_features.get_feature_correlation_matrix()
         
+        # Extract ENMO data from each handler before processing
+        # This is similar to how single individual processing works
+        handler_enmo_data = []
+        for i, handler in enumerate(handlers):
+            try:
+                # Create a WearableFeatures instance for this handler to get the processed data
+                wf = WearableFeatures(handler, features_args=request.features_args)
+                df = wf.get_ml_data()
+                df = df.reset_index()
+                df = df.rename(columns={'timestamp': 'TIMESTAMP', 'enmo': 'ENMO'})
+                
+                # Resample to hourly data for better performance
+                df['TIMESTAMP'] = pd.to_datetime(df['TIMESTAMP'])
+                df.set_index('TIMESTAMP', inplace=True)
+                
+                # Resample to hourly and take the mean
+                hourly_df = df.resample('1H').mean()
+                
+                # Create data structure with timestamp and ENMO values
+                enmo_data = []
+                for timestamp, row in hourly_df.iterrows():
+                    if pd.notna(row['ENMO']):
+                        enmo_data.append({
+                            'timestamp': timestamp.isoformat(),
+                            'enmo': float(row['ENMO'])
+                        })
+                
+                handler_enmo_data.append(enmo_data)
+                
+                logger.info(f"Handler {i}: extracted {len(enmo_data)} hourly ENMO values (from {len(df)} original points)")
+            except Exception as e:
+                logger.warning(f"Error extracting ENMO data from handler {i}: {e}")
+                handler_enmo_data.append([])
+        
+        logger.info(f"Extracted ENMO data from {len(handler_enmo_data)} handlers")
+        
         # Clean the data to handle NaN and infinity values for JSON serialization
         def clean_for_json(obj):
             if isinstance(obj, dict):
@@ -1264,10 +1300,14 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
         cleaned_individual_results = []
         for i, features in enumerate(individual_features):
             if features is not None:
+                # Use the pre-extracted ENMO data
+                enmo_data = handler_enmo_data[i] if i < len(handler_enmo_data) else None
+                
                 cleaned_individual_results.append({
                     "file_id": request.files[i]["file_id"],
                     "filename": uploaded_data[request.files[i]["file_id"]]["filename"],
-                    "features": clean_for_json(features)
+                    "features": clean_for_json(features),
+                    "enmo_timeseries": enmo_data
                 })
         
         # Clean the summary dataframe

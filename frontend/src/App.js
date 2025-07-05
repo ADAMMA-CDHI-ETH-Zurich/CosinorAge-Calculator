@@ -49,7 +49,7 @@ import {
   Tooltip,
   Divider
 } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar, Area, AreaChart, ComposedChart } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar, Area, AreaChart, ComposedChart, PieChart, Pie, Cell } from 'recharts';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import UploadIcon from '@mui/icons-material/Upload';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -94,12 +94,14 @@ const MultiIndividualTab = () => {
   const [bulkZColumn, setBulkZColumn] = useState('');
   const [bulkColumnNames, setBulkColumnNames] = useState([]);
   const [bulkColumnSelectionComplete, setBulkColumnSelectionComplete] = useState(false);
+  const [bulkColumnSelectionManuallyCompleted, setBulkColumnSelectionManuallyCompleted] = useState(false);
   const [columnValidationResult, setColumnValidationResult] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [showFailedFilesDialog, setShowFailedFilesDialog] = useState(false);
   const [showProcessingFailuresDialog, setShowProcessingFailuresDialog] = useState(false);
   const [showUploadedFilesDialog, setShowUploadedFilesDialog] = useState(false);
   const [showFeatureDistributionsDialog, setShowFeatureDistributionsDialog] = useState(false);
+  const [showEnmoTimeseriesDialog, setShowEnmoTimeseriesDialog] = useState(false);
   const [bulkPreprocessParams, setBulkPreprocessParams] = useState({
     autocalib_sd_criter: 0.00013,
     autocalib_sphere_crit: 0.02,
@@ -335,6 +337,7 @@ const MultiIndividualTab = () => {
                 setBulkYColumn('');
                 setBulkZColumn('');
                 setBulkColumnSelectionComplete(false);
+                setBulkColumnSelectionManuallyCompleted(false);
                 setColumnValidationResult(null);
                 setFilePreview(null);
               } else {
@@ -356,6 +359,7 @@ const MultiIndividualTab = () => {
               setBulkYColumn('');
               setBulkZColumn('');
               setBulkColumnSelectionComplete(false);
+              setBulkColumnSelectionManuallyCompleted(false);
               setColumnValidationResult(null);
               setFilePreview(null);
             }
@@ -560,6 +564,7 @@ const MultiIndividualTab = () => {
     setBulkZColumn('');
     setBulkColumnNames([]);
     setBulkColumnSelectionComplete(false);
+    setBulkColumnSelectionManuallyCompleted(false);
     setColumnValidationResult(null);
     setFilePreview(null);
     setShowFailedFilesDialog(false);
@@ -596,7 +601,7 @@ const MultiIndividualTab = () => {
     <>
       {/* File Upload Section */}
       <Grid item xs={12}>
-        <Card sx={{ p: 3, mb: 3 }}>
+        <Paper sx={{ p: 3, mb: 3 }}>
                     <Typography variant="h6" gutterBottom>
             Upload Multiple CSV Files
           </Typography>
@@ -608,6 +613,9 @@ const MultiIndividualTab = () => {
             onDragOver={handleBulkDrag}
             onDrop={handleBulkDrop}
             sx={{
+              width: '300%',
+              maxWidth: '100%',
+              mx: 'auto',
               border: '2px dashed',
               borderColor: bulkDragActive ? 'primary.main' : 'grey.300',
               borderRadius: 2,
@@ -616,6 +624,7 @@ const MultiIndividualTab = () => {
               bgcolor: bulkDragActive ? 'primary.50' : 'background.paper',
               cursor: 'pointer',
               transition: 'all 0.2s ease-in-out',
+              position: 'relative',
               '&:hover': {
                 borderColor: 'primary.main',
                 bgcolor: 'primary.50'
@@ -770,6 +779,7 @@ const MultiIndividualTab = () => {
                         setBulkYColumn('');
                         setBulkZColumn('');
                         setBulkColumnSelectionComplete(false);
+                        setBulkColumnSelectionManuallyCompleted(false);
                         // Reset data unit if switching to ENMO and current unit is m/s²
                         if (e.target.value === 'enmo' && bulkDataUnit === 'm/s²') {
                           setBulkDataUnit('');
@@ -788,43 +798,39 @@ const MultiIndividualTab = () => {
                 <Grid item xs={12} md={4}>
                   <FormControl fullWidth>
                     <InputLabel>Data Unit</InputLabel>
-                    
-                    {/* Accelerometer Data Unit */}
-                    {bulkDataType === 'accelerometer' && (
-                      <Select
-                        value={bulkDataUnit}
-                        label="Data Unit"
-                        onChange={(e) => {
-                          setBulkDataUnit(e.target.value);
-                          // Update default column selections when data unit changes
-                          if (bulkColumnNames.length > 0) {
-                            setDefaultColumnSelections(bulkColumnNames);
-                          }
-                        }}
-                      >
+                    <Select
+                      value={bulkDataUnit}
+                      label="Data Unit"
+                      disabled={!bulkDataType}
+                      onChange={(e) => {
+                        setBulkDataUnit(e.target.value);
+                        // Update default column selections when data unit changes
+                        if (bulkColumnNames.length > 0) {
+                          setDefaultColumnSelections(bulkColumnNames);
+                        }
+                      }}
+                    >
+                      {!bulkDataType && (
+                        <MenuItem value="" disabled>
+                          Select Data Unit
+                        </MenuItem>
+                      )}
+                      {bulkDataType === 'accelerometer' && (
                         <MenuItem value="mg">mg</MenuItem>
+                      )}
+                      {bulkDataType === 'accelerometer' && (
                         <MenuItem value="g">g</MenuItem>
+                      )}
+                      {bulkDataType === 'accelerometer' && (
                         <MenuItem value="m/s²">m/s²</MenuItem>
-                      </Select>
-                    )}
-                    
-                    {/* ENMO Data Unit */}
-                    {bulkDataType === 'enmo' && (
-                      <Select
-                        value={bulkDataUnit}
-                        label="Data Unit"
-                        onChange={(e) => {
-                          setBulkDataUnit(e.target.value);
-                          // Update default column selections when data unit changes
-                          if (bulkColumnNames.length > 0) {
-                            setDefaultColumnSelections(bulkColumnNames);
-                          }
-                        }}
-                      >
+                      )}
+                      {bulkDataType === 'enmo' && (
                         <MenuItem value="mg">mg</MenuItem>
+                      )}
+                      {bulkDataType === 'enmo' && (
                         <MenuItem value="g">g</MenuItem>
-                      </Select>
-                    )}
+                      )}
+                    </Select>
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} md={4}>
@@ -833,6 +839,7 @@ const MultiIndividualTab = () => {
                     <Select
                       value={bulkTimestampFormat}
                       label="Timestamp Format"
+                      disabled={!bulkDataType || !bulkDataUnit}
                       onChange={(e) => {
                         setBulkTimestampFormat(e.target.value);
                         // Update default column selections when timestamp format changes
@@ -852,7 +859,7 @@ const MultiIndividualTab = () => {
           )}
 
           {/* Column Selection */}
-          {bulkColumnNames.length > 0 && bulkDataType && bulkDataUnit && bulkTimestampFormat && (
+          {bulkColumnNames.length > 0 && bulkDataType && bulkDataUnit && bulkTimestampFormat && !bulkColumnSelectionManuallyCompleted && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Column Selection
@@ -867,9 +874,13 @@ const MultiIndividualTab = () => {
                       onChange={(e) => {
                         setBulkTimeColumn(e.target.value);
                         if (bulkDataType === 'accelerometer') {
-                          setBulkColumnSelectionComplete(bulkXColumn !== '' && bulkYColumn !== '' && bulkZColumn !== '');
+                          const isComplete = bulkXColumn !== '' && bulkYColumn !== '' && bulkZColumn !== '';
+                          setBulkColumnSelectionComplete(isComplete);
+                          setBulkColumnSelectionManuallyCompleted(isComplete);
                         } else {
-                          setBulkColumnSelectionComplete(bulkDataColumns.length > 0);
+                          const isComplete = bulkDataColumns.length > 0;
+                          setBulkColumnSelectionComplete(isComplete);
+                          setBulkColumnSelectionManuallyCompleted(isComplete);
                         }
                       }}
                     >
@@ -891,7 +902,9 @@ const MultiIndividualTab = () => {
                           label="X Column"
                           onChange={(e) => {
                             setBulkXColumn(e.target.value);
-                            setBulkColumnSelectionComplete(bulkTimeColumn !== '' && bulkYColumn !== '' && bulkZColumn !== '');
+                            const isComplete = bulkTimeColumn !== '' && bulkYColumn !== '' && bulkZColumn !== '';
+                            setBulkColumnSelectionComplete(isComplete);
+                            setBulkColumnSelectionManuallyCompleted(isComplete);
                           }}
                         >
                           {bulkColumnNames.map((column) => (
@@ -910,7 +923,9 @@ const MultiIndividualTab = () => {
                           label="Y Column"
                           onChange={(e) => {
                             setBulkYColumn(e.target.value);
-                            setBulkColumnSelectionComplete(bulkTimeColumn !== '' && bulkXColumn !== '' && bulkZColumn !== '');
+                            const isComplete = bulkTimeColumn !== '' && bulkXColumn !== '' && bulkZColumn !== '';
+                            setBulkColumnSelectionComplete(isComplete);
+                            setBulkColumnSelectionManuallyCompleted(isComplete);
                           }}
                         >
                           {bulkColumnNames.map((column) => (
@@ -929,7 +944,9 @@ const MultiIndividualTab = () => {
                           label="Z Column"
                           onChange={(e) => {
                             setBulkZColumn(e.target.value);
-                            setBulkColumnSelectionComplete(bulkTimeColumn !== '' && bulkXColumn !== '' && bulkYColumn !== '');
+                            const isComplete = bulkTimeColumn !== '' && bulkXColumn !== '' && bulkYColumn !== '';
+                            setBulkColumnSelectionComplete(isComplete);
+                            setBulkColumnSelectionManuallyCompleted(isComplete);
                           }}
                         >
                           {bulkColumnNames.map((column) => (
@@ -951,7 +968,9 @@ const MultiIndividualTab = () => {
                         label="Data Columns"
                         onChange={(e) => {
                           setBulkDataColumns(e.target.value);
-                          setBulkColumnSelectionComplete(bulkTimeColumn !== '');
+                          const isComplete = bulkTimeColumn !== '' && e.target.value.length > 0;
+                          setBulkColumnSelectionComplete(isComplete);
+                          setBulkColumnSelectionManuallyCompleted(isComplete);
                         }}
                         renderValue={(selected) => selected.join(', ')}
                       >
@@ -968,8 +987,178 @@ const MultiIndividualTab = () => {
             </Box>
           )}
 
+          {/* Processing Parameters */}
+          {uploadedFiles.length > 0 && (bulkColumnSelectionManuallyCompleted || (bulkColumnNames.length > 0 && bulkDataType && bulkDataUnit && bulkTimestampFormat && bulkColumnSelectionComplete)) && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Parameter Selection
+              </Typography>
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Advanced Settings
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={3}>
+                    {/* Preprocessing Parameters */}
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Preprocessing Parameters
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Auto-calibration SD Criterion"
+                            type="text"
+                            value={bulkPreprocessParams.autocalib_sd_criter}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkPreprocessParamChange('autocalib_sd_criter', value);
+                              }
+                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Auto-calibration Sphere Criterion"
+                            type="text"
+                            value={bulkPreprocessParams.autocalib_sphere_crit}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkPreprocessParamChange('autocalib_sphere_crit', value);
+                              }
+                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Filter Cutoff"
+                            type="text"
+                            value={bulkPreprocessParams.filter_cutoff}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkPreprocessParamChange('filter_cutoff', value);
+                              }
+                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Required Daily Coverage"
+                            type="text"
+                            value={bulkPreprocessParams.required_daily_coverage}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkPreprocessParamChange('required_daily_coverage', value);
+                              }
+                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Grid>
+
+                    {/* Feature Parameters */}
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Feature Parameters
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                          <FormControl fullWidth>
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={bulkFeatureParams.sleep_rescore}
+                                  onChange={(e) => handleBulkFeatureParamChange('sleep_rescore', e.target.checked)}
+                                />
+                              }
+                              label="Sleep Rescore"
+                            />
+                          </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Sleep CK SF"
+                            type="text"
+                            value={bulkFeatureParams.sleep_ck_sf}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkFeatureParamChange('sleep_ck_sf', value);
+                              }
+                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="PA Cutpoint SL"
+                            type="text"
+                            value={bulkFeatureParams.pa_cutpoint_sl}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkFeatureParamChange('pa_cutpoint_sl', value);
+                              }
+                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="PA Cutpoint LM"
+                            type="text"
+                            value={bulkFeatureParams.pa_cutpoint_lm}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkFeatureParamChange('pa_cutpoint_lm', value);
+                              }
+                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="PA Cutpoint MV"
+                            type="text"
+                            value={bulkFeatureParams.pa_cutpoint_mv}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkFeatureParamChange('pa_cutpoint_mv', value);
+                              }
+                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+            </Box>
+          )}
+
           {/* Process and Reset Buttons */}
-          {uploadedFiles.length > 0 && (
+          {uploadedFiles.length > 0 && (bulkColumnSelectionManuallyCompleted || (bulkColumnNames.length > 0 && bulkDataType && bulkDataUnit && bulkTimestampFormat && bulkColumnSelectionComplete)) && (
             <Box sx={{ mt: 3, textAlign: 'center', display: 'flex', gap: 2, justifyContent: 'center' }}>
               <Button
                 variant="contained"
@@ -993,148 +1182,16 @@ const MultiIndividualTab = () => {
               </Button>
             </Box>
           )}
-        </Card>
+
+        </Paper>
       </Grid>
 
-      {/* Processing Parameters */}
-      {uploadedFiles.length > 0 && (
-        <Grid item xs={12}>
-          <Card sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Processing Parameters
-            </Typography>
-            <Grid container spacing={3}>
-              {/* Preprocessing Parameters */}
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Preprocessing Parameters
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Auto-calibration SD Criterion"
-                      type="text"
-                      value={bulkPreprocessParams.autocalib_sd_criter}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/,/g, '.');
-                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                          handleBulkPreprocessParamChange('autocalib_sd_criter', value);
-                        }
-                      }}
-                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Auto-calibration Sphere Criterion"
-                      type="text"
-                      value={bulkPreprocessParams.autocalib_sphere_crit}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/,/g, '.');
-                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                          handleBulkPreprocessParamChange('autocalib_sphere_crit', value);
-                        }
-                      }}
-                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Filter Cutoff"
-                      type="text"
-                      value={bulkPreprocessParams.filter_cutoff}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/,/g, '.');
-                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                          handleBulkPreprocessParamChange('filter_cutoff', value);
-                        }
-                      }}
-                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Required Daily Coverage"
-                      type="text"
-                      value={bulkPreprocessParams.required_daily_coverage}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/,/g, '.');
-                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                          handleBulkPreprocessParamChange('required_daily_coverage', value);
-                        }
-                      }}
-                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                    />
-                  </Grid>
-                </Grid>
-              </Grid>
-
-              {/* Feature Parameters */}
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Feature Parameters
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <FormControl fullWidth>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={bulkFeatureParams.sleep_rescore}
-                            onChange={(e) => handleBulkFeatureParamChange('sleep_rescore', e.target.checked)}
-                          />
-                        }
-                        label="Sleep Rescore"
-                      />
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Sleep CK SF"
-                      type="text"
-                      value={bulkFeatureParams.sleep_ck_sf}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/,/g, '.');
-                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                          handleBulkFeatureParamChange('sleep_ck_sf', value);
-                        }
-                      }}
-                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="PA Cutpoint SL"
-                      type="text"
-                      value={bulkFeatureParams.pa_cutpoint_sl}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/,/g, '.');
-                        if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                          handleBulkFeatureParamChange('pa_cutpoint_sl', value);
-                        }
-                      }}
-                      inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                    />
-                  </Grid>
-                </Grid>
-              </Grid>
-            </Grid>
-          </Card>
-        </Grid>
-      )}
-
-      {/* Results Section */}
+      {/* Processing Complete Summary */}
       {bulkData && (
         <Grid item xs={12}>
-          <Card sx={{ p: 3 }}>
+          <Paper sx={{ p: 3, bgcolor: '#e8f5e8', border: '1px solid #4caf50' }}>
             {/* Processing Summary */}
-            <Box sx={{ mb: 3, p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
+            <Box sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom color="success.dark">
                 Processing Complete
               </Typography>
@@ -1192,7 +1249,14 @@ const MultiIndividualTab = () => {
                 )}
               </Box>
             </Box>
+          </Paper>
+        </Grid>
+      )}
 
+      {/* Results Section */}
+      {bulkData && (
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
               Distribution Statistics
             </Typography>
@@ -1204,15 +1268,26 @@ const MultiIndividualTab = () => {
                   <Typography variant="subtitle1">
                     Feature Summary
                   </Typography>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<BarChartIcon />}
-                    onClick={() => setShowFeatureDistributionsDialog(true)}
-                    size="small"
-                  >
-                    Feature Distributions
-                  </Button>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<BarChartIcon />}
+                      onClick={() => setShowFeatureDistributionsDialog(true)}
+                      size="small"
+                    >
+                      Feature Distributions
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      startIcon={<ShowChartIcon />}
+                      onClick={() => setShowEnmoTimeseriesDialog(true)}
+                      size="small"
+                    >
+                      ENMO Timeseries
+                    </Button>
+                  </Box>
                 </Box>
                 <Box sx={{ overflowX: 'auto' }}>
                   <TableContainer component={Paper}>
@@ -1450,7 +1525,7 @@ const MultiIndividualTab = () => {
                                       <Box sx={{ pl: 2 }}>
                                         {Object.entries(features).map(([key, value]) => (
                                           <Typography key={key} variant="body2">
-                                            {key}: {typeof value === 'number' ? value.toFixed(4) : value}
+                                            {key}: {Array.isArray(value) ? value.join(', ') : (typeof value === 'number' ? value.toFixed(4) : String(value))}
                                           </Typography>
                                         ))}
                                       </Box>
@@ -1467,7 +1542,7 @@ const MultiIndividualTab = () => {
                 </Accordion>
               </Box>
             )}
-          </Card>
+          </Paper>
         </Grid>
       )}
 
@@ -1994,6 +2069,138 @@ const MultiIndividualTab = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* ENMO Timeseries Dialog */}
+      <Dialog
+        open={showEnmoTimeseriesDialog}
+        onClose={() => setShowEnmoTimeseriesDialog(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ShowChartIcon color="secondary" />
+            ENMO Timeseries
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            ENMO timeseries of {bulkData && bulkData.individual_results ? bulkData.individual_results.filter(result => result.enmo_timeseries && Array.isArray(result.enmo_timeseries) && result.enmo_timeseries.length > 0).length : 0} processed files shown below:
+          </Typography>
+          
+          {bulkData && bulkData.individual_results && bulkData.individual_results.length > 0 && (
+            <Box>
+              <Grid container spacing={3}>
+                {bulkData.individual_results.map((result, index) => {
+                  // Access ENMO data from the backend response
+                  const enmoData = result.enmo_timeseries;
+                  
+                  if (!enmoData || !Array.isArray(enmoData) || enmoData.length === 0) {
+                    return null;
+                  }
+
+                  // Prepare data for plotting with timestamps
+                  const plotData = enmoData.map((item, i) => ({
+                    timestamp: new Date(item.timestamp).getTime(),
+                    enmo: item.enmo,
+                    timeLabel: new Date(item.timestamp).toLocaleDateString() + ' ' + new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  }));
+
+                  return (
+                    <Grid item xs={12} md={6} key={index}>
+                      <Card variant="outlined" sx={{ p: 2 }}>
+                        <Typography variant="h6" gutterBottom>
+                          {result.filename || `File ${index + 1}`}
+                        </Typography>
+
+                        <Box sx={{ width: '100%', height: 200 }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={plotData} margin={{ top: 20, right: 30, left: 40, bottom: 40 }}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis 
+                                dataKey="timestamp" 
+                                type="number"
+                                domain={['dataMin', 'dataMax']}
+                                tickFormatter={(timestamp) => {
+                                  const date = new Date(timestamp);
+                                  return date.toLocaleDateString();
+                                }}
+                                ticks={(() => {
+                                  // Get unique dates for tick positions
+                                  const uniqueDates = [...new Set(plotData.map(item => {
+                                    const date = new Date(item.timestamp);
+                                    return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+                                  }))];
+                                  return uniqueDates.sort((a, b) => a - b);
+                                })()}
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                              />
+                              <YAxis 
+                                label={{ 
+                                  value: 'mg', 
+                                  angle: -90, 
+                                  position: 'insideLeft',
+                                  offset: 20
+                                }} 
+                              />
+                              <RechartsTooltip 
+                                content={({ active, payload, label }) => {
+                                  if (active && payload && payload.length) {
+                                    const date = new Date(label);
+                                    return (
+                                      <div style={{ 
+                                        backgroundColor: 'white', 
+                                        padding: '10px', 
+                                        border: '1px solid #ccc',
+                                        borderRadius: '4px'
+                                      }}>
+                                        <p style={{ margin: '0 0 5px 0' }}>Time: {date.toLocaleString()}</p>
+                                        <p style={{ margin: '0' }}>ENMO: {payload[0].value?.toFixed(4)} mg</p>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                }}
+                              />
+                              <Line 
+                                type="monotone" 
+                                dataKey="enmo" 
+                                stroke="#8884d8" 
+                                strokeWidth={1}
+                                dot={false}
+                                connectNulls={false}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </Box>
+                      </Card>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+              
+              {bulkData.individual_results.every(result => {
+                // Check for ENMO data in the backend response
+                const enmoData = result.enmo_timeseries;
+                return !enmoData || !Array.isArray(enmoData) || enmoData.length === 0;
+              }) && (
+                <Alert severity="info">
+                  <Typography variant="body2">
+                    No ENMO timeseries data found in the processed files. This may occur if the data was not processed with ENMO calculation enabled.
+                  </Typography>
+                </Alert>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowEnmoTimeseriesDialog(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
@@ -2128,7 +2335,7 @@ const metricDescriptions = {
   },
   sri: {
     title: 'Sleep Regularity Index (SRI)',
-    description: 'A measure of the consistency of sleep/wake patterns across days. Ranges from 0 (irregular) to 1 (perfectly regular).'
+    description: 'A measure of the consistency of sleep/wake patterns across days. Ranges from -100 (irregular) to 100 (perfectly regular).'
   },
   m10: {
     title: 'L5 & M10',
@@ -2469,6 +2676,23 @@ function App() {
     console.log('dataUnit state when dataType changes:', dataUnit);
   }, [dataType, dataUnit]);
 
+  // Check if column selection is complete
+  useEffect(() => {
+    if (showColumnSelection && data?.file_id) {
+      const isComplete = (
+        (fileType === 'csv' && selectedTimeColumn && selectedDataColumns.length > 0) ||
+        (fileType !== 'csv')
+      ) && timestampFormat && 
+      (dataType === 'alternative_count' || dataUnit || dataType.includes('-'));
+      
+      if (isComplete && !columnSelectionComplete) {
+        setColumnSelectionComplete(true);
+        // Automatically trigger column selection
+        setTimeout(() => handleColumnSelection(), 100);
+      }
+    }
+  }, [showColumnSelection, data?.file_id, fileType, selectedTimeColumn, selectedDataColumns, timestampFormat, dataType, dataUnit, columnSelectionComplete]);
+
 
 
   // Prevent unnecessary re-renders on initial load
@@ -2659,7 +2883,6 @@ function App() {
       }
 
       setColumnSelectionComplete(true);
-      setShowColumnSelection(false);
       setSuccess('Column selections updated successfully. Click "Process Data" to continue.');
     } catch (err) {
       setError(err.message);
@@ -3012,6 +3235,13 @@ function App() {
       pa_cutpoint_lm: 35,
       pa_cutpoint_mv: 70
     });
+    // Reset column selection state
+    setShowColumnSelection(false);
+    setColumnSelectionComplete(false);
+    setSelectedTimeColumn('');
+    setSelectedDataColumns([]);
+    setCsvColumns([]);
+    setCsvPreview([]);
   };
 
   // Scroll to top when changing tabs
@@ -3390,279 +3620,192 @@ pip install -e .`}
           {currentTab === 1 && <EnhancedDocumentationTab />}
 
           {currentTab === 2 && (
-            <Grid container spacing={3}>
+            <>
               {/* Lab Subtabs */}
-              <Grid item xs={12}>
-                <Box sx={{ 
-                  borderBottom: 1, 
-                  borderColor: 'divider', 
-                  mb: 3
-                }}>
-                  <Tabs
-                    value={labSubTab}
-                    onChange={handleLabSubTabChange}
-                    sx={{
-                      '& .MuiTabs-flexContainer': {
-                        justifyContent: 'center',
-                      },
-                      '& .MuiTab-root': {
-                        textTransform: 'none',
-                        fontSize: '1rem',
-                        fontWeight: 500,
-                        width: '50%', // 50% width each
-                        maxWidth: '50%',
-                        flex: 1,
-                      },
-                      '& .MuiTabs-indicator': {
-                        backgroundColor: 'primary.main',
-                        height: 3,
-                      }
-                    }}
-                  >
-                    <Tab label="Single Individual" value="single" />
-                    <Tab label="Multi Individual" value="multi" />
-                  </Tabs>
-                </Box>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Box sx={{ 
+                    borderBottom: 1, 
+                    borderColor: 'divider', 
+                    mb: 3
+                  }}>
+                    <Tabs
+                      value={labSubTab}
+                      onChange={handleLabSubTabChange}
+                      sx={{
+                        '& .MuiTabs-flexContainer': {
+                          justifyContent: 'center',
+                        },
+                        '& .MuiTab-root': {
+                          textTransform: 'none',
+                          fontSize: '1rem',
+                          fontWeight: 500,
+                          width: '50%', // 50% width each
+                          maxWidth: '50%',
+                          flex: 1,
+                        },
+                        '& .MuiTabs-indicator': {
+                          backgroundColor: 'primary.main',
+                          height: 3,
+                        }
+                      }}
+                    >
+                      <Tab label="Single Individual" value="single" />
+                      <Tab label="Multi Individual" value="multi" />
+                    </Tabs>
+                  </Box>
+                </Grid>
               </Grid>
 
-              {/* Single Individual Tab Content */}
-              {labSubTab === 'single' && (
-                <>
-                  <Grid item xs={12}>
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-                      {/* Getting Started Button - only show when no file is uploaded */}
-                      {!data?.file_id && (
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => setGettingStartedOpen(true)}
-                          startIcon={<InfoIcon />}
-                          sx={{ 
-                            borderRadius: 2,
-                            px: 4,
-                            py: 1.5,
-                            fontSize: '1.1rem',
-                            fontWeight: 600,
-                            textTransform: 'none',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            '&:hover': {
-                              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
-                            },
-                          }}
-                        >
-                          Getting Started
-                        </Button>
-                      )}
-                    </Box>
-                                    </Grid>
-                  <Grid item xs={12}>
-                    <Paper
-                      elevation={3}
-                      sx={{
-                        p: 3,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
-                        alignItems: 'center',
-                        border: dragActive ? '2px dashed #2196f3' : 'none',
-                        background: dragActive ? 'rgba(33,150,243,0.05)' : undefined,
-                        position: 'relative',
-                      }}
-                      onDragEnter={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrag : undefined}
-                      onDragOver={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrag : undefined}
-                      onDragLeave={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrag : undefined}
-                      onDrop={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrop : undefined}
-                    >
-                      <Typography variant="h6" gutterBottom>
-                        Select Data & File Format
-                      </Typography>
-                      <Grid container spacing={2} sx={{ mb: 2 }}>
-                        <Grid item xs={4}>
-                          <FormControl fullWidth>
-                            <InputLabel id="data-source-label">Data Source</InputLabel>
-                            <Select
-                              labelId="data-source-label"
-                              value={dataSource}
-                              label="Data Source"
-                              onChange={(e) => {
-                                setDataSource(e.target.value);
-                                setFileType('');
-                                setDataType('');
-                              }}
-                              sx={{ minWidth: 120 }}
-                              disabled={!!data?.file_id}
-                            >
-                              <MenuItem value="samsung_galaxy">Samsung Galaxy Smartwatch</MenuItem>
-                              <MenuItem value="other">Other</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={4}>
-                          <FormControl fullWidth>
-                            <InputLabel id="file-type-label">File Type</InputLabel>
-                            <Select
-                              labelId="file-type-label"
-                              value={fileType}
-                              label="File Type"
-                              onChange={(e) => setFileType(e.target.value)}
-                              sx={{ minWidth: 120 }}
-                              disabled={!!data?.file_id || dataSource === 'other' || !dataSource}
-                            >
-                              <MenuItem value="binary">Binary (Zipped)</MenuItem>
-                              <MenuItem value="csv">CSV</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={4}>
-                          <FormControl fullWidth disabled={dataSource !== 'other'}>
-                            <InputLabel id="data-type-label">Data Type</InputLabel>
-                            <Select
-                              labelId="data-type-label"
-                              value={dataType}
-                              label="Data Type"
-                              onChange={(e) => setDataType(e.target.value)}
-                              sx={{ minWidth: 120 }}
-                            >
-                              <MenuItem value="accelerometer">Accelerometer</MenuItem>
-                              <MenuItem value="enmo">ENMO</MenuItem>
-                              <MenuItem value="alternative_count">Alternative Count</MenuItem>
-                              {dataSource !== 'other' && (
-                                <>
-                                  <MenuItem value="raw">Raw</MenuItem>
-                                </>
-                              )}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                      </Grid>
-                      
 
-                      
-                      {((dataSource && fileType && dataType) || (dataSource === 'other' && fileType === 'csv' && dataType)) && (
-                        <>
-                          {/* File Upload Button - moved above disclaimers */}
+
+              <Grid container spacing={3}>
+                {/* Single Individual Tab Content */}
+                {labSubTab === 'single' && (
+                  <>
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                        {/* Getting Started Button - only show when no file is uploaded */}
+                        {!data?.file_id && (
                           <Button
                             variant="contained"
-                            component="label"
-                            startIcon={<UploadIcon />}
+                            color="primary"
+                            onClick={() => setGettingStartedOpen(true)}
+                            startIcon={<InfoIcon />}
                             sx={{ 
-                              minWidth: 200,
-                              py: 1,
-                              px: 3,
                               borderRadius: 2,
-                              position: 'relative'
+                              px: 4,
+                              py: 1.5,
+                              fontSize: '1.1rem',
+                              fontWeight: 600,
+                              textTransform: 'none',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                              '&:hover': {
+                                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+                              },
                             }}
-                            disabled={!!data?.file_id || !dataSource || !fileType || (dataSource === 'other' && (!genericDataType || !genericTimeFormat || !genericTimeColumn || !genericDataColumns))}
-                            onClick={() => { console.log('Upload File button pressed'); }}
                           >
-                            Upload File
-                            <input
-                              type="file"
-                              hidden
-                              accept={fileType === 'binary' ? '.zip' : '.csv'}
-                              onChange={handleFileUpload}
-                              ref={fileInputRef}
-                              disabled={!dataSource || !fileType}
-                            />
+                            Getting Started
                           </Button>
-
-                          {/* Explanation for Binary Zipped format */}
-                          {fileType === 'binary' && (
-                            <Box sx={{ 
-                              mt: 2, 
-                              mb: 3, 
-                              p: 3, 
-                              bgcolor: 'background.paper', 
-                              borderRadius: 2, 
-                              border: '1px solid',
-                              borderColor: 'primary.light',
-                              maxWidth: 600,
-                              mx: 'auto'
-                            }}>
-                              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
-                                Data Format Requirements
-                              </Typography>
-                              <Typography variant="body2" paragraph sx={{ mb: 2 }}>
-                                The uploaded ZIP file is expected to follow a specific structure: it should contain a single top-level parent directory, within which there are subdirectories organized by day. These daily subdirectories must contain binary files. This layout corresponds to the default export format (see example below).
-                              </Typography>
-                                                      <Box sx={{ 
-                              display: 'flex', 
-                              justifyContent: 'center', 
-                              mt: 2,
-                              p: 2,
-                              bgcolor: 'grey.50',
-                              borderRadius: 1
-                            }}>
-                                <img 
-                                  src={SGSBinaryZippedExample} 
-                                  alt="Samsung Galaxy Smartwatch Binary Zipped Data Structure Example" 
-                                  style={{ 
-                                    maxWidth: '100%', 
-                                    height: 'auto',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                                  }} 
-                                />
-                              </Box>
-                              <Typography variant="body2" paragraph sx={{ mb: 2 }}>
-                                Each binary file is expected to contain raw accelerometer data in a 4-column format: <strong>'unix_timestamp_in_ms'</strong>, <strong>'acceleration_x'</strong>, <strong>'acceleration_y'</strong>, and <strong>'acceleration_z'</strong>.
-                              </Typography>
-
-                            </Box>
-                          )}
-
-                          {/* Explanation for CSV format */}
-                          {fileType === 'csv' && dataSource === 'samsung_galaxy' && (
-                            <Box sx={{ 
-                              mt: 2, 
-                              mb: 3, 
-                              p: 3, 
-                              bgcolor: 'background.paper', 
-                              borderRadius: 2, 
-                              border: '1px solid',
-                              borderColor: 'primary.light',
-                              maxWidth: 600,
-                              mx: 'auto'
-                            }}>
-                              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
-                                Data Format Requirements
-                              </Typography>
-                              <Typography variant="body2" paragraph sx={{ mb: 2 }}>
-                                {dataType === 'accelerometer' && (
-                                  <span dangerouslySetInnerHTML={{
-                                    __html: "The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in g-force units (typically ranging from -2g to +2g)."
-                                  }} />
+                        )}
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Paper
+                        elevation={3}
+                        sx={{
+                          p: 3,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 2,
+                          alignItems: 'center',
+                          border: dragActive ? '2px dashed #2196f3' : 'none',
+                          background: dragActive ? 'rgba(33,150,243,0.05)' : undefined,
+                          position: 'relative',
+                        }}
+                        onDragEnter={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrag : undefined}
+                        onDragOver={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrag : undefined}
+                        onDragLeave={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrag : undefined}
+                        onDrop={(dataSource && (dataSource !== 'other' || dataType)) ? handleDrop : undefined}
+                      >
+                        <Typography variant="h6" gutterBottom sx={{ textAlign: 'left', width: '100%' }}>
+                          Data Upload
+                        </Typography>
+                        <Grid container spacing={2} sx={{ mb: 2 }}>
+                          <Grid item xs={4}>
+                            <FormControl fullWidth>
+                              <InputLabel id="data-source-label">Data Source</InputLabel>
+                              <Select
+                                labelId="data-source-label"
+                                value={dataSource}
+                                label="Data Source"
+                                onChange={(e) => {
+                                  setDataSource(e.target.value);
+                                  setFileType('');
+                                  setDataType('');
+                                }}
+                                sx={{ minWidth: 120 }}
+                                disabled={!!data?.file_id}
+                              >
+                                <MenuItem value="samsung_galaxy">Samsung Galaxy Smartwatch</MenuItem>
+                                <MenuItem value="other">Other</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={4}>
+                            <FormControl fullWidth>
+                              <InputLabel id="file-type-label">File Type</InputLabel>
+                              <Select
+                                labelId="file-type-label"
+                                value={fileType}
+                                label="File Type"
+                                onChange={(e) => setFileType(e.target.value)}
+                                sx={{ minWidth: 120 }}
+                                disabled={!!data?.file_id || dataSource === 'other' || !dataSource}
+                              >
+                                <MenuItem value="binary">Binary (Zipped)</MenuItem>
+                                <MenuItem value="csv">CSV</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={4}>
+                            <FormControl fullWidth disabled={dataSource !== 'other'}>
+                              <InputLabel id="data-type-label">Data Type</InputLabel>
+                              <Select
+                                labelId="data-type-label"
+                                value={dataType}
+                                label="Data Type"
+                                onChange={(e) => setDataType(e.target.value)}
+                                sx={{ minWidth: 120 }}
+                              >
+                                <MenuItem value="accelerometer">Accelerometer</MenuItem>
+                                <MenuItem value="enmo">ENMO</MenuItem>
+                                <MenuItem value="alternative_count">Alternative Count</MenuItem>
+                                {dataSource !== 'other' && (
+                                  <>
+                                    <MenuItem value="raw">Raw</MenuItem>
+                                  </>
                                 )}
-                                {dataType === 'enmo' && (
-                                  <span dangerouslySetInnerHTML={{
-                                    __html: "The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in milligravitational (mg) units, representing the magnitude of acceleration minus 1g."
-                                  }} />
-                                )}
-                                {dataType === 'alternative_counts' && (
-                                  <span dangerouslySetInnerHTML={{
-                                    __html: "The uploaded CSV file must contain alternative count data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'count'</strong>. Count values should represent activity counts or step counts over the specified time intervals."
-                                  }} />
-                                )}
-                                {!dataType && (
-                                  <span dangerouslySetInnerHTML={{
-                                    __html: "The uploaded CSV file must contain time series data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>. Please select a data type above to see specific requirements."
-                                  }} />
-                                )}
-                              </Typography>
-                              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                                <img 
-                                  src={SGSCSVExample} 
-                                  alt="Samsung Galaxy Smartwatch CSV ENMO Data Structure Example" 
-                                  style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} 
-                                />
-                              </Box>
-                            </Box>
-                          )}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                        </Grid>
+                        
 
-                          {/* Disclaimers for Other data source */}
-                          {dataSource === 'other' && (
-                            <>
-                              {/* Validation Notice in Red Box */}
+                        
+                        {((dataSource && fileType && dataType) || (dataSource === 'other' && fileType === 'csv' && dataType)) && (
+                          <>
+                            {/* Data Format Requirements for binary */}
+                            {fileType === 'binary' && dataSource === 'samsung_galaxy' && (
+                               <Box sx={{ 
+                                 mt: 2, 
+                                 mb: 3, 
+                                 p: 3, 
+                                 bgcolor: 'background.paper', 
+                                 borderRadius: 2, 
+                                 border: '1px solid',
+                                 borderColor: 'primary.light',
+                                 maxWidth: 1200,
+                                 mx: 'auto'
+                               }}>
+                                 <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
+                                   Data Format Requirements
+                                 </Typography>
+                                 <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                                   The uploaded ZIP file is expected to follow a specific structure: it should contain a single top-level parent directory, within which there are subdirectories organized by day. These daily subdirectories must contain binary files. This layout corresponds to the default export format (see example below).
+                                 </Typography>
+                                 <Box sx={{ display: 'flex', justifyContent: 'center', width: '50%', mx: 'auto', mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                                   <img 
+                                     src={SGSBinaryZippedExample} 
+                                     alt="Samsung Galaxy Smartwatch Binary Zipped Data Structure Example" 
+                                     style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} 
+                                   />
+                                 </Box>
+                               </Box>
+                             )}
+
+                            {/* Data Format Requirements for CSV format */}
+                            {fileType === 'csv' && dataSource === 'samsung_galaxy' && (
                               <Box sx={{ 
                                 mt: 2, 
                                 mb: 3, 
@@ -3670,23 +3813,49 @@ pip install -e .`}
                                 bgcolor: 'background.paper', 
                                 borderRadius: 2, 
                                 border: '1px solid',
-                                borderColor: 'error.main',
-                                maxWidth: 600,
+                                borderColor: 'primary.light',
+                                maxWidth: 1200,
                                 mx: 'auto'
                               }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                  <WarningIcon sx={{ color: 'error.main' }} />
-                                  <Typography variant="h6" sx={{ color: 'error.main', fontWeight: 600 }}>
-                                    Validation Notice
-                                  </Typography>
-                                </Box>
-                                <Typography variant="body2" paragraph sx={{ mb: 2 }}>
-                                  The data preprocessing and biological age estimation pipeline has been validated using data (raw accelerometer and/or ENMO data) from the UK Biobank, NHANES, and Samsung Galaxy Watch. Results from other devices may vary in accuracy.
+                                <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
+                                  Data Format Requirements
                                 </Typography>
+                                <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                                  {dataType === 'accelerometer' && (
+                                    <span dangerouslySetInnerHTML={{
+                                      __html: "The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in g-force units (typically ranging from -2g to +2g)."
+                                    }} />
+                                  )}
+                                  {dataType === 'enmo' && (
+                                    <span dangerouslySetInnerHTML={{
+                                      __html: "The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in milligravitational (mg) units, representing the magnitude of acceleration minus 1g."
+                                    }} />
+                                  )}
+                                  {dataType === 'alternative_counts' && (
+                                    <span dangerouslySetInnerHTML={{
+                                      __html: "The uploaded CSV file must contain alternative count data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'count'</strong>. Count values should represent activity counts or step counts over the specified time intervals."
+                                    }} />
+                                  )}
+                                  {!dataType && (
+                                    <span dangerouslySetInnerHTML={{
+                                      __html: "The uploaded CSV file must contain time series data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>. Please select a data type above to see specific requirements."
+                                    }} />
+                                  )}
+                                </Typography>
+                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                                  <img 
+                                    src={SGSCSVExample} 
+                                    alt="Samsung Galaxy Smartwatch CSV ENMO Data Structure Example" 
+                                    style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} 
+                                  />
+                                </Box>
                               </Box>
+                            )}
 
-                              {/* Data Format Requirements in Blue Box */}
-                              {dataType !== 'alternative_count' && (
+                            {/* Disclaimers for Other data source */}
+                            {dataSource === 'other' && (
+                              <>
+                                {/* Validation Notice in Red Box */}
                                 <Box sx={{ 
                                   mt: 2, 
                                   mb: 3, 
@@ -3694,1614 +3863,1871 @@ pip install -e .`}
                                   bgcolor: 'background.paper', 
                                   borderRadius: 2, 
                                   border: '1px solid',
-                                  borderColor: 'primary.main',
-                                  maxWidth: 600,
+                                  borderColor: 'error.main',
+                                  maxWidth: 1200,
                                   mx: 'auto'
                                 }}>
-                                  <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
-                                    Data Format Requirements
-                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                    <WarningIcon sx={{ color: 'error.main' }} />
+                                    <Typography variant="h6" sx={{ color: 'error.main', fontWeight: 600 }}>
+                                      Validation Notice
+                                    </Typography>
+                                  </Box>
                                   <Typography variant="body2" paragraph sx={{ mb: 2 }}>
-                                    {dataType === 'accelerometer' && (
-                                      <span dangerouslySetInnerHTML={{
-                                        __html: `The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in ${dataUnit} units. The timestamp column should be in ${timestampFormat === 'unix-ms' ? 'Unix milliseconds' : timestampFormat === 'unix-s' ? 'Unix seconds' : 'datetime'} format.`
-                                      }} />
-                                    )}
-                                    {dataType === 'enmo' && (
-                                      <span dangerouslySetInnerHTML={{
-                    __html: `The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in ${dataUnit} units, representing the magnitude of acceleration minus 1g. The timestamp column should be in ${timestampFormat === 'unix-ms' ? 'Unix milliseconds' : timestampFormat === 'unix-s' ? 'Unix seconds' : 'datetime'} format.`
-                  }} />
-                                    )}
+                                    The data preprocessing and biological age estimation pipeline has been validated using data (raw accelerometer and/or ENMO data) from the UK Biobank, NHANES, and Samsung Galaxy Watch. Results from other devices may vary in accuracy.
+                                  </Typography>
+                                </Box>
 
-                                    {!dataType && (
-                                      <span dangerouslySetInnerHTML={{
-                                        __html: "The uploaded CSV file must contain time series data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>. Please select a data type above to see specific requirements."
-                                      }} />
-                                    )}
+                                {/* Data Format Requirements in Blue Box */}
+                                {dataType !== 'alternative_count' && (
+                                  <Box sx={{ 
+                                    mt: 2, 
+                                    mb: 3, 
+                                    p: 3, 
+                                    bgcolor: 'background.paper', 
+                                    borderRadius: 2, 
+                                    border: '1px solid',
+                                    borderColor: 'primary.main',
+                                    maxWidth: 1200,
+                                    mx: 'auto'
+                                  }}>
+                                    <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', fontWeight: 600 }}>
+                                      Data Format Requirements
+                                    </Typography>
+                                    <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                                      {dataType === 'accelerometer' && (
+                                        <span dangerouslySetInnerHTML={{
+                                          __html: `The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in ${dataUnit} units. The timestamp column should be in ${timestampFormat === 'unix-ms' ? 'Unix milliseconds' : timestampFormat === 'unix-s' ? 'Unix seconds' : 'datetime'} format.`
+                                        }} />
+                                      )}
+                                      {dataType === 'enmo' && (
+                                        <span dangerouslySetInnerHTML={{
+                                          __html: `The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in ${dataUnit} units, representing the magnitude of acceleration minus 1g. The timestamp column should be in ${timestampFormat === 'unix-ms' ? 'Unix milliseconds' : timestampFormat === 'unix-s' ? 'Unix seconds' : 'datetime'} format.`
+                                        }} />
+                                      )}
+
+                                      {!dataType && (
+                                        <span dangerouslySetInnerHTML={{
+                                          __html: "The uploaded CSV file must contain time series data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>. Please select a data type above to see specific requirements."
+                                        }} />
+                                      )}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </>
+                            )}
+
+                            {/* File Upload Drop Zone - now appears after Data Format Requirements */}
+                            <Box
+                              onDragEnter={handleDrag}
+                              onDragLeave={handleDrag}
+                              onDragOver={handleDrag}
+                              onDrop={handleDrop}
+                              sx={{
+                                width: '300%',
+                                maxWidth: '100%',
+                                mx: 'auto',
+                                border: '2px dashed',
+                                borderColor: dragActive ? 'primary.main' : 'grey.300',
+                                borderRadius: 2,
+                                p: 4,
+                                textAlign: 'center',
+                                bgcolor: dragActive ? 'primary.50' : 'background.paper',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                position: 'relative',
+                                '&:hover': {
+                                  borderColor: 'primary.main',
+                                  bgcolor: 'primary.50'
+                                }
+                              }}
+                              onClick={() => fileInputRef.current?.click()}
+                            >
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept={fileType === 'binary' ? '.zip' : '.csv'}
+                                onChange={handleFileUpload}
+                                style={{ display: 'none' }}
+                                disabled={!dataSource || !fileType}
+                              />
+                              <UploadIcon sx={{ fontSize: 48, color: 'grey.500', mb: 2 }} />
+                              <Typography variant="h6" gutterBottom>
+                                Drop file here or click to select
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {fileType === 'binary' ? 'Upload a zipped binary file' : 'Upload a CSV file'}
+                              </Typography>
+                              {dragActive && (
+                                <Box
+                                  sx={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    zIndex: 10,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#2196f3',
+                                    fontSize: 24,
+                                    pointerEvents: 'none',
+                                    background: 'rgba(255,255,255,0.5)'
+                                  }}
+                                >
+                                  Drop file to upload
+                                </Box>
+                              )}
+                            </Box>
+                          </>
+                        )}
+                        {uploadProgress > 0 && uploadProgress < 100 && (
+                          <Box sx={{ width: '100%', mt: 2 }}>
+                            <LinearProgress variant="determinate" value={uploadProgress} />
+                            <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+                              Uploading: {Math.round(uploadProgress)}%
+                            </Typography>
+                          </Box>
+                        )}
+                        {data?.file_id && (
+                          <Typography 
+                            variant="body2" 
+                            color="success.main" 
+                            sx={{ 
+                              mt: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1
+                            }}
+                          >
+                            <CheckCircleIcon fontSize="small" />
+                            Successfully uploaded: {data.filename}
+                          </Typography>
+                        )}
+                        {dragActive && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              zIndex: 10,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#2196f3',
+                              fontSize: 24,
+                              pointerEvents: 'none',
+                              background: 'rgba(255,255,255,0.5)'
+                            }}
+                          >
+                            Drop file to upload
+                          </Box>
+                        )}
+                      </Paper>
+                    </Grid>
+  
+                    {/* CSV Column Configuration and Processing Parameters */}
+                    {data?.file_id && (
+                      <Grid item xs={12}>
+                        <Paper sx={{ p: 3, mb: 3 }}>
+                          {/* CSV Column Configuration Section */}
+                          {showColumnSelection && fileType === 'csv' && (
+                            <>
+                              <Typography variant="h6" gutterBottom sx={{ textAlign: 'left', width: '100%' }}>
+                                CSV Column Configuration
+                              </Typography>
+                              <Typography variant="body1" paragraph sx={{ textAlign: 'left', width: '100%' }}>
+                                Please select the appropriate column names from your CSV file for the {dataType} data type.
+                              </Typography>
+                              
+                              {/* CSV Preview Section */}
+                              {fileType === 'csv' && csvPreview.length > 0 && (
+                                <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1, border: '1px solid', borderColor: 'grey.300' }}>
+                                  <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
+                                    CSV Preview (First 2 rows including header):
+                                  </Typography>
+                                  <Box sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+                                    <table style={{ 
+                                      width: '100%', 
+                                      borderCollapse: 'collapse', 
+                                      fontSize: '0.875rem',
+                                      fontFamily: 'monospace'
+                                    }}>
+                                      <thead>
+                                        <tr>
+                                          {csvColumns.map((column, index) => (
+                                            <th key={index} style={{ 
+                                              border: '1px solid #ccc', 
+                                              padding: '8px', 
+                                              backgroundColor: '#f5f5f5',
+                                              fontWeight: 600,
+                                              textAlign: 'left'
+                                            }}>
+                                              {column}
+                                            </th>
+                                          ))}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {csvPreview.slice(0, 2).map((row, rowIndex) => (
+                                          <tr key={rowIndex}>
+                                            {csvColumns.map((column, colIndex) => (
+                                              <td key={colIndex} style={{ 
+                                                border: '1px solid #ccc', 
+                                                padding: '8px',
+                                                backgroundColor: rowIndex % 2 === 0 ? '#ffffff' : '#fafafa'
+                                              }}>
+                                                {row[column] !== undefined ? String(row[column]).substring(0, 50) : ''}
+                                              </td>
+                                            ))}
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </Box>
+                                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                                    Note: Values are truncated to 50 characters for display. Use this preview to identify the correct column names.
                                   </Typography>
                                 </Box>
                               )}
                             </>
                           )}
-                        </>
-                      )}
-                      {uploadProgress > 0 && uploadProgress < 100 && (
-                        <Box sx={{ width: '100%', mt: 2 }}>
-                          <LinearProgress variant="determinate" value={uploadProgress} />
-                          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-                            Uploading: {Math.round(uploadProgress)}%
-                          </Typography>
-                        </Box>
-                      )}
-                      {data?.file_id && (
-                        <Typography 
-                          variant="body2" 
-                          color="success.main" 
-                          sx={{ 
-                            mt: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1
-                          }}
-                        >
-                          <CheckCircleIcon fontSize="small" />
-                          Successfully uploaded: {data.filename}
-                        </Typography>
-                      )}
-                      {dragActive && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            zIndex: 10,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#2196f3',
-                            fontSize: 24,
-                            pointerEvents: 'none',
-                            background: 'rgba(255,255,255,0.5)'
-                          }}
-                        >
-                          Drop file to upload
-                        </Box>
-                      )}
-                      {data && (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, width: '100%' }}>
-                          <Button
-                            variant="outlined"
-                            color="error"
-                            onClick={handleReset}
-                            startIcon={<RefreshIcon />}
-                            sx={{ 
-                              minWidth: 120,
-                              '&:hover': {
-                                backgroundColor: 'error.main',
-                                color: 'white'
-                              }
-                            }}
-                          >
-                            Reset All
-                          </Button>
-                        </Box>
-                      )}
-                    </Paper>
-                  </Grid>
 
-                  {data?.file_id && !data.data && (
-                    <Grid item xs={12}>
-                      <Card sx={{ p: 3, mb: 3 }}>
-                        <Typography variant="h6" gutterBottom>
-                          Processing Parameters
-                        </Typography>
-                        <Grid container spacing={3}>
-                          {/* Preprocessing Parameters */}
-                          <Grid item xs={12} md={6}>
-                            <Typography variant="subtitle1" gutterBottom>
-                              Preprocessing Parameters
-                            </Typography>
-                            <Grid container spacing={2}>
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="Auto-calibration SD Criterion"
-                                  type="text"
-                                  value={preprocessParams.autocalib_sd_criter}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handlePreprocessParamChange('autocalib_sd_criter', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="Auto-calibration Sphere Criterion"
-                                  type="text"
-                                  value={preprocessParams.autocalib_sphere_crit}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handlePreprocessParamChange('autocalib_sphere_crit', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={6}>
-                                <FormControl fullWidth>
-                                  <InputLabel>Filter Type</InputLabel>
-                                  <Select
-                                    value={preprocessParams.filter_type}
-                                    label="Filter Type"
-                                    onChange={(e) => handlePreprocessParamChange('filter_type', e.target.value)}
-                                  >
-                                    <MenuItem value="lowpass">Lowpass</MenuItem>
-                                    <MenuItem value="highpass">Highpass</MenuItem>
-                                    <MenuItem value="bandpass">Bandpass</MenuItem>
-                                  </Select>
-                                </FormControl>
-                              </Grid>
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="Filter Cutoff"
-                                  type="text"
-                                  value={preprocessParams.filter_cutoff}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handlePreprocessParamChange('filter_cutoff', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="Wear SD Criterion"
-                                  type="text"
-                                  value={preprocessParams.wear_sd_crit}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handlePreprocessParamChange('wear_sd_crit', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="Wear Range Criterion"
-                                  type="text"
-                                  value={preprocessParams.wear_range_crit}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handlePreprocessParamChange('wear_range_crit', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="Wear Window Length"
-                                  type="text"
-                                  value={preprocessParams.wear_window_length}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handlePreprocessParamChange('wear_window_length', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="Wear Window Skip"
-                                  type="text"
-                                  value={preprocessParams.wear_window_skip}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handlePreprocessParamChange('wear_window_skip', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "numeric",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={12}>
-                                <Typography gutterBottom>
-                                  Required Daily Coverage
-                                </Typography>
-                                <Slider
-                                  value={typeof preprocessParams.required_daily_coverage === 'number' ? preprocessParams.required_daily_coverage : 0.5}
-                                  min={0}
-                                  max={1}
-                                  step={0.01}
-                                  onChange={(e, newValue) => handlePreprocessParamChange('required_daily_coverage', newValue)}
-                                  valueLabelDisplay="auto"
-                                />
-                                <TextField
-                                  fullWidth
-                                  label="Required Daily Coverage (0-1)"
-                                  type="text"
-                                  value={preprocessParams.required_daily_coverage}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handlePreprocessParamChange('required_daily_coverage', value);
-                                    }
-                                  }}
-                                  inputProps={{
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                  sx={{ mt: 2 }}
-                                />
-                                <Typography variant="caption" color="text.secondary">
-                                  Minimum fraction of valid data required per day (0 = 0%, 1 = 100%). Default: 0.5
-                                </Typography>
-                              </Grid>
-                            </Grid>
-                          </Grid>
-
-                          {/* Feature Parameters */}
-                          <Grid item xs={12} md={6}>
-                            <Typography variant="subtitle1" gutterBottom>
-                              Feature Parameters
-                            </Typography>
-                            <Grid container spacing={2}>
-                              <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                  <FormControlLabel
-                                    control={
-                                      <Switch
-                                        checked={featureParams.sleep_rescore}
-                                        onChange={(e) => handleFeatureParamChange('sleep_rescore', e.target.checked)}
-                                      />
-                                    }
-                                    label="Sleep Rescore"
-                                  />
-                                </FormControl>
-                              </Grid>
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="Sleep CK SF"
-                                  type="text"
-                                  value={featureParams.sleep_ck_sf}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handleFeatureParamChange('sleep_ck_sf', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="PA Cutpoint SL"
-                                  type="text"
-                                  value={featureParams.pa_cutpoint_sl}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/,/g, '.');
-                                    // Allow any positive numeric value with arbitrary precision
-                                    if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                      handleFeatureParamChange('pa_cutpoint_sl', value);
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    inputMode: "decimal",
-                                    lang: "en-US"
-                                  }}
-                                />
-                              </Grid>
-                            </Grid>
-                          </Grid>
-                        </Grid>
-                      </Card>
-                    </Grid>
-                  )}
-
-                  {error && (
-                    <Grid item xs={12}>
-                      <Paper sx={{ p: 2, bgcolor: 'error.light' }}>
-                        <Typography color="error">{error}</Typography>
-                      </Paper>
-                    </Grid>
-                  )}
-
-                  {data?.file_id && !data.data && (
-                    <Grid item xs={12}>
-                      <Card sx={{ p: 3, mb: 3 }}>
-                        <Typography variant="h6" gutterBottom>
-                          Cosinor Age Prediction
-                        </Typography>
-                        <Grid container spacing={2} alignItems="center">
-                          <Grid item xs={12} sm={4}>
-                            <TextField
-                              fullWidth
-                              label="Chronological Age"
-                              type="number"
-                              value={chronologicalAge}
-                              onChange={(e) => setChronologicalAge(e.target.value)}
-                              InputProps={{ inputProps: { min: 0, max: 120 } }}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={4}>
-                            <FormControl fullWidth>
-                              <InputLabel>Gender</InputLabel>
-                              <Select
-                                value={gender}
-                                label="Gender"
-                                onChange={(e) => setGender(e.target.value)}
-                              >
-                                <MenuItem value="male">Male</MenuItem>
-                                <MenuItem value="female">Female</MenuItem>
-                                <MenuItem value="invariant">Invariant</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                          {data?.data && (
-                            <Grid item xs={12} sm={4}>
-                              <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handlePredictAge}
-                                disabled={!chronologicalAge || !data}
-                                sx={{ height: '100%', width: '100%' }}
-                              >
-                                Recalculate Age
-                              </Button>
-                            </Grid>
-                          )}
-                        </Grid>
-                      </Card>
-                    </Grid>
-                  )}
-                  {data?.file_id && !data.data && (
-                    <Grid item xs={12}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          startIcon={processing ? <CircularProgress size={20} color="inherit" /> : <PlayArrowIcon />}
-                          onClick={async () => {
-                            await handleProcessData();
-                            // After processing, if successful, call age prediction
-                            if (data?.file_id && chronologicalAge) {
-                              try {
-                                const response = await fetch(config.getApiUrl(`predict_age/${data.file_id}`), {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                    chronological_age: parseFloat(chronologicalAge),
-                                    gender: gender
-                                  })
-                                });
-                                if (response.ok) {
-                                  const result = await response.json();
-                                  setPredictedAge(result.predicted_age);
-                                }
-                              } catch (err) {
-                                setError('Failed to predict Cosinor Age');
-                              }
-                            }
-                          }}
-                          disabled={processing}
-                        >
-                          {processing ? 'Processing...' : 'Process Data'}
-                        </Button>
-                        {processing && (
-                          <Typography variant="body2" color="text.secondary">
-                            Processing time: {formatTime(processingTime)}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Grid>
-                  )}
-
-                  {success && (
-                    <Grid item xs={12}>
-                      <Paper sx={{ p: 2, bgcolor: 'success.light' }}>
-                        <Typography color="success">{success}</Typography>
-                      </Paper>
-                    </Grid>
-                  )}
-
-                  {data?.data && (
-                    <Grid item xs={12}>
-                      <Card>
-                        <CardContent>
-                          <Typography variant="h6" gutterBottom>
-                            Raw Data Information
-                          </Typography>
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} sm={4}>
-                              <Typography variant="subtitle2" color="text.secondary">
-                                Data Frequency
-                              </Typography>
-                              <Typography variant="body1">{data.metadata?.raw_data_frequency || 'N/A'}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <Typography variant="subtitle2" color="text.secondary">
-                                Start Time
-                              </Typography>
-                              <Typography variant="body1">{data.metadata?.raw_start_datetime || 'N/A'}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <Typography variant="subtitle2" color="text.secondary">
-                                End Time
-                              </Typography>
-                              <Typography variant="body1">{data.metadata?.raw_end_datetime || 'N/A'}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <Typography variant="subtitle2" color="text.secondary">
-                                Data Type
-                              </Typography>
-                              <Typography variant="body1">{data.metadata?.raw_data_type || 'N/A'}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <Typography variant="subtitle2" color="text.secondary">
-                                Data Unit
-                              </Typography>
-                              <Typography variant="body1">{data.metadata?.raw_data_unit || 'N/A'}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <Typography variant="subtitle2" color="text.secondary">
-                                Number of Data Points
-                              </Typography>
-                              <Typography variant="body1">{data.metadata?.raw_n_datapoints || 'N/A'}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <Typography variant="subtitle2" color="text.secondary">
-                                Follow-up Time
-                              </Typography>
-                              <Typography variant="body1">
-                                {data.metadata?.raw_start_datetime && data.metadata?.raw_end_datetime ? 
-                                  (() => {
-                                    const diff = new Date(data.metadata.raw_end_datetime) - new Date(data.metadata.raw_start_datetime);
-                                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                                    return `${days} ${days === 1 ? 'day' : 'days'} ${hours} ${hours === 1 ? 'hour' : 'hours'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-                                  })() : 
-                                  'N/A'}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <Typography variant="subtitle2" color="text.secondary">
-                                Cohort Size
-                              </Typography>
-                              <Typography variant="body1">1 individual</Typography>
-                            </Grid>
-                          </Grid>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  )}
-                  {data?.data && (
-                    <Grid item xs={12}>
-                      <Box sx={{ mt: 1, mb: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                        <React.Fragment>
-                          <Typography
-                            variant="body2"
-                            color="success.main"
-                            sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(76, 175, 80, 0.08)', px: 2, py: 1, borderRadius: 2, cursor: 'pointer' }}
-                            onClick={() => setPreprocessDialogOpen(true)}
-                            tabIndex={0}
-                            role="button"
-                            aria-label="Show preprocessing explanation"
-                          >
-                            <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
-                            Data was successfully preprocessed.
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            color="success.main"
-                            sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'rgba(76, 175, 80, 0.08)', px: 2, py: 1, borderRadius: 2 }}
-                          >
-                            <CheckCircleIcon fontSize="small" sx={{ color: 'success.main' }} />
-                            Features were successfully computed.
-                          </Typography>
-                          <Dialog open={preprocessDialogOpen} onClose={() => setPreprocessDialogOpen(false)}>
-                            <DialogTitle>Preprocessing Steps</DialogTitle>
-                            <DialogContent>
-                              <DialogContentText style={{ whiteSpace: 'pre-line' }}>
-                                The preprocessing of your data includes:
-                                {'\n'}• Resampling to minute-level time grid
-                                {'\n'}• Selection of the longest consecutive valid timeframe
-                                {'\n'}• Calibration of raw accelerometer data
-                              </DialogContentText>
-                            </DialogContent>
-                          </Dialog>
-                        </React.Fragment>
-                      </Box>
-                    </Grid>
-                  )}
-
-                  {/* Cosinor Age Prediction input section moved here */}
-                  {data?.data && (
-                    <Grid item xs={12}>
-                      <Card sx={{ p: 3, mb: 3 }}>
-                        <Typography variant="h6" gutterBottom>
-                          Cosinor Age Prediction
-                        </Typography>
-                        <Grid container spacing={2} alignItems="center">
-                          <Grid item xs={12} sm={4}>
-                            <TextField
-                              fullWidth
-                              label="Chronological Age"
-                              type="number"
-                              value={chronologicalAge}
-                              onChange={(e) => setChronologicalAge(e.target.value)}
-                              InputProps={{ inputProps: { min: 0, max: 120 } }}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={4}>
-                            <FormControl fullWidth>
-                              <InputLabel>Gender</InputLabel>
-                              <Select
-                                value={gender}
-                                label="Gender"
-                                onChange={(e) => setGender(e.target.value)}
-                              >
-                                <MenuItem value="male">Male</MenuItem>
-                                <MenuItem value="female">Female</MenuItem>
-                                <MenuItem value="invariant">Invariant</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                          {data?.data && (
-                            <Grid item xs={12} sm={4}>
-                              <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handlePredictAge}
-                                disabled={!chronologicalAge || !data}
-                                sx={{ height: '100%', width: '100%' }}
-                              >
-                                Recalculate Age
-                              </Button>
-                            </Grid>
-                          )}
-                        </Grid>
-                        {/* Cosinor Age Prediction Results */}
-                        <Box sx={{ mt: 3 }}>
-                          <Typography variant="h5" color="primary" gutterBottom>
-                            Predicted Cosinor Age: {predictedAge !== null ? predictedAge.toFixed(2) + ' years' : 'N/A'}
-                          </Typography>
-                          {predictedAge !== null && chronologicalAge && (
-                            <Typography variant="body2" color="text.secondary">
-                              Difference from Chronological Age: {(predictedAge - parseFloat(chronologicalAge)).toFixed(2)} years
-                            </Typography>
-                          )}
-                        </Box>
-                      </Card>
-                    </Grid>
-                  )}
-
-                  {(() => {
-                    return data?.data && (
-                      <Grid item xs={12}>
-                        {/* Check if data contains x, y, z columns */}
-                        {(() => {
-                          const hasXYZColumns = data.data[0] && 
-                            'x' in data.data[0] && 
-                            'y' in data.data[0] && 
-                            'z' in data.data[0];
-                          
-                          if (hasXYZColumns) {
-                            return (
-                              <>
-                                {/* X, Y, Z Accelerometer Data Plot */}
-                                <Card style={{ marginTop: '20px', padding: '20px', marginBottom: '20px' }}>
-                                  <Typography variant="h6" gutterBottom>
-                                    Raw Accelerometer Data (X, Y, Z axes)
-                                  </Typography>
-                                  <ResponsiveContainer width="100%" height={400}>
-                                    <LineChart 
-                                      data={data.data}
-                                      margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                    >
-                                      <XAxis 
-                                        dataKey="TIMESTAMP" 
-                                        label={{ value: 'Time', position: 'insideBottom', offset: -5 }}
-                                        tickFormatter={(timestamp) => {
-                                          const date = new Date(timestamp);
-                                          return date.toLocaleDateString();
-                                        }}
-                                        interval={0}
-                                        tick={(props) => {
-                                          const { x, y, payload } = props;
-                                          const date = new Date(payload.value);
-                                          const isStartOfDay = date.getHours() === 0 && date.getMinutes() === 0;
-                                          return isStartOfDay ? (
-                                            <g transform={`translate(${x},${y})`}>
-                                              <text x={0} y={0} dy={16} textAnchor="middle" fill="#666">
-                                                {date.toLocaleDateString()}
-                                              </text>
-                                            </g>
-                                          ) : null;
-                                        }}
-                                      />
-                                      <YAxis 
-                                        label={{ value: 'Acceleration (g)', angle: -90, position: 'insideLeft' }}
-                                      />
-                                      <RechartsTooltip 
-                                        content={({ active, payload, label }) => {
-                                          if (active && payload && payload.length) {
-                                            return (
-                                              <div style={{ 
-                                                backgroundColor: 'white', 
-                                                padding: '10px', 
-                                                border: '1px solid #ccc',
-                                                borderRadius: '4px'
-                                              }}>
-                                                <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
-                                                {payload.map((entry, index) => (
-                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                    {`${entry.name}: ${entry.value.toFixed(4)} g`}
-                                                  </p>
-                                                ))}
-                                              </div>
-                                            );
-                                          }
-                                          return null;
-                                        }}
-                                      />
-                                      <Legend />
-                                      <Line 
-                                        type="monotone" 
-                                        dataKey="x" 
-                                        stroke="#ff0000" 
-                                        dot={false}
-                                        name="X-axis"
-                                      />
-                                      <Line 
-                                        type="monotone" 
-                                        dataKey="y" 
-                                        stroke="#00ff00" 
-                                        dot={false}
-                                        name="Y-axis"
-                                      />
-                                      <Line 
-                                        type="monotone" 
-                                        dataKey="z" 
-                                        stroke="#0000ff" 
-                                        dot={false}
-                                        name="Z-axis"
-                                      />
-                                    </LineChart>
-                                  </ResponsiveContainer>
-                                </Card>
-                              </>
-                            );
-                          }
-                          return null;
-                        })()}
-                        
-                        {/* ENMO Data Plot */}
-                        <Card style={{ marginTop: '20px', padding: '20px' }}>
-                          <Typography variant="h6" gutterBottom>
-                            ENMO time series (incl. wear/non-wear segments)
-                          </Typography>
-                          {/* Custom legend for wear/non-wear */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 1 }}>
-                            <Box sx={{ width: 18, height: 18, bgcolor: '#4caf50', opacity: 0.3, border: '1px solid #4caf50', mr: 1 }} />
-                            <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>wear</Typography>
-                            <Box sx={{ width: 18, height: 18, bgcolor: '#ff5252', opacity: 0.3, border: '1px solid #ff5252', mr: 1 }} />
-                            <Typography variant="body2" color="text.secondary">non-wear</Typography>
-                          </Box>
-                          <ResponsiveContainer width="100%" height={400}>
-                            <LineChart 
-                              data={data.data}
-                              margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                            >
-                              <XAxis 
-                                dataKey="TIMESTAMP" 
-                                label={{ value: 'Time', position: 'insideBottom', offset: -5 }}
-                                tickFormatter={(timestamp) => {
-                                  const date = new Date(timestamp);
-                                  return date.toLocaleDateString();
-                                }}
-                                interval={0}
-                                tick={(props) => {
-                                  const { x, y, payload } = props;
-                                  const date = new Date(payload.value);
-                                  const isStartOfDay = date.getHours() === 0 && date.getMinutes() === 0;
-                                  return isStartOfDay ? (
-                                    <g transform={`translate(${x},${y})`}>
-                                      <text x={0} y={0} dy={16} textAnchor="middle" fill="#666">
-                                        {date.toLocaleDateString()}
-                                      </text>
-                                    </g>
-                                  ) : null;
-                                }}
-                              />
-                              <YAxis 
-                                label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
-                              />
-                              <RechartsTooltip 
-                                content={({ active, payload, label }) => {
-                                  if (active && payload && payload.length) {
-                                    return (
-                                      <div style={{ 
-                                        backgroundColor: 'white', 
-                                        padding: '10px', 
-                                        border: '1px solid #ccc',
-                                        borderRadius: '4px'
-                                      }}>
-                                        <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
-                                        {payload.map((entry, index) => (
-                                          <p key={index} style={{ margin: '0', color: entry.color }}>
-                                            {`${entry.name}: ${entry.value.toFixed(2)} mg`}
-                                          </p>
-                                        ))}
-                                      </div>
-                                    );
-                                  }
-                                  return null;
-                                }}
-                              />
-                              <Legend />
-                              <Line 
-                                type="monotone" 
-                                dataKey="ENMO" 
-                                stroke="#8884d8" 
-                                dot={false}
-                              />
-                              {/* Shaded background for wear/non-wear segments */}
-                              {(() => {
-                                const areas = [];
-                                let currentWear = data.data[0]?.wear;
-                                let segStart = data.data[0]?.TIMESTAMP;
-                                // Log timestamps
-                                console.log('Min Timestamp:', data.data[0]?.TIMESTAMP);
-                                console.log('M10 Start:', data.features.nonparam.m10_start);
-                                console.log('L5 Start:', data.features.nonparam.l5_start);
-                                for (let i = 1; i <= data.data.length; i++) {
-                                  const point = data.data[i];
-                                  if (i === data.data.length || point?.wear !== currentWear) {
-                                    const segEnd = data.data[i - 1]?.TIMESTAMP;
-                                    // Only add shaded area if wear is not -1
-                                    if (currentWear !== -1) {
-                                      const color = interpolateColor(currentWear);
-                                      areas.push(
-                                        <ReferenceArea
-                                          key={`wear-seg-${segStart}`}
-                                          x1={segStart}
-                                          x2={segEnd}
-                                          fill={color}
-                                          fillOpacity={0.3}
-                                          stroke={color}
-                                          strokeOpacity={0.5}
-                                          label={null}
-                                        />
-                                      );
-                                    }
-                                    if (i < data.data.length) {
-                                      currentWear = point.wear;
-                                      segStart = point.TIMESTAMP;
-                                    }
-                                  }
-                                }
-                                return areas;
-                              })()}
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </Card>
-                      </Grid>
-                    );
-                  })()}
-
-                  {data?.features && data.features.cosinor && (
-                    <Grid item xs={12}>
-                      <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="h6" gutterBottom>
-                            Cosinor Features
-                          </Typography>
-                          <SectionInfoButton section="cosinor" />
-                        </Box>
-                        <Grid container spacing={2} direction="row" wrap="nowrap">
-                          {Object.entries(data.features.cosinor).map(([key, value]) => (
-                            <Grid item xs key={key} zeroMinWidth>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="subtitle2" color="text.secondary" noWrap>
-                                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </Typography>
-                                <SectionInfoButton metric={key} />
-                              </Box>
-                              <Typography variant="body1" noWrap>
-                                {typeof value === 'number' ? 
-                                  key === 'acrophase_time' ? (() => {
-                                    const minutes = value;
-                                    const hours = Math.floor(minutes / 60);
-                                    const mins = Math.round(minutes % 60);
-                                    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-                                  })() : value.toFixed(4) : value}
-                                {key === 'mesor' || key === 'amplitude' ? ' mg' : 
-                                  key === 'acrophase' ? ' radians' : ''}
-                              </Typography>
-                            </Grid>
-                          ))}
-                        </Grid>
-                      </Card>
-                    </Grid>
-                  )}
-                  {data?.features && data.features.nonparam && (
-                    <Grid item xs={12}>
-                      <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="h6" gutterBottom>
-                            Non-parametric Features
-                          </Typography>
-                          <SectionInfoButton section="nonparam" />
-                        </Box>
-                        <Grid container spacing={2}>
-                          {Object.entries(data.features.nonparam)
-                            .sort(([keyA], [keyB]) => {
-                              // Define the desired order
-                              const order = {
-                                'is': 1,
-                                'iv': 2,
-                                'm10': 3,
-                                'ra': 4
-                              };
-                              const orderA = order[keyA.toLowerCase()] || 5;
-                              const orderB = order[keyB.toLowerCase()] || 5;
-                              return orderA - orderB;
-                            })
-                            .map(([key, value]) => (
-                            ['l5', 'm10_start', 'l5_start'].includes(key.toLowerCase()) ? null : (
-                              <Grid item xs={12} key={key}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Typography variant="subtitle2" color="text.secondary">
-                                    {key === 'RA' ? 'Relative Amplitude (RA)' : 
-                                     key === 'M10' || key === 'L5' ? 'L5 & M10' : 
-                                     key === 'IV' ? 'Intradaily Variability (IV)' :
-                                     key === 'IS' ? 'Interdaily Stability (IS)' :
-                                     key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                  </Typography>
-                                  <SectionInfoButton metric={key} />
-                                </Box>
-                                {/* IS and IV as horizontal scale */}
-                                {(['is', 'iv'].includes(key.toLowerCase()) && typeof value === 'number') ? (
-                                  <HorizontalScale
-                                    value={value}
-                                    min={key.toLowerCase() === 'is' ? 0 : 0}
-                                    max={key.toLowerCase() === 'is' ? 1 : 2}
-                                    color={key.toLowerCase() === 'is' ? '#1976d2' : '#388e3c'}
-                                  />
-                                ) : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
-                                  <Box sx={{ width: '100%', height: 200, mt: 2 }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                      <BarChart
-                                        data={value.map((v, index) => ({
-                                          day: getDateForIndex('RA', index, data),
-                                          RA: v
-                                        }))}
-                                        margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                      >
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="day" />
-                                        <YAxis label={{ value: 'RA', angle: -90, position: 'insideLeft' }} />
-                                        <RechartsTooltip 
-                                          content={({ active, payload, label }) => {
-                                            if (active && payload && payload.length) {
-                                              return (
-                                                <div style={{ 
-                                                  backgroundColor: 'white', 
-                                                  padding: '10px', 
-                                                  border: '1px solid #ccc',
-                                                  borderRadius: '4px'
-                                                }}>
-                                                  <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                                  {payload.map((entry, index) => {
-                                                    let value = entry.value;
-                                                    let unit = '';
-                                                    if (entry.name === 'TST') {
-                                                      value = Math.round(value).toFixed(0);
-                                                      unit = ' minutes';
-                                                    } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                      value = value.toFixed(0);
-                                                      unit = ' minutes';
-                                                    } else if (entry.name === 'PTA') {
-                                                      value = value.toFixed(1);
-                                                      unit = '%';
-                                                    } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                      value = value.toFixed(2);
-                                                      unit = ' mg';
-                                                    }
-                                                    return (
-                                                      <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                        {`${entry.name}: ${value}${unit}`}
-                                                      </p>
-                                                    );
-                                                  })}
-                                                </div>
-                                              );
-                                            }
-                                            return null;
-                                          }}
-                                        />
-                                        <Bar dataKey="RA" fill="#0088fe" name="RA" />
-                                      </BarChart>
-                                    </ResponsiveContainer>
-                                  </Box>
-                                ) : key === 'M10' && data.features.nonparam.M10 && data.features.nonparam.L5 ? (
-                                  <>
-                                    <Box sx={{ width: '100%', height: 300, mt: 2 }}>
-                                      <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart
-                                          data={data.features.nonparam.M10.map((m10, index) => ({
-                                            day: getDateForIndex('M10', index, data),
-                                            M10: m10,
-                                            L5: data.features.nonparam.L5[index]
-                                          }))}
-                                          margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                        >
-                                          <CartesianGrid strokeDasharray="3 3" />
-                                          <XAxis dataKey="day" />
-                                          <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
-                                          <RechartsTooltip 
-                                            content={({ active, payload, label }) => {
-                                              if (active && payload && payload.length) {
-                                                return (
-                                                  <div style={{ 
-                                                    backgroundColor: 'white', 
-                                                    padding: '10px', 
-                                                    border: '1px solid #ccc',
-                                                    borderRadius: '4px'
-                                                  }}>
-                                                    <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                                    {payload.map((entry, index) => {
-                                                      let value = entry.value;
-                                                      let unit = '';
-                                                      if (entry.name === 'TST') {
-                                                        value = Math.round(value).toFixed(0);
-                                                        unit = ' minutes';
-                                                      } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                        value = value.toFixed(0);
-                                                        unit = ' minutes';
-                                                      } else if (entry.name === 'PTA') {
-                                                        value = value.toFixed(1);
-                                                        unit = '%';
-                                                      } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                        value = value.toFixed(2);
-                                                        unit = ' mg';
-                                                      } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                        value = value.toFixed(0);
-                                                        unit = ' minutes';
-                                                      }
-                                                      return (
-                                                        <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                          {`${entry.name}: ${value}${unit}`}
-                                                        </p>
-                                                      );
-                                                    })}
-                                                  </div>
-                                                );
-                                              }
-                                              return null;
-                                            }}
-                                          />
-                                          <Legend />
-                                          <Bar dataKey="M10" fill="#8884d8" name="M10" />
-                                          <Bar dataKey="L5" fill="#82ca9d" name="L5" />
-                                        </BarChart>
-                                      </ResponsiveContainer>
-                                    </Box>
-                                  </>
-                                ) : key === 'TST' || key === 'WASO' || key === 'SOL' || key === 'PTA' ? (
-                                  <Box sx={{ width: '100%', height: 300, mt: 2 }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                      <BarChart
-                                        data={value.map((v, index) => ({
-                                          day: getDateForIndex(key, index, data),
-                                          [key]: v
-                                        }))}
-                                        margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                      >
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="day" />
-                                        <YAxis label={{ 
-                                          value: key === 'PTA' ? 'Percentage (%)' : key === 'NWB' ? 'Number of Bouts' : 'Minutes', 
-                                          angle: -90, 
-                                          position: 'insideLeft' 
-                                        }} />
-                                        <RechartsTooltip 
-                                          content={({ active, payload, label }) => {
-                                            if (active && payload && payload.length) {
-                                              return (
-                                                <div style={{ 
-                                                  backgroundColor: 'white', 
-                                                  padding: '10px', 
-                                                  border: '1px solid #ccc',
-                                                  borderRadius: '4px'
-                                                }}>
-                                                  <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                                  {payload.map((entry, index) => {
-                                                    let value = entry.value;
-                                                    let unit = '';
-                                                    if (entry.name === 'TST') {
-                                                      value = Math.round(value).toFixed(0);
-                                                      unit = ' minutes';
-                                                    } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                      value = value.toFixed(0);
-                                                      unit = ' minutes';
-                                                    } else if (entry.name === 'PTA') {
-                                                      value = value.toFixed(1);
-                                                      unit = '%';
-                                                    } else if (entry.name === 'NWB') {
-                                                      value = value.toFixed(0);
-                                                      unit = ' bouts';
-                                                    }
-                                                    return (
-                                                      <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                        {`${entry.name}: ${value}${unit}`}
-                                                      </p>
-                                                    );
-                                                  })}
-                                                </div>
-                                              );
-                                            }
-                                            return null;
-                                          }}
-                                        />
-                                        <Legend />
-                                        <Bar dataKey={key} fill="#8884d8" name={key} />
-                                      </BarChart>
-                                    </ResponsiveContainer>
-                                  </Box>
-                                ) : (
-                                  <Typography variant="body1">
-                                    {Array.isArray(value) ? value.join(', ') : value}
-                                  </Typography>
-                                )}
-                              </Grid>
-                            )
-                          ))}
-                        </Grid>
-                        {/* Daily ENMO Time Series with M10 and L5 Periods */}
-                        <Box sx={{ mt: 4 }}>
-                          <Typography variant="subtitle2" gutterBottom>
-                            Daily ENMO Time Series with M10 and L5 Periods (incl. multiday Cosinor Fits)
-                          </Typography>
+                          {/* Unified Grid for Column Selection and Processing Parameters */}
                           <Grid container spacing={3}>
-                            {Array.from(new Set(data.data.map(item => {
-                              const date = new Date(item.TIMESTAMP);
-                              return date.toLocaleDateString('en-CA');
-                            }))).map((dayStr, dayIndex) => {
-                              const dayData = data.data.filter(item => {
-                                const date = new Date(item.TIMESTAMP);
-                                return date.toLocaleDateString('en-CA') === dayStr;
-                              });
-                              if (dayData.length === 0) return null;
-                              const m10Start = data.features.nonparam.M10_start?.[dayIndex];
-                              const l5Start = data.features.nonparam.L5_start?.[dayIndex];
-                              if (!m10Start || !l5Start) return null;
-                              // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
-                              const dayDataWithNum = dayData.map(item => {
-                                const globalIndex = data.data.findIndex(d => d.TIMESTAMP === item.TIMESTAMP);
-                                const globalData = globalIndex !== -1 ? data.data[globalIndex] : null;
-                                return {
-                                  ...item,
-                                  timestampNum: new Date(item.TIMESTAMP).getTime(),
-                                  cosinor_fitted: globalData ? globalData.cosinor_fitted : null
-                                };
-                              });
-                              const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
-                              // Check if m10StartDate and l5StartDate are valid
-                              const m10StartDate = m10Start && m10Start.includes('T')
-                                ? new Date(m10Start)
-                                : new Date(`${dayStr}T${m10Start}`);
-                              const l5StartDate = l5Start && l5Start.includes('T')
-                                ? new Date(l5Start)
-                                : new Date(`${dayStr}T${l5Start}`);
-                              return (
-                                <Grid item xs={12} key={dayStr}>
-                                  <Card variant="outlined" sx={{ p: 2 }}>
-                                    <Typography variant="subtitle1" gutterBottom align="center">
-                                      {dayStr}
-                                    </Typography>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                      <LineChart
-                                        data={dayDataWithNumSorted}
-                                        margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                      >
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis
-                                          dataKey="timestampNum"
-                                          type="number"
-                                          domain={['dataMin', 'dataMax']}
-                                          tickFormatter={(timestampNum) => {
-                                            const date = new Date(timestampNum);
-                                            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                          }}
-                                        />
-                                        <YAxis 
-                                          yAxisId="left"
-                                          label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} 
-                                        />
-                                        <YAxis 
-                                          yAxisId="right"
-                                          orientation="right"
-                                          label={{ value: 'Cosinor Fit (mg)', angle: 90, position: 'insideRight' }} 
-                                        />
-                                        <RechartsTooltip
-                                          content={({ active, payload, label }) => {
-                                            if (active && payload && payload.length) {
-                                              return (
-                                                <div style={{ 
-                                                  backgroundColor: 'white',
-                                                  padding: '10px', 
-                                                  border: '1px solid #ccc',
-                                                  borderRadius: '4px'
-                                                }}>
-                                                  <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
-                                                  {payload.map((entry, index) => {
-                                                    let value = entry.value;
-                                                    let unit = '';
-                                                    if (entry.name === 'TST') {
-                                                      value = Math.round(value).toFixed(0);
-                                                      unit = ' minutes';
-                                                    } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                      value = value.toFixed(0);
-                                                      unit = ' minutes';
-                                                    } else if (entry.name === 'PTA') {
-                                                      value = value.toFixed(1);
-                                                      unit = '%';
-                                                    } else if (entry.name === 'M10' || entry.name === 'L5') {
-                                                      value = value.toFixed(2);
-                                                      unit = ' mg';
-                                                    } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
-                                                      value = value.toFixed(0);
-                                                      unit = ' minutes';
-                                                    }
-                                                    return (
-                                                      <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                        {`${entry.name}: ${value}${unit}`}
-                                                      </p>
-                                                    );
-                                                  })}
-                                                </div>
-                                              );
-                                            }
-                                            return null;
-                                          }}
-                                        />
-                                        <Legend />
-                                        <Line
-                                          type="monotone"
-                                          dataKey="ENMO"
-                                          stroke="#8884d8"
-                                          dot={false}
-                                          isAnimationActive={false}
-                                          yAxisId="left"
-                                        />
-                                        <Line
-                                          type="monotone"
-                                          dataKey="cosinor_fitted"
-                                          stroke="#ff0000"
-                                          dot={false}
-                                          isAnimationActive={false}
-                                          name="Cosinor Fit"
-                                          yAxisId="left"
-                                        />
-                                        {/* M10 Period Band */}
-                                        <ReferenceArea
-                                          x1={m10StartDate.getTime()}
-                                          x2={(() => {
-                                            const x2Value = new Date(m10StartDate.getTime() + 10 * 60 * 60 * 1000);
-                                            if (x2Value.getHours() === 0 && x2Value.getMinutes() === 0) {
-                                              return x2Value.getTime() - 60000;
-                                            }
-                                            return x2Value.getTime();
-                                          })()}
-                                          fill="#8884d8"
-                                          fillOpacity={0.1}
-                                          label="M10"
-                                          yAxisId="left"
-                                        />
-                                        {/* L5 Period Band */}
-                                        <ReferenceArea
-                                          x1={l5StartDate.getTime()}
-                                          x2={(() => {
-                                            const x2Value = new Date(l5StartDate.getTime() + 5 * 60 * 60 * 1000);
-                                            if (x2Value.getHours() === 0 && x2Value.getMinutes() === 0) {
-                                              return x2Value.getTime() - 60000;
-                                            }
-                                            return x2Value.getTime();
-                                          })()}
-                                          fill="#82ca9d"
-                                          fillOpacity={0.1}
-                                          label="L5"
-                                          yAxisId="left"
-                                        />
-                                      </LineChart>
-                                    </ResponsiveContainer>
-                                  </Card>
+                            {/* CSV Column Selection - Only for CSV files */}
+                            {showColumnSelection && fileType === 'csv' && (
+                              <>
+                                {/* Data Format Settings Header */}
+                                <Grid item xs={12}>
+                                  <Typography variant="subtitle2" gutterBottom sx={{ mt: 2, color: 'primary.main' }}>
+                                    Data Format Settings
+                                  </Typography>
                                 </Grid>
-                              );
-                            })}
-                          </Grid>
-                        </Box>
-                      </Card>
-                    </Grid>
-                  )}
+                                
+                                {/* Time Column Selection */}
+                                <Grid item xs={12} md={6}>
+                                  <FormControl fullWidth>
+                                    <InputLabel>Timestamp Column</InputLabel>
+                                    <Select
+                                      value={selectedTimeColumn || ''}
+                                      onChange={(e) => setSelectedTimeColumn(e.target.value)}
+                                      label="Timestamp Column"
+                                      MenuProps={{
+                                        PaperProps: {
+                                          style: {
+                                            maxHeight: 300,
+                                            zIndex: 9999
+                                          }
+                                        },
+                                        container: document.body
+                                      }}
+                                    >
+                                      {csvColumns.map((column) => (
+                                        <MenuItem key={column} value={column}>
+                                          {column}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                    <FormHelperText>
+                                      Select the column containing timestamp data
+                                    </FormHelperText>
+                                  </FormControl>
+                                </Grid>
 
-                  {data?.features && data.features.physical_activity && (
-                    <Grid item xs={12}>
-                      <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="h6" gutterBottom>
-                            Physical Activity Features
-                          </Typography>
-                          <SectionInfoButton section="activity" />
-                        </Box>
-                        <Grid container spacing={2}>
-                          {/* Only show the stacked bar chart for per-day metrics, not the per-day values */}
-                          <Grid item xs={12}>
-                            <Box sx={{ width: '100%', height: 300, mt: 2 }}>
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                  data={(() => {
-                                    // Extract unique days from data.data
-                                    const uniqueDays = Array.from(new Set(data.data.map(item => {
-                                      const date = new Date(item.TIMESTAMP);
-                                      return date.toLocaleDateString('en-CA');
-                                    })));
-                                    return uniqueDays.map((dayStr, index) => ({
-                                      day: dayStr,
-                                      sedentary: data.features.physical_activity.sedentary[index],
-                                      light: data.features.physical_activity.light[index],
-                                      moderate: data.features.physical_activity.moderate[index],
-                                      vigorous: data.features.physical_activity.vigorous[index],
-                                    }));
-                                  })()}
-                                  margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis dataKey="day" />
-                                  <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
-                                  <RechartsTooltip 
-                                    content={({ active, payload, label }) => {
-                                      if (active && payload && payload.length) {
-                                        return (
-                                          <div style={{ 
-                                            backgroundColor: 'white', 
-                                            padding: '10px', 
-                                            border: '1px solid #ccc',
-                                            borderRadius: '4px'
-                                          }}>
-                                            <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                            {payload.map((entry, index) => {
-                                              let value = entry.value;
-                                              let unit = '';
-                                              if (entry.name === 'TST') {
-                                                value = Math.round(value).toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                value = value.toFixed(0);
-                                                unit = ' minutes';
-                                              } else if (entry.name === 'PTA') {
-                                                value = value.toFixed(1);
-                                                unit = '%';
+                                {/* Data Columns Selection */}
+                                <Grid item xs={12} md={6}>
+                                  {dataType === 'accelerometer' ? (
+                                    <Box>
+                                      <Typography variant="subtitle2" gutterBottom>
+                                        Accelerometer Columns (X, Y, Z)
+                                      </Typography>
+                                      {['x', 'y', 'z'].map((axis) => (
+                                        <FormControl key={axis} fullWidth sx={{ mb: 2 }}>
+                                          <InputLabel>{axis.toUpperCase()} Column</InputLabel>
+                                          <Select
+                                            value={selectedDataColumns.find(col => col.toLowerCase().includes(axis)) || ''}
+                                            onChange={(e) => {
+                                              const newColumns = selectedDataColumns.filter(col => !col.toLowerCase().includes(axis));
+                                              if (e.target.value) {
+                                                newColumns.push(e.target.value);
                                               }
-                                              return (
-                                                <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                  {`${entry.name}: ${value}${unit}`}
-                                                </p>
-                                              );
-                                            })}
-                                          </div>
-                                        );
+                                              setSelectedDataColumns(newColumns);
+                                            }}
+                                            label={`${axis.toUpperCase()} Column`}
+                                            MenuProps={{
+                                              PaperProps: {
+                                                style: {
+                                                  maxHeight: 300,
+                                                  zIndex: 9999
+                                                }
+                                              },
+                                              container: document.body
+                                            }}
+                                          >
+                                            <MenuItem value="">
+                                              <em>None</em>
+                                            </MenuItem>
+                                            {csvColumns.map((column) => (
+                                              <MenuItem key={column} value={column}>
+                                                {column}
+                                              </MenuItem>
+                                            ))}
+                                          </Select>
+                                        </FormControl>
+                                      ))}
+                                    </Box>
+                                  ) : dataType === 'enmo' ? (
+                                    <FormControl fullWidth>
+                                      <InputLabel>ENMO Column</InputLabel>
+                                      <Select
+                                        value={selectedDataColumns[0] || ''}
+                                        onChange={(e) => setSelectedDataColumns([e.target.value])}
+                                        label="ENMO Column"
+                                        MenuProps={{
+                                          PaperProps: {
+                                            style: {
+                                              maxHeight: 300,
+                                              zIndex: 9999
+                                            }
+                                          },
+                                          container: document.body
+                                        }}
+                                      >
+                                        {csvColumns.map((column) => (
+                                          <MenuItem key={column} value={column}>
+                                            {column}
+                                          </MenuItem>
+                                        ))}
+                                      </Select>
+                                      <FormHelperText>
+                                        Select the column containing ENMO data
+                                      </FormHelperText>
+                                    </FormControl>
+                                  ) : dataType === 'alternative_count' ? (
+                                    <FormControl fullWidth>
+                                      <InputLabel>Counts Column</InputLabel>
+                                      <Select
+                                        value={selectedDataColumns[0] || ''}
+                                        onChange={(e) => setSelectedDataColumns([e.target.value])}
+                                        label="Counts Column"
+                                        MenuProps={{
+                                          PaperProps: {
+                                            style: {
+                                              maxHeight: 300,
+                                              zIndex: 9999
+                                            }
+                                          },
+                                          container: document.body
+                                        }}
+                                      >
+                                        {csvColumns.map((column) => (
+                                          <MenuItem key={column} value={column}>
+                                            {column}
+                                          </MenuItem>
+                                        ))}
+                                      </Select>
+                                      <FormHelperText>
+                                        Select the column containing activity counts
+                                      </FormHelperText>
+                                    </FormControl>
+                                  ) : null}
+                                </Grid>
+                                
+                                {/* Timestamp Format Selection */}
+                                <Grid item xs={12} md={6}>
+                                  <FormControl fullWidth>
+                                    <InputLabel>Timestamp Format</InputLabel>
+                                    <Select
+                                      value={timestampFormat || ''}
+                                      onChange={(e) => {
+                                        console.log('=== Timestamp Format Selection Debug ===');
+                                        console.log('Previous timestampFormat:', timestampFormat);
+                                        console.log('New timestampFormat value:', e.target.value);
+                                        setTimestampFormat(e.target.value);
+                                      }}
+                                      label="Timestamp Format"
+                                      MenuProps={{
+                                        PaperProps: {
+                                          style: {
+                                            maxHeight: 300,
+                                            zIndex: 9999
+                                          }
+                                        },
+                                        container: document.body
+                                      }}
+                                    >
+                                      <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
+                                      <MenuItem value="unix-s">Unix - seconds</MenuItem>
+                                      <MenuItem value="datetime">Datetime</MenuItem>
+                                    </Select>
+                                    <FormHelperText>
+                                      Select the format of your timestamp column
+                                    </FormHelperText>
+                                  </FormControl>
+                                </Grid>
+
+                                {/* Data Unit Selection */}
+                                <Grid item xs={12} md={6}>
+                                  <FormControl fullWidth>
+                                    <InputLabel>Data Unit</InputLabel>
+                                    
+                                    {/* Accelerometer Data Unit */}
+                                    {(dataType === 'accelerometer') && (
+                                      <Select
+                                        value={dataUnit || ''}
+                                        onChange={(e) => {
+                                          console.log('=== Data Unit Selection Debug ===');
+                                          console.log('Previous dataUnit:', dataUnit);
+                                          console.log('New dataUnit value:', e.target.value);
+                                          console.log('Setting dataUnit to:', e.target.value);
+                                          setDataUnit(e.target.value);
+                                        }}
+                                        label="Data Unit"
+                                        displayEmpty
+                                      >
+                                        <MenuItem value="g">g</MenuItem>
+                                        <MenuItem value="mg">mg</MenuItem>
+                                        <MenuItem value="m/s^2">m/s²</MenuItem>
+                                      </Select>
+                                    )}
+                                    
+                                    {/* ENMO Data Unit */}
+                                    {(dataType === 'enmo') && (
+                                      <Select
+                                        value={dataUnit || ''}
+                                        onChange={(e) => {
+                                          console.log('=== Data Unit Selection Debug ===');
+                                          console.log('Previous dataUnit:', dataUnit);
+                                          console.log('New dataUnit value:', e.target.value);
+                                          console.log('Setting dataUnit to:', e.target.value);
+                                          setDataUnit(e.target.value);
+                                        }}
+                                        label="Data Unit"
+                                        displayEmpty
+                                      >
+                                        <MenuItem value="g">g</MenuItem>
+                                        <MenuItem value="mg">mg</MenuItem>
+                                      </Select>
+                                    )}
+                                    
+                                    {/* Alternative Count Data Unit */}
+                                    {dataType === 'alternative_count' && (
+                                      <Select
+                                        value={dataUnit || ''}
+                                        onChange={(e) => {
+                                          console.log('=== Data Unit Selection Debug ===');
+                                          console.log('Previous dataUnit:', dataUnit);
+                                          console.log('New dataUnit value:', e.target.value);
+                                          console.log('Setting dataUnit to:', e.target.value);
+                                          setDataUnit(e.target.value);
+                                        }}
+                                        label="Data Unit"
+                                        displayEmpty
+                                      >
+                                        <MenuItem value="">No unit required</MenuItem>
+                                      </Select>
+                                    )}
+                                    
+                                    {/* Default Data Unit */}
+                                    {!['accelerometer', 'enmo', 'alternative_count'].includes(dataType) && (
+                                      <Select
+                                        value={dataUnit || ''}
+                                        onChange={(e) => {
+                                          console.log('=== Data Unit Selection Debug ===');
+                                          console.log('Previous dataUnit:', dataUnit);
+                                          console.log('New dataUnit value:', e.target.value);
+                                          console.log('Setting dataUnit to:', e.target.value);
+                                          setDataUnit(e.target.value);
+                                        }}
+                                        label="Data Unit"
+                                        displayEmpty
+                                      >
+                                        <MenuItem value="">No unit required</MenuItem>
+                                      </Select>
+                                    )}
+                                    
+                                    <FormHelperText>
+                                      Select the unit of your data values
+                                    </FormHelperText>
+                                  </FormControl>
+                                </Grid>
+                              </>
+                            )}
+
+                            {/* Preprocessing Parameters */}
+                            <Grid item xs={12} md={6}>
+                              <Typography variant="subtitle1" gutterBottom>
+                                Preprocessing Parameters
+                              </Typography>
+                              <Grid container spacing={2}>
+                                <Grid item xs={12} sm={6}>
+                                  <TextField
+                                    fullWidth
+                                    label="Auto-calibration SD Criterion"
+                                    type="text"
+                                    value={preprocessParams.autocalib_sd_criter}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/,/g, '.');
+                                      // Allow any positive numeric value with arbitrary precision
+                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                        handlePreprocessParamChange('autocalib_sd_criter', value);
                                       }
-                                      return null;
+                                    }}
+                                    inputProps={{ 
+                                      inputMode: "decimal",
+                                      lang: "en-US"
                                     }}
                                   />
-                                  <Legend />
-                                  <Bar dataKey="sedentary" stackId="a" fill="#8884d8" name="Sedentary" />
-                                  <Bar dataKey="light" stackId="a" fill="#82ca9d" name="Light" />
-                                  <Bar dataKey="moderate" stackId="a" fill="#ffc658" name="Moderate" />
-                                  <Bar dataKey="vigorous" stackId="a" fill="#ff8042" name="Vigorous" />
-                                </BarChart>
-                              </ResponsiveContainer>
-                            </Box>
-                          </Grid>
-                        </Grid>
-                      </Card>
-                    </Grid>
-                  )}
-
-              {data?.features && data.features.nonparam && (
-                <Grid item xs={12}>
-                  <Card variant="outlined" sx={{ p: 2, mt: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="h6" gutterBottom>
-                        Sleep Features
-                      </Typography>
-                      <SectionInfoButton section="sleep" />
-                    </Box>
-                    {/* Debug logging */}
-                    {console.log('Non-parametric features:', data.features.nonparam)}
-                    {/* Sleep Metrics Bar Charts */}
-                    <Grid container spacing={3}>
-                      {['TST', 'WASO', 'PTA', 'NWB', 'SOL', 'SRI'].map((metric) => {
-                        // Try to get the value from sleep, then nonparam
-                        const value = (data.features.sleep && data.features.sleep[metric]) || (data.features.nonparam && data.features.nonparam[metric]);
-                        if (!value || !Array.isArray(value)) return null;
-                        return (
-                          <Grid item xs={12} key={metric}>
-                            <Card variant="outlined" sx={{ p: 2 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="subtitle1">
-                                  {metricDescriptions[metric.toLowerCase()]?.title || metric}
-                                </Typography>
-                                <SectionInfoButton metric={metric} />
-                              </Box>
-                              <Box sx={{ width: '100%', height: 300 }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <BarChart
-                                    data={value.map((v, index) => ({
-                                      day: getDateForIndex(metric, index, data),
-                                      [metric]: v
-                                    }))}
-                                    margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                  >
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="day" />
-                                    <YAxis label={{
-                                      value:
-                                        metric === 'PTA' ? 'Percentage (%)' :
-                                        metric === 'NWB' ? 'Number of Bouts' :
-                                        metric === 'SRI' ? 'Index' :
-                                        'Minutes',
-                                      angle: -90,
-                                      position: 'insideLeft'
-                                    }} />
-                                    <RechartsTooltip
-                                      content={({ active, payload, label }) => {
-                                        if (active && payload && payload.length) {
-                                          return (
-                                            <div style={{
-                                              backgroundColor: 'white',
-                                              padding: '10px',
-                                              border: '1px solid #ccc',
-                                              borderRadius: '4px'
-                                            }}>
-                                              <p style={{ margin: '0 0 5px 0' }}>{label}</p>
-                                              {payload.map((entry, index) => {
-                                                let value = entry.value;
-                                                let unit = '';
-                                                if (entry.name === 'TST') {
-                                                  value = Math.round(value).toFixed(0);
-                                                  unit = ' minutes';
-                                                } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                  value = value.toFixed(0);
-                                                  unit = ' minutes';
-                                                } else if (entry.name === 'PTA') {
-                                                  value = value.toFixed(1);
-                                                  unit = '%';
-                                                } else if (entry.name === 'NWB') {
-                                                  value = value.toFixed(0);
-                                                  unit = ' bouts';
-                                                } else if (entry.name === 'SRI') {
-                                                  value = value.toFixed(2);
-                                                  unit = '';
-                                                }
-                                                return (
-                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                    {`${entry.name}: ${value}${unit}`}
-                                                  </p>
-                                                );
-                                              })}
-                                            </div>
-                                          );
-                                        }
-                                        return null;
-                                      }}
-                                    />
-                                    <Legend />
-                                    <Bar dataKey={metric} fill="#8884d8" name={metric} />
-                                  </BarChart>
-                                </ResponsiveContainer>
-                              </Box>
-                            </Card>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                    {/* Daily ENMO Time Series with Sleep Bands */}
-                    <Box sx={{ mt: 4 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Daily ENMO Time Series with Sleep Periods
-                      </Typography>
-                      {/* Custom legend for sleep periods */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 1 }}>
-                        <Box sx={{ width: 18, height: 18, bgcolor: '#2196f3', opacity: 0.15, border: '1px solid #2196f3', mr: 1 }} />
-                        <Typography variant="body2" color="text.secondary">Sleep Period</Typography>
-                      </Box>
-                      <Grid container spacing={3}>
-                        {Array.from(new Set(data.data.map(item => {
-                          const date = new Date(item.TIMESTAMP);
-                          return date.toLocaleDateString('en-CA');
-                        }))).map((dayStr, dayIndex) => {
-                          const dayData = data.data.filter(item => {
-                            const date = new Date(item.TIMESTAMP);
-                            return date.toLocaleDateString('en-CA') === dayStr;
-                          });
-                          if (dayData.length === 0) return null;
-                          // Add a 'timestampNum' property for numeric x-axis
-                          const dayDataWithNum = dayData.map(item => ({
-                            ...item,
-                            timestampNum: new Date(item.TIMESTAMP).getTime(),
-                          }));
-                          const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
-                          // Find sleep=1 intervals
-                          const sleepBands = [];
-                          let bandStart = null;
-                          for (let i = 0; i < dayDataWithNumSorted.length; i++) {
-                            if (dayDataWithNumSorted[i].sleep === 1 && bandStart === null) {
-                              bandStart = dayDataWithNumSorted[i].timestampNum;
-                            }
-                            if ((dayDataWithNumSorted[i].sleep !== 1 || i === dayDataWithNumSorted.length - 1) && bandStart !== null) {
-                              const bandEnd = dayDataWithNumSorted[i - 1].timestampNum;
-                              sleepBands.push({ start: bandStart, end: bandEnd });
-                              bandStart = null;
-                            }
-                          }
-                          return (
-                            <Grid item xs={12} key={dayStr}>
-                              <Card variant="outlined" sx={{ p: 2 }}>
-                                <Typography variant="subtitle1" gutterBottom align="center">
-                                  {dayStr}
-                                </Typography>
-                                <ResponsiveContainer width="100%" height={300}>
-                                  <LineChart
-                                    data={dayDataWithNumSorted}
-                                    margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
-                                  >
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis
-                                      dataKey="timestampNum"
-                                      type="number"
-                                      domain={['dataMin', 'dataMax']}
-                                      tickFormatter={(timestampNum) => {
-                                        const date = new Date(timestampNum);
-                                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                      }}
-                                    />
-                                    <YAxis
-                                      yAxisId="left"
-                                      label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
-                                    />
-                                    <RechartsTooltip
-                                      content={({ active, payload, label }) => {
-                                        if (active && payload && payload.length) {
-                                          return (
-                                            <div style={{ 
-                                              backgroundColor: 'white', 
-                                              padding: '10px', 
-                                              border: '1px solid #ccc',
-                                              borderRadius: '4px'
-                                            }}>
-                                              <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
-                                              {payload.map((entry, index) => {
-                                                let value = entry.value;
-                                                let unit = '';
-                                                if (entry.name === 'TST') {
-                                                  value = Math.round(value).toFixed(0);
-                                                  unit = ' minutes';
-                                                } else if (entry.name === 'WASO' || entry.name === 'SOL') {
-                                                  value = value.toFixed(0);
-                                                  unit = ' minutes';
-                                                } else if (entry.name === 'PTA') {
-                                                  value = value.toFixed(1);
-                                                  unit = '%';
-                                                }
-                                                return (
-                                                  <p key={index} style={{ margin: '0', color: entry.color }}>
-                                                    {`${entry.name}: ${value}${unit}`}
-                                                  </p>
-                                                );
-                                              })}
-                                            </div>
-                                          );
-                                        }
-                                        return null;
-                                      }}
-                                    />
-                                    <Legend />
-                                    <Line
-                                      type="monotone"
-                                      dataKey="ENMO"
-                                      stroke="#8884d8"
-                                      dot={false}
-                                      isAnimationActive={false}
-                                      yAxisId="left"
-                                    />
-                                    {/* Blue bands for sleep=1 */}
-                                    {sleepBands.map((band, idx) => (
-                                      <ReferenceArea
-                                        key={`sleep-band-${idx}`}
-                                        x1={band.start}
-                                        x2={band.end}
-                                        fill="#2196f3"
-                                        fillOpacity={0.15}
-                                        yAxisId="left"
-                                      />
-                                    ))}
-                                  </LineChart>
-                                </ResponsiveContainer>
-                              </Card>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                  <TextField
+                                    fullWidth
+                                    label="Auto-calibration Sphere Criterion"
+                                    type="text"
+                                    value={preprocessParams.autocalib_sphere_crit}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/,/g, '.');
+                                      // Allow any positive numeric value with arbitrary precision
+                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                        handlePreprocessParamChange('autocalib_sphere_crit', value);
+                                      }
+                                    }}
+                                    inputProps={{ 
+                                      inputMode: "decimal",
+                                      lang: "en-US"
+                                    }}
+                                  />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                  <TextField
+                                    fullWidth
+                                    label="Filter Cutoff"
+                                    type="text"
+                                    value={preprocessParams.filter_cutoff}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/,/g, '.');
+                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                        handlePreprocessParamChange('filter_cutoff', value);
+                                      }
+                                    }}
+                                    inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                  />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                  <TextField
+                                    fullWidth
+                                    label="Required Daily Coverage"
+                                    type="text"
+                                    value={preprocessParams.required_daily_coverage}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/,/g, '.');
+                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                        handlePreprocessParamChange('required_daily_coverage', value);
+                                      }
+                                    }}
+                                    inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                  />
+                                </Grid>
+                              </Grid>
                             </Grid>
-                          );
-                        })}
-                      </Grid>
-                    </Box>
-                  </Card>
-                </Grid>
-              )}
-                </>
-              )}
 
-              {/* Multi-individual Tab Content */}
-              {labSubTab === 'multi' && (
-                <MultiIndividualTab />
-              )}
-            </Grid>
+                            {/* Feature Parameters */}
+                            <Grid item xs={12} md={6}>
+                              <Typography variant="subtitle1" gutterBottom>
+                                Feature Parameters
+                              </Typography>
+                              <Grid container spacing={2}>
+                                <Grid item xs={12}>
+                                  <FormControl fullWidth>
+                                    <FormControlLabel
+                                      control={
+                                        <Switch
+                                          checked={featureParams.sleep_rescore}
+                                          onChange={(e) => handleFeatureParamChange('sleep_rescore', e.target.checked)}
+                                        />
+                                      }
+                                      label="Sleep Rescore"
+                                    />
+                                  </FormControl>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                  <TextField
+                                    fullWidth
+                                    label="PA Cutpoint SL"
+                                    type="text"
+                                    value={featureParams.pa_cutpoint_sl}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/,/g, '.');
+                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                        handleFeatureParamChange('pa_cutpoint_sl', value);
+                                      }
+                                    }}
+                                    inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                  />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                  <TextField
+                                    fullWidth
+                                    label="PA Cutpoint LM"
+                                    type="text"
+                                    value={featureParams.pa_cutpoint_lm}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/,/g, '.');
+                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                        handleFeatureParamChange('pa_cutpoint_lm', value);
+                                      }
+                                    }}
+                                    inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                  />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                  <TextField
+                                    fullWidth
+                                    label="PA Cutpoint MV"
+                                    type="text"
+                                    value={featureParams.pa_cutpoint_mv}
+                                    onChange={(e) => {
+                                      let value = e.target.value.replace(/,/g, '.');
+                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                        handleFeatureParamChange('pa_cutpoint_mv', value);
+                                      }
+                                    }}
+                                    inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                  />
+                                </Grid>
+                              </Grid>
+                            </Grid>
+                          </Grid>
+
+                          {/* Process and Reset Buttons */}
+                          <Box sx={{ mt: 3, textAlign: 'center', display: 'flex', gap: 2, justifyContent: 'center' }}>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              onClick={handleProcessData}
+                              disabled={processing}
+                              startIcon={processing ? <CircularProgress size={20} /> : <PlayArrowIcon />}
+                              sx={{ px: 4, py: 1.5 }}
+                            >
+                              {processing ? `Processing... (${formatTime(processingTime)})` : 'Process Data'}
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="secondary"
+                              onClick={handleReset}
+                              disabled={processing}
+                              startIcon={<RefreshIcon />}
+                              sx={{ px: 4, py: 1.5 }}
+                            >
+                              Reset All
+                            </Button>
+                          </Box>
+                          
+                        </Paper>
+                      </Grid>
+                    )}
+
+                    {/* Processing Complete Summary */}
+                    {data?.data && (
+                      <Grid item xs={12}>
+                        <Paper sx={{ p: 3, bgcolor: '#e8f5e8', border: '1px solid #4caf50' }}>
+                          {/* Processing Summary */}
+                          <Box sx={{ p: 2 }}>
+                            <Typography variant="h6" gutterBottom color="success.dark">
+                              Processing Complete
+                            </Typography>
+                            
+                            {/* Processing Summary */}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                              <Typography variant="body1" color="success.main" sx={{ fontWeight: 500 }}>
+                                Data was successfully preprocessed.
+                              </Typography>
+                              <Typography variant="body1" color="success.main" sx={{ fontWeight: 500 }}>
+                                Features were successfully computed.
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Paper>
+                      </Grid>
+                    )}
+
+                                         {/* Results Display */}
+                     {data?.data && (
+                       <>
+                         <Grid item xs={12}>
+                           <Paper sx={{ p: 3, mb: 3 }}>
+                             <Typography variant="h6" gutterBottom>
+                               Raw Data Information
+                             </Typography>
+                             <Grid container spacing={2}>
+                               <Grid item xs={12} sm={4}>
+                                 <Typography variant="subtitle2" color="text.secondary">
+                                   Data Frequency
+                                 </Typography>
+                                 <Typography variant="body1">{data.metadata?.raw_data_frequency || 'N/A'}</Typography>
+                               </Grid>
+                               <Grid item xs={12} sm={4}>
+                                 <Typography variant="subtitle2" color="text.secondary">
+                                   Start Time
+                                 </Typography>
+                                 <Typography variant="body1">{data.metadata?.raw_start_datetime || 'N/A'}</Typography>
+                               </Grid>
+                               <Grid item xs={12} sm={4}>
+                                 <Typography variant="subtitle2" color="text.secondary">
+                                   End Time
+                                 </Typography>
+                                 <Typography variant="body1">{data.metadata?.raw_end_datetime || 'N/A'}</Typography>
+                               </Grid>
+                               <Grid item xs={12} sm={4}>
+                                 <Typography variant="subtitle2" color="text.secondary">
+                                   Data Type
+                                 </Typography>
+                                 <Typography variant="body1">{data.metadata?.raw_data_type || 'N/A'}</Typography>
+                               </Grid>
+                               <Grid item xs={12} sm={4}>
+                                 <Typography variant="subtitle2" color="text.secondary">
+                                   Data Unit
+                                 </Typography>
+                                 <Typography variant="body1">{data.metadata?.raw_data_unit || 'N/A'}</Typography>
+                               </Grid>
+                               <Grid item xs={12} sm={4}>
+                                 <Typography variant="subtitle2" color="text.secondary">
+                                   Number of Data Points
+                                 </Typography>
+                                 <Typography variant="body1">{data.metadata?.raw_n_datapoints || 'N/A'}</Typography>
+                               </Grid>
+                               <Grid item xs={12} sm={4}>
+                                 <Typography variant="subtitle2" color="text.secondary">
+                                   Follow-up Time
+                                 </Typography>
+                                 <Typography variant="body1">
+                                   {data.metadata?.raw_start_datetime && data.metadata?.raw_end_datetime ? 
+                                     (() => {
+                                       const diff = new Date(data.metadata.raw_end_datetime) - new Date(data.metadata.raw_start_datetime);
+                                       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                                       return `${days} ${days === 1 ? 'day' : 'days'} ${hours} ${hours === 1 ? 'hour' : 'hours'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+                                     })() : 
+                                     'N/A'}
+                                 </Typography>
+                               </Grid>
+                               <Grid item xs={12} sm={4}>
+                                 <Typography variant="subtitle2" color="text.secondary">
+                                   Cohort Size
+                                 </Typography>
+                                 <Typography variant="body1">1 individual</Typography>
+                               </Grid>
+                             </Grid>
+                           </Paper>
+                         </Grid>
+
+                         {/* Cosinor Age Prediction */}
+                         {data?.features && (
+                           <>
+                             <Grid item xs={12}>
+                               <Paper sx={{ p: 3, mb: 3 }}>
+                                 <Typography variant="h6" gutterBottom>
+                                   Cosinor Age Prediction
+                                 </Typography>
+                                 
+                                 {/* Age and Gender Input */}
+                                 <Grid container spacing={3} sx={{ mb: 3 }}>
+                                   <Grid item xs={12} md={6}>
+                                     <TextField
+                                       fullWidth
+                                       label="Chronological Age"
+                                       type="number"
+                                       value={chronologicalAge}
+                                       onChange={(e) => setChronologicalAge(e.target.value)}
+                                       inputProps={{ min: 0, max: 120 }}
+                                       helperText="Enter your chronological age"
+                                     />
+                                   </Grid>
+                                   <Grid item xs={12} md={6}>
+                                     <FormControl fullWidth>
+                                       <InputLabel>Gender</InputLabel>
+                                       <Select
+                                         value={gender}
+                                         label="Gender"
+                                         onChange={(e) => setGender(e.target.value)}
+                                       >
+                                         <MenuItem value="male">Male</MenuItem>
+                                         <MenuItem value="female">Female</MenuItem>
+                                         <MenuItem value="invariant">Invariant</MenuItem>
+                                       </Select>
+                                       <FormHelperText>Select your gender for age prediction</FormHelperText>
+                                     </FormControl>
+                                   </Grid>
+                                 </Grid>
+
+                                 {/* Age Prediction Results */}
+                                 <Grid container spacing={3}>
+                                   <Grid item xs={12} md={6}>
+                                     <Box sx={{ textAlign: 'center', p: 2 }}>
+                                       <Typography variant="h4" color="primary.main" gutterBottom>
+                                         {predictedAge ? `${predictedAge.toFixed(1)} years` : 'N/A'}
+                                       </Typography>
+                                       <Typography variant="body2" color="text.secondary">
+                                         Predicted Biological Age
+                                       </Typography>
+                                     </Box>
+                                   </Grid>
+                                   <Grid item xs={12} md={6}>
+                                     <Box sx={{ textAlign: 'center', p: 2 }}>
+                                       <Typography variant="h4" color="secondary.main" gutterBottom>
+                                         {chronologicalAge ? `${chronologicalAge} years` : 'N/A'}
+                                       </Typography>
+                                       <Typography variant="body2" color="text.secondary">
+                                         Chronological Age
+                                       </Typography>
+                                     </Box>
+                                   </Grid>
+                                 </Grid>
+                                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                                   <Button
+                                     variant="outlined"
+                                     color="primary"
+                                     onClick={handlePredictAge}
+                                     disabled={!data?.features || !chronologicalAge}
+                                     sx={{ 
+                                       minWidth: 120,
+                                       '&:hover': {
+                                         backgroundColor: 'primary.main',
+                                         color: 'white'
+                                       }
+                                     }}
+                                   >
+                                     Predict Age
+                                   </Button>
+                                 </Box>
+                               </Paper>
+                             </Grid>
+
+                             
+                             {/* Plots */}
+                             {(() => {
+                               return data?.data && (
+                                 <Grid item xs={12}>
+                                   {/* Check if data contains x, y, z columns */}
+                                   {(() => {
+                                     const hasXYZColumns = data.data[0] && 
+                                       'x' in data.data[0] && 
+                                       'y' in data.data[0] && 
+                                       'z' in data.data[0];
+                                     
+                                     if (hasXYZColumns) {
+                                       return (
+                                         <>
+                                           {/* X, Y, Z Accelerometer Data Plot */}
+                                           <Paper sx={{ p: 3, mb: 3 }}>
+                                             <Typography variant="h6" gutterBottom>
+                                               Raw Accelerometer Data (X, Y, Z axes)
+                                             </Typography>
+                                             <ResponsiveContainer width="100%" height={400}>
+                                               <LineChart 
+                                                 data={data.data}
+                                                 margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                               >
+                                                 <XAxis 
+                                                   dataKey="TIMESTAMP" 
+                                                   label={{ value: 'Time', position: 'insideBottom', offset: -5 }}
+                                                   tickFormatter={(timestamp) => {
+                                                     const date = new Date(timestamp);
+                                                     return date.toLocaleDateString();
+                                                   }}
+                                                   interval={0}
+                                                   tick={(props) => {
+                                                     const { x, y, payload } = props;
+                                                     const date = new Date(payload.value);
+                                                     const isStartOfDay = date.getHours() === 0 && date.getMinutes() === 0;
+                                                     return isStartOfDay ? (
+                                                       <g transform={`translate(${x},${y})`}>
+                                                         <text x={0} y={0} dy={16} textAnchor="middle" fill="#666">
+                                                           {date.toLocaleDateString()}
+                                                         </text>
+                                                       </g>
+                                                     ) : null;
+                                                   }}
+                                                 />
+                                                 <YAxis 
+                                                   label={{ value: 'Acceleration (g)', angle: -90, position: 'insideLeft' }}
+                                                 />
+                                                 <RechartsTooltip 
+                                                   content={({ active, payload, label }) => {
+                                                     if (active && payload && payload.length) {
+                                                       return (
+                                                         <div style={{ 
+                                                           backgroundColor: 'white', 
+                                                           padding: '10px', 
+                                                           border: '1px solid #ccc',
+                                                           borderRadius: '4px'
+                                                         }}>
+                                                           <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                                           {payload.map((entry, index) => (
+                                                             <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                               {`${entry.name}: ${entry.value.toFixed(4)} g`}
+                                                             </p>
+                                                           ))}
+                                                         </div>
+                                                       );
+                                                     }
+                                                     return null;
+                                                   }}
+                                                 />
+                                                 <Legend />
+                                                 <Line 
+                                                   type="monotone" 
+                                                   dataKey="x" 
+                                                   stroke="#ff0000" 
+                                                   dot={false}
+                                                   name="X-axis"
+                                                 />
+                                                 <Line 
+                                                   type="monotone" 
+                                                   dataKey="y" 
+                                                   stroke="#00ff00" 
+                                                   dot={false}
+                                                   name="Y-axis"
+                                                 />
+                                                 <Line 
+                                                   type="monotone" 
+                                                   dataKey="z" 
+                                                   stroke="#0000ff" 
+                                                   dot={false}
+                                                   name="Z-axis"
+                                                 />
+                                               </LineChart>
+                                             </ResponsiveContainer>
+                                           </Paper>
+                                         </>
+                                       );
+                                     }
+                                     return null;
+                                   })()}
+                                   
+                                   {/* ENMO Data Plot */}
+                                   <Paper sx={{ p: 3, mb: 3 }}>
+                                     <Typography variant="h6" gutterBottom>
+                                       ENMO time series (incl. wear/non-wear segments)
+                                     </Typography>
+                                     {/* Custom legend for wear/non-wear */}
+                                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 1 }}>
+                                       <Box sx={{ width: 18, height: 18, bgcolor: '#4caf50', opacity: 0.3, border: '1px solid #4caf50', mr: 1 }} />
+                                       <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>wear</Typography>
+                                       <Box sx={{ width: 18, height: 18, bgcolor: '#ff5252', opacity: 0.3, border: '1px solid #ff5252', mr: 1 }} />
+                                       <Typography variant="body2" color="text.secondary">non-wear</Typography>
+                                     </Box>
+                                     <ResponsiveContainer width="100%" height={400}>
+                                       <LineChart 
+                                         data={data.data}
+                                         margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                       >
+                                         <XAxis 
+                                           dataKey="TIMESTAMP" 
+                                           label={{ value: 'Time', position: 'insideBottom', offset: -5 }}
+                                           tickFormatter={(timestamp) => {
+                                             const date = new Date(timestamp);
+                                             return date.toLocaleDateString();
+                                           }}
+                                           interval={0}
+                                           tick={(props) => {
+                                             const { x, y, payload } = props;
+                                             const date = new Date(payload.value);
+                                             const isStartOfDay = date.getHours() === 0 && date.getMinutes() === 0;
+                                             return isStartOfDay ? (
+                                               <g transform={`translate(${x},${y})`}>
+                                                 <text x={0} y={0} dy={16} textAnchor="middle" fill="#666">
+                                                   {date.toLocaleDateString()}
+                                                 </text>
+                                               </g>
+                                             ) : null;
+                                           }}
+                                         />
+                                         <YAxis 
+                                           label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
+                                         />
+                                         <RechartsTooltip 
+                                           content={({ active, payload, label }) => {
+                                             if (active && payload && payload.length) {
+                                               return (
+                                                 <div style={{ 
+                                                   backgroundColor: 'white', 
+                                                   padding: '10px', 
+                                                   border: '1px solid #ccc',
+                                                   borderRadius: '4px'
+                                                 }}>
+                                                   <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                                   {payload.map((entry, index) => {
+                                                     <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                       {`${entry.name}: ${entry.value.toFixed(2)} mg`}
+                                                     </p>
+                                                   })}
+                                                 </div>
+                                               );
+                                             }
+                                             return null;
+                                           }}
+                                         />
+                                         <Legend />
+                                         <Line 
+                                           type="monotone" 
+                                           dataKey="ENMO" 
+                                           stroke="#8884d8" 
+                                           dot={false}
+                                         />
+                                         {/* Shaded background for wear/non-wear segments */}
+                                         {(() => {
+                                           const areas = [];
+                                           let currentWear = data.data[0]?.wear;
+                                           let segStart = data.data[0]?.TIMESTAMP;
+                                           // Log timestamps
+                                           console.log('Min Timestamp:', data.data[0]?.TIMESTAMP);
+                                           console.log('M10 Start:', data.features.nonparam.m10_start);
+                                           console.log('L5 Start:', data.features.nonparam.l5_start);
+                                           for (let i = 1; i <= data.data.length; i++) {
+                                             const point = data.data[i];
+                                             if (i === data.data.length || point?.wear !== currentWear) {
+                                               const segEnd = data.data[i - 1]?.TIMESTAMP;
+                                               // Only add shaded area if wear is not -1
+                                               if (currentWear !== -1) {
+                                                 const color = interpolateColor(currentWear);
+                                                 areas.push(
+                                                   <ReferenceArea
+                                                     key={`wear-seg-${segStart}`}
+                                                     x1={segStart}
+                                                     x2={segEnd}
+                                                     fill={color}
+                                                     fillOpacity={0.3}
+                                                     stroke={color}
+                                                     strokeOpacity={0.5}
+                                                     label={null}
+                                                   />
+                                                 );
+                                               }
+                                               if (i < data.data.length) {
+                                                 currentWear = point.wear;
+                                                 segStart = point.TIMESTAMP;
+                                               }
+                                             }
+                                           }
+                                           return areas;
+                                         })()}
+                                       </LineChart>
+                                     </ResponsiveContainer>
+                                   </Paper>
+                                 </Grid>
+                               );
+                             })(                             )}
+
+                             {/* Cosinor Features */}
+                             {data?.features && data.features.cosinor && (
+                               <Grid item xs={12}>
+                                 <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                     <Typography variant="h6" gutterBottom>
+                                       Cosinor Features
+                                     </Typography>
+                                     <SectionInfoButton section="cosinor" />
+                                   </Box>
+                                   <Grid container spacing={2} direction="row" wrap="nowrap">
+                                     {Object.entries(data.features.cosinor).map(([key, value]) => (
+                                       <Grid item xs key={key} zeroMinWidth>
+                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                           <Typography variant="subtitle2" color="text.secondary" noWrap>
+                                             {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                           </Typography>
+                                           <SectionInfoButton metric={key} />
+                                         </Box>
+                                         <Typography variant="body1" noWrap>
+                                           {typeof value === 'number' ? 
+                                             key === 'acrophase_time' ? (() => {
+                                               const minutes = value;
+                                               const hours = Math.floor(minutes / 60);
+                                               const mins = Math.round(minutes % 60);
+                                               return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+                                             })() : value.toFixed(4) : value}
+                                           {key === 'mesor' || key === 'amplitude' ? ' mg' : 
+                                             key === 'acrophase' ? ' radians' : ''}
+                                         </Typography>
+                                       </Grid>
+                                     ))}
+                                   </Grid>
+                                 </Paper>
+                               </Grid>
+                             )}
+
+                             {/* Non-parametric Features */}
+                             {data?.features && data.features.nonparam && (
+                               <Grid item xs={12}>
+                                 <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                     <Typography variant="h6" gutterBottom>
+                                       Non-parametric Features
+                                     </Typography>
+                                     <SectionInfoButton section="nonparam" />
+                                   </Box>
+                                   <Grid container spacing={2}>
+                                     {Object.entries(data.features.nonparam)
+                                       .sort(([keyA], [keyB]) => {
+                                         // Define the desired order
+                                         const order = {
+                                           'is': 1,
+                                           'iv': 2,
+                                           'm10': 3,
+                                           'ra': 4
+                                         };
+                                         const orderA = order[keyA.toLowerCase()] || 5;
+                                         const orderB = order[keyB.toLowerCase()] || 5;
+                                         return orderA - orderB;
+                                       })
+                                       .map(([key, value]) => (
+                                       ['l5', 'm10_start', 'l5_start'].includes(key.toLowerCase()) ? null : (
+                                         <Grid item xs={12} key={key}>
+                                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                             <Typography variant="subtitle2" color="text.secondary">
+                                               {key === 'RA' ? 'Relative Amplitude (RA)' : 
+                                                key === 'M10' || key === 'L5' ? 'L5 & M10' : 
+                                                key === 'IV' ? 'Intradaily Variability (IV)' :
+                                                key === 'IS' ? 'Interdaily Stability (IS)' :
+                                                key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                             </Typography>
+                                             <SectionInfoButton metric={key} />
+                                           </Box>
+                                           {/* IS and IV as horizontal scale */}
+                                           {(['is', 'iv'].includes(key.toLowerCase()) && typeof value === 'number') ? (
+                                             <HorizontalScale
+                                               value={value}
+                                               min={key.toLowerCase() === 'is' ? 0 : 0}
+                                               max={key.toLowerCase() === 'is' ? 1 : 2}
+                                               color={key.toLowerCase() === 'is' ? '#1976d2' : '#388e3c'}
+                                             />
+                                           ) : key.toLowerCase() === 'ra' && Array.isArray(value) ? (
+                                             <Box sx={{ width: '100%', height: 200, mt: 2 }}>
+                                               <ResponsiveContainer width="100%" height="100%">
+                                                 <BarChart
+                                                   data={value.map((v, index) => ({
+                                                     day: getDateForIndex('RA', index, data),
+                                                     RA: v
+                                                   }))}
+                                                   margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                                 >
+                                                   <CartesianGrid strokeDasharray="3 3" />
+                                                   <XAxis dataKey="day" />
+                                                   <YAxis label={{ value: 'RA', angle: -90, position: 'insideLeft' }} />
+                                                   <RechartsTooltip 
+                                                     content={({ active, payload, label }) => {
+                                                       if (active && payload && payload.length) {
+                                                         return (
+                                                           <div style={{ 
+                                                             backgroundColor: 'white', 
+                                                             padding: '10px', 
+                                                             border: '1px solid #ccc',
+                                                             borderRadius: '4px'
+                                                           }}>
+                                                             <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                             {payload.map((entry, index) => {
+                                                               let value = entry.value;
+                                                               let unit = '';
+                                                               if (entry.name === 'TST') {
+                                                                 value = Math.round(value).toFixed(0);
+                                                                 unit = ' minutes';
+                                                               } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                                 value = value.toFixed(0);
+                                                                 unit = ' minutes';
+                                                               } else if (entry.name === 'PTA') {
+                                                                 value = value.toFixed(1);
+                                                                 unit = '%';
+                                                               } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                                 value = value.toFixed(2);
+                                                                 unit = ' mg';
+                                                               } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                                 value = value.toFixed(0);
+                                                                 unit = ' minutes';
+                                                               }
+                                                               return (
+                                                                 <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                                   {`${entry.name}: ${value}${unit}`}
+                                                                 </p>
+                                                               );
+                                                             })}
+                                                           </div>
+                                                         );
+                                                       }
+                                                       return null;
+                                                     }}
+                                                   />
+                                                   <Bar dataKey="RA" fill="#0088fe" name="RA" />
+                                                 </BarChart>
+                                               </ResponsiveContainer>
+                                             </Box>
+                                           ) : key === 'M10' && data.features.nonparam.M10 && data.features.nonparam.L5 ? (
+                                             <>
+                                               <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                                                 <ResponsiveContainer width="100%" height="100%">
+                                                   <BarChart
+                                                     data={data.features.nonparam.M10.map((m10, index) => ({
+                                                       day: getDateForIndex('M10', index, data),
+                                                       M10: m10,
+                                                       L5: data.features.nonparam.L5[index]
+                                                     }))}
+                                                     margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                                   >
+                                                     <CartesianGrid strokeDasharray="3 3" />
+                                                     <XAxis dataKey="day" />
+                                                     <YAxis label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} />
+                                                     <RechartsTooltip 
+                                                       content={({ active, payload, label }) => {
+                                                         if (active && payload && payload.length) {
+                                                           return (
+                                                             <div style={{ 
+                                                               backgroundColor: 'white', 
+                                                               padding: '10px', 
+                                                               border: '1px solid #ccc',
+                                                               borderRadius: '4px'
+                                                             }}>
+                                                               <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                               {payload.map((entry, index) => {
+                                                                 let value = entry.value;
+                                                                 let unit = '';
+                                                                 if (entry.name === 'TST') {
+                                                                   value = Math.round(value).toFixed(0);
+                                                                   unit = ' minutes';
+                                                                 } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                                   value = value.toFixed(0);
+                                                                   unit = ' minutes';
+                                                                 } else if (entry.name === 'PTA') {
+                                                                   value = value.toFixed(1);
+                                                                   unit = '%';
+                                                                 } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                                   value = value.toFixed(2);
+                                                                   unit = ' mg';
+                                                                 } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                                   value = value.toFixed(0);
+                                                                   unit = ' minutes';
+                                                                 }
+                                                                 return (
+                                                                   <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                                     {`${entry.name}: ${value}${unit}`}
+                                                                   </p>
+                                                                 );
+                                                               })}
+                                                             </div>
+                                                           );
+                                                         }
+                                                         return null;
+                                                       }}
+                                                     />
+                                                     <Legend />
+                                                     <Bar dataKey="M10" fill="#8884d8" name="M10" />
+                                                     <Bar dataKey="L5" fill="#82ca9d" name="L5" />
+                                                   </BarChart>
+                                                 </ResponsiveContainer>
+                                               </Box>
+                                             </>
+                                           ) : key === 'TST' || key === 'WASO' || key === 'SOL' || key === 'PTA' ? (
+                                             <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                                               <ResponsiveContainer width="100%" height="100%">
+                                                 <BarChart
+                                                   data={value.map((v, index) => ({
+                                                     day: getDateForIndex(key, index, data),
+                                                     [key]: v
+                                                   }))}
+                                                   margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                                 >
+                                                   <CartesianGrid strokeDasharray="3 3" />
+                                                   <XAxis dataKey="day" />
+                                                   <YAxis label={{ 
+                                                     value: key === 'PTA' ? 'Percentage (%)' : key === 'NWB' ? 'Number of Bouts' : 'Minutes', 
+                                                     angle: -90, 
+                                                     position: 'insideLeft' 
+                                                   }} />
+                                                   <RechartsTooltip 
+                                                     content={({ active, payload, label }) => {
+                                                       if (active && payload && payload.length) {
+                                                         return (
+                                                           <div style={{ 
+                                                             backgroundColor: 'white', 
+                                                             padding: '10px', 
+                                                             border: '1px solid #ccc',
+                                                             borderRadius: '4px'
+                                                           }}>
+                                                             <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                             {payload.map((entry, index) => {
+                                                               let value = entry.value;
+                                                               let unit = '';
+                                                               if (entry.name === 'TST') {
+                                                                 value = Math.round(value).toFixed(0);
+                                                                 unit = ' minutes';
+                                                               } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                                 value = value.toFixed(0);
+                                                                 unit = ' minutes';
+                                                               } else if (entry.name === 'PTA') {
+                                                                 value = value.toFixed(1);
+                                                                 unit = '%';
+                                                               } else if (entry.name === 'NWB') {
+                                                                 value = value.toFixed(0);
+                                                                 unit = ' bouts';
+                                                               }
+                                                               return (
+                                                                 <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                                   {`${entry.name}: ${value}${unit}`}
+                                                                 </p>
+                                                               );
+                                                             })}
+                                                           </div>
+                                                         );
+                                                       }
+                                                       return null;
+                                                     }}
+                                                   />
+                                                   <Legend />
+                                                   <Bar dataKey={key} fill="#8884d8" name={key} />
+                                                 </BarChart>
+                                               </ResponsiveContainer>
+                                             </Box>
+                                           ) : (
+                                             <Typography variant="body1">
+                                               {Array.isArray(value) ? value.join(', ') : value}
+                                             </Typography>
+                                           )}
+                                         </Grid>
+                                       )
+                                     ))}
+                                   </Grid>
+                                   {/* Daily ENMO Time Series with M10 and L5 Periods */}
+                                   <Box sx={{ mt: 4 }}>
+                                     <Typography variant="subtitle2" gutterBottom>
+                                       Daily ENMO Time Series with M10 and L5 Periods (incl. multiday Cosinor Fits)
+                                     </Typography>
+                                     <Grid container spacing={3}>
+                                       {Array.from(new Set(data.data.map(item => {
+                                         const date = new Date(item.TIMESTAMP);
+                                         return date.toLocaleDateString('en-CA');
+                                       }))).map((dayStr, dayIndex) => {
+                                         const dayData = data.data.filter(item => {
+                                           const date = new Date(item.TIMESTAMP);
+                                           return date.toLocaleDateString('en-CA') === dayStr;
+                                         });
+                                         if (dayData.length === 0) return null;
+                                         const m10Start = data.features.nonparam.M10_start?.[dayIndex];
+                                         const l5Start = data.features.nonparam.L5_start?.[dayIndex];
+                                         if (!m10Start || !l5Start) return null;
+                                         // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
+                                         const dayDataWithNum = dayData.map(item => {
+                                           const globalIndex = data.data.findIndex(d => d.TIMESTAMP === item.TIMESTAMP);
+                                           const globalData = globalIndex !== -1 ? data.data[globalIndex] : null;
+                                           return {
+                                             ...item,
+                                             timestampNum: new Date(item.TIMESTAMP).getTime(),
+                                             cosinor_fitted: globalData ? globalData.cosinor_fitted : null
+                                           };
+                                         });
+                                         const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
+                                         // Check if m10StartDate and l5StartDate are valid
+                                         const m10StartDate = m10Start && m10Start.includes('T')
+                                           ? new Date(m10Start)
+                                           : new Date(`${dayStr}T${m10Start}`);
+                                         const l5StartDate = l5Start && l5Start.includes('T')
+                                           ? new Date(l5Start)
+                                           : new Date(`${dayStr}T${l5Start}`);
+                                         return (
+                                           <Grid item xs={12} key={dayStr}>
+                                             <Paper sx={{ p: 3, mb: 3 }}>
+                                               <Typography variant="subtitle1" gutterBottom align="center">
+                                                 {dayStr}
+                                               </Typography>
+                                               <ResponsiveContainer width="100%" height={300}>
+                                                 <LineChart
+                                                   data={dayDataWithNumSorted}
+                                                   margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                                 >
+                                                   <CartesianGrid strokeDasharray="3 3" />
+                                                   <XAxis
+                                                     dataKey="timestampNum"
+                                                     type="number"
+                                                     domain={['dataMin', 'dataMax']}
+                                                     tickFormatter={(timestampNum) => {
+                                                       const date = new Date(timestampNum);
+                                                       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                                     }}
+                                                   />
+                                                   <YAxis 
+                                                     yAxisId="left"
+                                                     label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }} 
+                                                   />
+                                                   <YAxis 
+                                                     yAxisId="right"
+                                                     orientation="right"
+                                                     label={{ value: 'Cosinor Fit (mg)', angle: 90, position: 'insideRight' }} 
+                                                   />
+                                                   <RechartsTooltip
+                                                     content={({ active, payload, label }) => {
+                                                       if (active && payload && payload.length) {
+                                                         return (
+                                                           <div style={{ 
+                                                             backgroundColor: 'white',
+                                                             padding: '10px', 
+                                                             border: '1px solid #ccc',
+                                                             borderRadius: '4px'
+                                                           }}>
+                                                             <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                                             {payload.map((entry, index) => {
+                                                               let value = entry.value;
+                                                               let unit = '';
+                                                               if (entry.name === 'TST') {
+                                                                 value = Math.round(value).toFixed(0);
+                                                                 unit = ' minutes';
+                                                               } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                                 value = value.toFixed(0);
+                                                                 unit = ' minutes';
+                                                               } else if (entry.name === 'PTA') {
+                                                                 value = value.toFixed(1);
+                                                                 unit = '%';
+                                                               } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                                 value = value.toFixed(2);
+                                                                 unit = ' mg';
+                                                               } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                                 value = value.toFixed(0);
+                                                                 unit = ' minutes';
+                                                               }
+                                                               return (
+                                                                 <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                                   {`${entry.name}: ${value}${unit}`}
+                                                                 </p>
+                                                               );
+                                                             })}
+                                                           </div>
+                                                         );
+                                                       }
+                                                       return null;
+                                                     }}
+                                                   />
+                                                   <Legend />
+                                                   <Line
+                                                     type="monotone"
+                                                     dataKey="ENMO"
+                                                     stroke="#8884d8"
+                                                     dot={false}
+                                                     isAnimationActive={false}
+                                                     yAxisId="left"
+                                                   />
+                                                   <Line
+                                                     type="monotone"
+                                                     dataKey="cosinor_fitted"
+                                                     stroke="#ff0000"
+                                                     dot={false}
+                                                     isAnimationActive={false}
+                                                     name="Cosinor Fit"
+                                                     yAxisId="left"
+                                                   />
+                                                   {/* M10 Period Band */}
+                                                   <ReferenceArea
+                                                     x1={m10StartDate.getTime()}
+                                                     x2={(() => {
+                                                       const x2Value = new Date(m10StartDate.getTime() + 10 * 60 * 60 * 1000);
+                                                       if (x2Value.getHours() === 0 && x2Value.getMinutes() === 0) {
+                                                         return x2Value.getTime() - 60000;
+                                                       }
+                                                       return x2Value.getTime();
+                                                     })()}
+                                                     fill="#8884d8"
+                                                     fillOpacity={0.1}
+                                                     label="M10"
+                                                     yAxisId="left"
+                                                   />
+                                                   {/* L5 Period Band */}
+                                                   <ReferenceArea
+                                                     x1={l5StartDate.getTime()}
+                                                     x2={(() => {
+                                                       const x2Value = new Date(l5StartDate.getTime() + 5 * 60 * 60 * 1000);
+                                                       if (x2Value.getHours() === 0 && x2Value.getMinutes() === 0) {
+                                                         return x2Value.getTime() - 60000;
+                                                       }
+                                                       return x2Value.getTime();
+                                                     })()}
+                                                     fill="#82ca9d"
+                                                     fillOpacity={0.1}
+                                                     label="L5"
+                                                     yAxisId="left"
+                                                   />
+                                                 </LineChart>
+                                               </ResponsiveContainer>
+                                             </Paper>
+                                           </Grid>
+                                         );
+                                       })}
+                                     </Grid>
+                                   </Box>
+                                 </Paper>
+                               </Grid>
+                             )}
+
+                                                          {/* Physical Activity Features */}
+                             {data?.features && data.features.physical_activity && (
+                               <Grid item xs={12}>
+                                 <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                     <Typography variant="h6" gutterBottom>
+                                       Physical Activity Features
+                                     </Typography>
+                                     <SectionInfoButton section="physical_activity" />
+                                   </Box>
+                                   {/* Stacked Bar Chart for Activity Levels */}
+                                   <Box sx={{ mt: 2 }}>
+                                     <Box sx={{ width: '100%', height: 300 }}>
+                                       <ResponsiveContainer width="100%" height="100%">
+                                         <BarChart
+                                           data={(() => {
+                                             const days = Array.from(new Set(data.data.map(item => {
+                                               const date = new Date(item.TIMESTAMP);
+                                               return date.toLocaleDateString('en-CA');
+                                             })));
+                                             return days.map((dayStr, dayIndex) => {
+                                               const sedentary = data.features.physical_activity.sedentary?.[dayIndex] || 0;
+                                               const light = data.features.physical_activity.light?.[dayIndex] || 0;
+                                               const moderate = data.features.physical_activity.moderate?.[dayIndex] || 0;
+                                               const vigorous = data.features.physical_activity.vigorous?.[dayIndex] || 0;
+                                               return {
+                                                 day: dayStr,
+                                                 sedentary,
+                                                 light,
+                                                 moderate,
+                                                 vigorous
+                                               };
+                                             });
+                                           })()}
+                                           margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                         >
+                                           <CartesianGrid strokeDasharray="3 3" />
+                                           <XAxis dataKey="day" />
+                                           <YAxis label={{ value: 'Minutes', angle: -90, position: 'insideLeft' }} />
+                                           <RechartsTooltip 
+                                             content={({ active, payload, label }) => {
+                                               if (active && payload && payload.length) {
+                                                 return (
+                                                   <div style={{ 
+                                                     backgroundColor: 'white', 
+                                                     padding: '10px', 
+                                                     border: '1px solid #ccc',
+                                                     borderRadius: '4px'
+                                                   }}>
+                                                     <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                     {payload.map((entry, index) => {
+                                                       let value = entry.value;
+                                                       let unit = '';
+                                                       if (entry.name === 'TST') {
+                                                         value = Math.round(value).toFixed(0);
+                                                         unit = ' minutes';
+                                                       } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                         value = value.toFixed(0);
+                                                         unit = ' minutes';
+                                                       } else if (entry.name === 'PTA') {
+                                                         value = value.toFixed(1);
+                                                         unit = '%';
+                                                       } else if (entry.name === 'M10' || entry.name === 'L5') {
+                                                         value = value.toFixed(2);
+                                                         unit = ' mg';
+                                                       } else if (['sedentary', 'light', 'moderate', 'vigorous'].includes(entry.name)) {
+                                                         value = value.toFixed(0);
+                                                         unit = ' minutes';
+                                                       }
+                                                       return (
+                                                         <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                           {`${entry.name}: ${value}${unit}`}
+                                                         </p>
+                                                       );
+                                                     })}
+                                                   </div>
+                                                 );
+                                               }
+                                               return null;
+                                             }}
+                                           />
+                                           <Legend />
+                                           <Bar dataKey="sedentary" stackId="a" fill="#ff6b6b" name="Sedentary" />
+                                           <Bar dataKey="light" stackId="a" fill="#4ecdc4" name="Light" />
+                                           <Bar dataKey="moderate" stackId="a" fill="#45b7d1" name="Moderate" />
+                                           <Bar dataKey="vigorous" stackId="a" fill="#96ceb4" name="Vigorous" />
+                                         </BarChart>
+                                       </ResponsiveContainer>
+                                     </Box>
+                                   </Box>
+                                 </Paper>
+                               </Grid>
+                             )}
+
+                             {/* Sleep Features */}
+                             {data?.features && data.features.sleep && (
+                               <Grid item xs={12}>
+                                 <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                     <Typography variant="h6" gutterBottom>
+                                       Sleep Features
+                                     </Typography>
+                                     <SectionInfoButton section="sleep" />
+                                   </Box>
+                                   <Grid container spacing={2}>
+                                     {Object.entries(data.features.sleep)
+                                       .filter(([key]) => key.toLowerCase() !== 'sri_flag') // Filter out SRI_flag but keep SRI
+                                       .sort(([keyA], [keyB]) => {
+                                         // Define the desired order - SRI first, then others
+                                         const order = {
+                                           'sri': 1,
+                                           'tst': 2,
+                                           'waso': 3,
+                                           'sol': 4,
+                                           'pta': 5,
+                                           'nwb': 6
+                                         };
+                                         const orderA = order[keyA.toLowerCase()] || 7;
+                                         const orderB = order[keyB.toLowerCase()] || 7;
+                                         return orderA - orderB;
+                                       })
+                                       .map(([key, value]) => (
+                                       <Grid item xs={12} key={key}>
+                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                           <Typography variant="subtitle2" color="text.secondary">
+                                             {key === 'TST' ? 'Total Sleep Time (TST)' :
+                                              key === 'WASO' ? 'Wake After Sleep Onset (WASO)' :
+                                              key === 'SOL' ? 'Sleep Onset Latency (SOL)' :
+                                              key === 'PTA' ? 'Percent Time Asleep (PTA)' :
+                                              key === 'NWB' ? 'Number of Wake Bouts (NWB)' :
+                                              key === 'SRI' ? 'Sleep Regularity Index (SRI)' :
+                                              key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                           </Typography>
+                                           <SectionInfoButton metric={key} />
+                                         </Box>
+                                         {/* SRI as horizontal scale */}
+                                         {key.toLowerCase() === 'sri' && typeof value === 'number' ? (
+                                           <HorizontalScale
+                                             value={value}
+                                             min={-100}
+                                             max={100}
+                                             color="#9c27b0"
+                                           />
+                                         ) : Array.isArray(value) ? (
+                                           <Box sx={{ width: '100%', height: 300, mt: 2 }}>
+                                             <ResponsiveContainer width="100%" height="100%">
+                                               <BarChart
+                                                 data={value.map((v, index) => ({
+                                                   day: getDateForIndex(key, index, data),
+                                                   [key]: v
+                                                 }))}
+                                                 margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                               >
+                                                 <CartesianGrid strokeDasharray="3 3" />
+                                                 <XAxis dataKey="day" />
+                                                 <YAxis label={{ 
+                                                   value: key === 'PTA' ? 'Percentage (%)' : key === 'NWB' ? 'Number of Bouts' : 'Minutes', 
+                                                   angle: -90, 
+                                                   position: 'insideLeft' 
+                                                 }} />
+                                                 <RechartsTooltip 
+                                                   content={({ active, payload, label }) => {
+                                                     if (active && payload && payload.length) {
+                                                       return (
+                                                         <div style={{ 
+                                                           backgroundColor: 'white', 
+                                                           padding: '10px', 
+                                                           border: '1px solid #ccc',
+                                                           borderRadius: '4px'
+                                                         }}>
+                                                           <p style={{ margin: '0 0 5px 0' }}>{label}</p>
+                                                           {payload.map((entry, index) => {
+                                                             let value = entry.value;
+                                                             let unit = '';
+                                                             if (entry.name === 'TST') {
+                                                               value = Math.round(value).toFixed(0);
+                                                               unit = ' minutes';
+                                                             } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                               value = value.toFixed(0);
+                                                               unit = ' minutes';
+                                                             } else if (entry.name === 'PTA') {
+                                                               value = value.toFixed(1);
+                                                               unit = '%';
+                                                             } else if (entry.name === 'NWB') {
+                                                               value = value.toFixed(0);
+                                                               unit = ' bouts';
+                                                             }
+                                                             return (
+                                                               <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                                 {`${entry.name}: ${value}${unit}`}
+                                                               </p>
+                                                             );
+                                                           })}
+                                                         </div>
+                                                       );
+                                                     }
+                                                     return null;
+                                                   }}
+                                                 />
+                                                 <Legend />
+                                                 <Bar dataKey={key} fill="#8884d8" name={key} />
+                                               </BarChart>
+                                             </ResponsiveContainer>
+                                           </Box>
+                                         ) : (
+                                           <Typography variant="body1">
+                                             {typeof value === 'number' ? 
+                                               key === 'PTA' ? `${value.toFixed(1)}%` :
+                                               key === 'NWB' ? `${value.toFixed(0)} bouts` :
+                                               `${value.toFixed(0)} minutes` : value}
+                                           </Typography>
+                                         )}
+                                       </Grid>
+                                     ))}
+                                   </Grid>
+                                   
+                                   
+                                   {/* Daily ENMO Time Series with Sleep Bands */}
+                                   <Box sx={{ mt: 4 }}>
+                                     <Typography variant="subtitle2" gutterBottom>
+                                       Daily ENMO Time Series with Sleep Periods
+                                     </Typography>
+                                     {/* Custom legend for sleep periods */}
+                                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, ml: 1 }}>
+                                       <Box sx={{ width: 18, height: 18, bgcolor: '#2196f3', opacity: 0.15, border: '1px solid #2196f3', mr: 1 }} />
+                                       <Typography variant="body2" color="text.secondary">Sleep Period</Typography>
+                                     </Box>
+                                     <Grid container spacing={3}>
+                                       {Array.from(new Set(data.data.map(item => {
+                                         const date = new Date(item.TIMESTAMP);
+                                         return date.toLocaleDateString('en-CA');
+                                       }))).map((dayStr, dayIndex) => {
+                                         const dayData = data.data.filter(item => {
+                                           const date = new Date(item.TIMESTAMP);
+                                           return date.toLocaleDateString('en-CA') === dayStr;
+                                         });
+                                         if (dayData.length === 0) return null;
+                                         // Add a 'timestampNum' property for numeric x-axis
+                                         const dayDataWithNum = dayData.map(item => ({
+                                           ...item,
+                                           timestampNum: new Date(item.TIMESTAMP).getTime(),
+                                         }));
+                                         const dayDataWithNumSorted = [...dayDataWithNum].sort((a, b) => a.timestampNum - b.timestampNum);
+                                         // Find sleep=1 intervals
+                                         const sleepBands = [];
+                                         let bandStart = null;
+                                         for (let i = 0; i < dayDataWithNumSorted.length; i++) {
+                                           if (dayDataWithNumSorted[i].sleep === 1 && bandStart === null) {
+                                             bandStart = dayDataWithNumSorted[i].timestampNum;
+                                           }
+                                           if ((dayDataWithNumSorted[i].sleep !== 1 || i === dayDataWithNumSorted.length - 1) && bandStart !== null) {
+                                             const bandEnd = dayDataWithNumSorted[i - 1].timestampNum;
+                                             sleepBands.push({ start: bandStart, end: bandEnd });
+                                             bandStart = null;
+                                           }
+                                         }
+                                         return (
+                                           <Grid item xs={12} key={dayStr}>
+                                             <Paper sx={{ p: 3, mb: 3 }}>
+                                               <Typography variant="subtitle1" gutterBottom align="center">
+                                                 {dayStr}
+                                               </Typography>
+                                               <ResponsiveContainer width="100%" height={300}>
+                                                 <LineChart
+                                                   data={dayDataWithNumSorted}
+                                                   margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+                                                 >
+                                                   <CartesianGrid strokeDasharray="3 3" />
+                                                   <XAxis
+                                                     dataKey="timestampNum"
+                                                     type="number"
+                                                     domain={['dataMin', 'dataMax']}
+                                                     tickFormatter={(timestampNum) => {
+                                                       const date = new Date(timestampNum);
+                                                       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                                     }}
+                                                   />
+                                                   <YAxis
+                                                     yAxisId="left"
+                                                     label={{ value: 'ENMO (mg)', angle: -90, position: 'insideLeft' }}
+                                                   />
+                                                   <RechartsTooltip
+                                                     content={({ active, payload, label }) => {
+                                                       if (active && payload && payload.length) {
+                                                         return (
+                                                           <div style={{ 
+                                                             backgroundColor: 'white', 
+                                                             padding: '10px', 
+                                                             border: '1px solid #ccc',
+                                                             borderRadius: '4px'
+                                                           }}>
+                                                             <p style={{ margin: '0 0 5px 0' }}>{new Date(label).toLocaleString()}</p>
+                                                             {payload.map((entry, index) => {
+                                                               let value = entry.value;
+                                                               let unit = '';
+                                                               if (entry.name === 'TST') {
+                                                                 value = Math.round(value).toFixed(0);
+                                                                 unit = ' minutes';
+                                                               } else if (entry.name === 'WASO' || entry.name === 'SOL') {
+                                                                 value = value.toFixed(0);
+                                                                 unit = ' minutes';
+                                                               } else if (entry.name === 'PTA') {
+                                                                 value = value.toFixed(1);
+                                                                 unit = '%';
+                                                               }
+                                                               return (
+                                                                 <p key={index} style={{ margin: '0', color: entry.color }}>
+                                                                   {`${entry.name}: ${value}${unit}`}
+                                                                 </p>
+                                                               );
+                                                             })}
+                                                           </div>
+                                                         );
+                                                       }
+                                                       return null;
+                                                     }}
+                                                   />
+                                                   <Legend />
+                                                   <Line
+                                                     type="monotone"
+                                                     dataKey="ENMO"
+                                                     stroke="#8884d8"
+                                                     dot={false}
+                                                     isAnimationActive={false}
+                                                     yAxisId="left"
+                                                   />
+                                                   {/* Blue bands for sleep=1 */}
+                                                   {sleepBands.map((band, idx) => (
+                                                     <ReferenceArea
+                                                       key={`sleep-band-${idx}`}
+                                                       x1={band.start}
+                                                       x2={band.end}
+                                                       fill="#2196f3"
+                                                       fillOpacity={0.15}
+                                                       yAxisId="left"
+                                                     />
+                                                   ))}
+                                                 </LineChart>
+                                               </ResponsiveContainer>
+                                             </Paper>
+                                           </Grid>
+                                         );
+                                       })}
+                                     </Grid>
+                                   </Box>
+                                 </Paper>
+                               </Grid>
+                             )}
+                           </>
+                         )}
+                       </>
+                     )}
+                  </>
+                )}
+
+                {/* Multi Individual Tab Content */}
+                {labSubTab === 'multi' && (
+                  <MultiIndividualTab />
+                )}
+              </Grid>
+            </>
           )}
 
           {currentTab === 3 && (
@@ -5956,364 +6382,7 @@ pip install -e .`}
         </Container>
       </Box>
 
-      {/* Column Selection Dialog */}
-      <Dialog 
-        open={showColumnSelection} 
-        onClose={() => setShowColumnSelection(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          {fileType === 'csv' ? 'Select CSV Column Names' : 'Configure Data Format'}
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" paragraph>
-            {fileType === 'csv' 
-              ? `Please select the appropriate column names from your CSV file for the ${dataType} data type.`
-              : `Please configure the data format for your ${fileType} file with ${dataType} data type.`
-            }
-          </Typography>
-          
-          {/* CSV Preview Section - Only for CSV files */}
-          {fileType === 'csv' && csvPreview.length > 0 && (
-            <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1, border: '1px solid', borderColor: 'grey.300' }}>
-              <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, color: 'primary.main' }}>
-                CSV Preview (First 2 rows including header):
-              </Typography>
-              <Box sx={{ overflowX: 'auto', maxWidth: '100%' }}>
-                <table style={{ 
-                  width: '100%', 
-                  borderCollapse: 'collapse', 
-                  fontSize: '0.875rem',
-                  fontFamily: 'monospace'
-                }}>
-                  <thead>
-                    <tr>
-                      {csvColumns.map((column, index) => (
-                        <th key={index} style={{ 
-                          border: '1px solid #ccc', 
-                          padding: '8px', 
-                          backgroundColor: '#f5f5f5',
-                          fontWeight: 600,
-                          textAlign: 'left'
-                        }}>
-                          {column}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {csvPreview.slice(0, 2).map((row, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {csvColumns.map((column, colIndex) => (
-                          <td key={colIndex} style={{ 
-                            border: '1px solid #ccc', 
-                            padding: '8px',
-                            backgroundColor: rowIndex % 2 === 0 ? '#ffffff' : '#fafafa'
-                          }}>
-                            {row[column] !== undefined ? String(row[column]).substring(0, 50) : ''}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                Note: Values are truncated to 50 characters for display. Use this preview to identify the correct column names.
-              </Typography>
-            </Box>
-          )}
-          
-          {/* Column Selection Grid - Only for CSV files */}
-          {fileType === 'csv' && (
-            <Grid container spacing={3}>
-              {/* Time Column Selection */}
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Timestamp Column</InputLabel>
-                  <Select
-                    value={selectedTimeColumn || ''}
-                    onChange={(e) => setSelectedTimeColumn(e.target.value)}
-                    label="Timestamp Column"
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                          zIndex: 9999
-                        }
-                      },
-                      container: document.body
-                    }}
-                  >
-                    {csvColumns.map((column) => (
-                      <MenuItem key={column} value={column}>
-                        {column}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  <FormHelperText>
-                    Select the column containing timestamp data
-                  </FormHelperText>
-                </FormControl>
-              </Grid>
 
-              {/* Data Columns Selection */}
-              <Grid item xs={12} md={6}>
-                {dataType === 'accelerometer' ? (
-                  <Box>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Accelerometer Columns (X, Y, Z)
-                    </Typography>
-                    {['x', 'y', 'z'].map((axis) => (
-                      <FormControl key={axis} fullWidth sx={{ mb: 2 }}>
-                        <InputLabel>{axis.toUpperCase()} Column</InputLabel>
-                        <Select
-                          value={selectedDataColumns.find(col => col.toLowerCase().includes(axis)) || ''}
-                          onChange={(e) => {
-                            const newColumns = selectedDataColumns.filter(col => !col.toLowerCase().includes(axis));
-                            if (e.target.value) {
-                              newColumns.push(e.target.value);
-                            }
-                            setSelectedDataColumns(newColumns);
-                          }}
-                          label={`${axis.toUpperCase()} Column`}
-                          MenuProps={{
-                            PaperProps: {
-                              style: {
-                                maxHeight: 300,
-                                zIndex: 9999
-                              }
-                            },
-                            container: document.body
-                          }}
-                        >
-                          <MenuItem value="">
-                            <em>None</em>
-                          </MenuItem>
-                          {csvColumns.map((column) => (
-                            <MenuItem key={column} value={column}>
-                              {column}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    ))}
-                  </Box>
-                ) : dataType === 'enmo' ? (
-                  <FormControl fullWidth>
-                    <InputLabel>ENMO Column</InputLabel>
-                    <Select
-                      value={selectedDataColumns[0] || ''}
-                      onChange={(e) => setSelectedDataColumns([e.target.value])}
-                      label="ENMO Column"
-                      MenuProps={{
-                        PaperProps: {
-                          style: {
-                            maxHeight: 300,
-                            zIndex: 9999
-                          }
-                        },
-                        container: document.body
-                      }}
-                    >
-                      {csvColumns.map((column) => (
-                        <MenuItem key={column} value={column}>
-                          {column}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    <FormHelperText>
-                      Select the column containing ENMO data
-                    </FormHelperText>
-                  </FormControl>
-                ) : dataType === 'alternative_count' ? (
-                  <FormControl fullWidth>
-                    <InputLabel>Counts Column</InputLabel>
-                    <Select
-                      value={selectedDataColumns[0] || ''}
-                      onChange={(e) => setSelectedDataColumns([e.target.value])}
-                      label="Counts Column"
-                      MenuProps={{
-                        PaperProps: {
-                          style: {
-                            maxHeight: 300,
-                            zIndex: 9999
-                          }
-                        },
-                        container: document.body
-                      }}
-                    >
-                      {csvColumns.map((column) => (
-                        <MenuItem key={column} value={column}>
-                          {column}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    <FormHelperText>
-                      Select the column containing activity counts
-                    </FormHelperText>
-                  </FormControl>
-                ) : null}
-              </Grid>
-            </Grid>
-          )}
-
-          {/* Data Format Settings - Always shown */}
-          <Grid container spacing={3}>
-            {/* Timestamp Format and Data Unit Selection */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom sx={{ mt: 2, color: 'primary.main' }}>
-                Data Format Settings
-              </Typography>
-            </Grid>
-            
-            {/* Timestamp Format Selection */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Timestamp Format</InputLabel>
-                <Select
-                  value={timestampFormat || ''}
-                  onChange={(e) => {
-                    console.log('=== Timestamp Format Selection Debug ===');
-                    console.log('Previous timestampFormat:', timestampFormat);
-                    console.log('New timestampFormat value:', e.target.value);
-                    setTimestampFormat(e.target.value);
-                  }}
-                  label="Timestamp Format"
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 300,
-                        zIndex: 9999
-                      }
-                    },
-                    container: document.body
-                  }}
-                >
-                  <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
-                  <MenuItem value="unix-s">Unix - seconds</MenuItem>
-                  <MenuItem value="datetime">Datetime</MenuItem>
-                </Select>
-                <FormHelperText>
-                  Select the format of your timestamp column
-                </FormHelperText>
-              </FormControl>
-            </Grid>
-
-            {/* Data Unit Selection */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Data Unit</InputLabel>
-                
-                {/* Accelerometer Data Unit */}
-                {(dataType === 'accelerometer') && (
-                  <Select
-                    value={dataUnit || ''}
-                    onChange={(e) => {
-                      console.log('=== Data Unit Selection Debug ===');
-                      console.log('Previous dataUnit:', dataUnit);
-                      console.log('New dataUnit value:', e.target.value);
-                      console.log('Setting dataUnit to:', e.target.value);
-                      setDataUnit(e.target.value);
-                    }}
-                    label="Data Unit"
-                    displayEmpty
-                  >
-                    <MenuItem value="g">g</MenuItem>
-                    <MenuItem value="mg">mg</MenuItem>
-                    <MenuItem value="m/s^2">m/s²</MenuItem>
-                  </Select>
-                )}
-                
-                {/* ENMO Data Unit */}
-                {(dataType === 'enmo') && (
-                  <Select
-                    value={dataUnit || ''}
-                    onChange={(e) => {
-                      console.log('=== Data Unit Selection Debug ===');
-                      console.log('Previous dataUnit:', dataUnit);
-                      console.log('New dataUnit value:', e.target.value);
-                      console.log('Setting dataUnit to:', e.target.value);
-                      setDataUnit(e.target.value);
-                    }}
-                    label="Data Unit"
-                    displayEmpty
-                  >
-                    <MenuItem value="g">g</MenuItem>
-                    <MenuItem value="mg">mg</MenuItem>
-                  </Select>
-                )}
-                
-                {/* Alternative Count Data Unit */}
-                {dataType === 'alternative_count' && (
-                  <Select
-                    value={dataUnit || ''}
-                    onChange={(e) => {
-                      console.log('=== Data Unit Selection Debug ===');
-                      console.log('Previous dataUnit:', dataUnit);
-                      console.log('New dataUnit value:', e.target.value);
-                      console.log('Setting dataUnit to:', e.target.value);
-                      setDataUnit(e.target.value);
-                    }}
-                    label="Data Unit"
-                    displayEmpty
-                  >
-                    <MenuItem value="">No unit required</MenuItem>
-                  </Select>
-                )}
-                
-                {/* Default Data Unit */}
-                {!['accelerometer', 'enmo', 'alternative_count'].includes(dataType) && (
-                  <Select
-                    value={dataUnit || ''}
-                    onChange={(e) => {
-                      console.log('=== Data Unit Selection Debug ===');
-                      console.log('Previous dataUnit:', dataUnit);
-                      console.log('New dataUnit value:', e.target.value);
-                      console.log('Setting dataUnit to:', e.target.value);
-                      setDataUnit(e.target.value);
-                    }}
-                    label="Data Unit"
-                    displayEmpty
-                  >
-                    <MenuItem value="">No unit required</MenuItem>
-                  </Select>
-                )}
-                
-                <FormHelperText>
-                  Select the unit of your data values
-                </FormHelperText>
-              </FormControl>
-            </Grid>
-          </Grid>
-
-          {/* Available columns info - Only for CSV files */}
-          {fileType === 'csv' && (
-            <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                <strong>Available columns:</strong> {csvColumns.join(', ')}
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowColumnSelection(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleColumnSelection}
-            variant="contained"
-            disabled={
-              (fileType === 'csv' && (!selectedTimeColumn || selectedDataColumns.length === 0)) ||
-              !timestampFormat || 
-              (dataType !== 'alternative_count' && !dataUnit && !dataType.includes('-'))
-            }
-          >
-            Confirm Selection
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       {/* Getting Started Dialog */}
       <Dialog 
