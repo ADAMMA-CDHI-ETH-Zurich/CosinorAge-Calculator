@@ -46,9 +46,10 @@ import {
   AccordionSummary,
   AccordionDetails,
   Alert,
-  Tooltip
+  Tooltip,
+  Divider
 } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ReferenceArea, BarChart, Bar, Area, AreaChart, ComposedChart } from 'recharts';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import UploadIcon from '@mui/icons-material/Upload';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -63,6 +64,8 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import WarningIcon from '@mui/icons-material/Warning';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ErrorIcon from '@mui/icons-material/Error';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import logo from './assets/logo.png';
 import EnhancedDocumentationTab from './EnhancedDocumentationTab';
 import SGSBinaryZippedExample from './assets/SGS_Binary_Zipped_Example.png';
@@ -93,6 +96,10 @@ const MultiIndividualTab = () => {
   const [bulkColumnSelectionComplete, setBulkColumnSelectionComplete] = useState(false);
   const [columnValidationResult, setColumnValidationResult] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
+  const [showFailedFilesDialog, setShowFailedFilesDialog] = useState(false);
+  const [showProcessingFailuresDialog, setShowProcessingFailuresDialog] = useState(false);
+  const [showUploadedFilesDialog, setShowUploadedFilesDialog] = useState(false);
+  const [showFeatureDistributionsDialog, setShowFeatureDistributionsDialog] = useState(false);
   const [bulkPreprocessParams, setBulkPreprocessParams] = useState({
     autocalib_sd_criter: 0.00013,
     autocalib_sphere_crit: 0.02,
@@ -436,7 +443,25 @@ const MultiIndividualTab = () => {
 
       const processResult = await processResponse.json();
       setBulkData(processResult);
-      setBulkSuccess(`Successfully processed ${uploadedFiles.length} files`);
+      
+      // Create a more informative success message
+      const actualSuccessfulCount = processResult.individual_results?.length || 0;
+      const totalCount = processResult.total_files || uploadedFiles.length;
+      const handlerFailures = processResult.failed_files?.length || 0;
+      const processingFailures = processResult.failed_handlers?.length || 0;
+      const totalFailures = handlerFailures + processingFailures;
+      
+      if (totalFailures > 0) {
+        if (handlerFailures > 0 && processingFailures > 0) {
+          setBulkSuccess(`Successfully processed ${actualSuccessfulCount} out of ${totalCount} files. ${handlerFailures} files failed during loading, ${processingFailures} files failed during processing.`);
+        } else if (handlerFailures > 0) {
+          setBulkSuccess(`Successfully processed ${actualSuccessfulCount} out of ${totalCount} files. ${handlerFailures} files failed during loading.`);
+        } else {
+          setBulkSuccess(`Successfully processed ${actualSuccessfulCount} out of ${totalCount} files. ${processingFailures} files failed during processing.`);
+        }
+      } else {
+        setBulkSuccess(`Successfully processed all ${actualSuccessfulCount} files!`);
+      }
       
     } catch (err) {
       setBulkError(err.message);
@@ -506,6 +531,67 @@ const MultiIndividualTab = () => {
     }
   };
 
+  const handleBulkReset = async () => {
+    try {
+      // Clear all uploaded files and directories from the server
+      await fetch(config.getApiUrl('clear_all_state'), {
+        method: 'POST'
+      });
+    } catch (error) {
+      console.warn('Failed to clear server state:', error);
+    }
+
+    // Clear frontend state
+    setUploadedFiles([]);
+    setBulkData(null);
+    setBulkError(null);
+    setBulkSuccess(null);
+    setBulkProcessing(false);
+    setBulkProcessingTime(0);
+    setBulkDragActive(false);
+    setBulkUploadProgress(0);
+    setBulkDataType('');
+    setBulkDataUnit('');
+    setBulkTimestampFormat('');
+    setBulkTimeColumn('');
+    setBulkDataColumns([]);
+    setBulkXColumn('');
+    setBulkYColumn('');
+    setBulkZColumn('');
+    setBulkColumnNames([]);
+    setBulkColumnSelectionComplete(false);
+    setColumnValidationResult(null);
+    setFilePreview(null);
+    setShowFailedFilesDialog(false);
+    setShowProcessingFailuresDialog(false);
+    setShowUploadedFilesDialog(false);
+    
+    // Reset parameters to defaults
+    setBulkPreprocessParams({
+      autocalib_sd_criter: 0.00013,
+      autocalib_sphere_crit: 0.02,
+      filter_type: 'lowpass',
+      filter_cutoff: 2,
+      wear_sd_criter: 0.00013,
+      wear_range_crit: 0.00067,
+      wear_window_length: 45,
+      wear_window_skip: 7,
+      required_daily_coverage: 0.5
+    });
+    setBulkFeatureParams({
+      sleep_rescore: true,
+      sleep_ck_sf: 0.0025,
+      pa_cutpoint_sl: 15,
+      pa_cutpoint_lm: 35,
+      pa_cutpoint_mv: 70
+    });
+    
+    // Clear file input
+    if (bulkFileInputRef.current) {
+      bulkFileInputRef.current.value = '';
+    }
+  };
+
   return (
     <>
       {/* File Upload Section */}
@@ -564,23 +650,37 @@ const MultiIndividualTab = () => {
             </Box>
           )}
 
-          {/* Uploaded Files List */}
+          {/* Uploaded Files Banner */}
           {uploadedFiles.length > 0 && (
             <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Uploaded Files ({uploadedFiles.length}):
-              </Typography>
-              <List dense>
-                {uploadedFiles.map((file, index) => (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      <CheckCircleIcon color="success" />
-                    </ListItemIcon>
-                    <ListItemText primary={file.filename} />
-                  </ListItem>
-                ))}
-              </List>
-
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                p: 2, 
+                bgcolor: 'rgba(76, 175, 80, 0.08)', 
+                borderRadius: 1,
+                color: 'success.main'
+              }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500, color: 'success.main' }}>
+                  Successfully uploaded {uploadedFiles.length} files
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setShowUploadedFilesDialog(true)}
+                  sx={{ 
+                    color: 'success.main', 
+                    borderColor: 'success.main',
+                    '&:hover': {
+                      borderColor: 'success.main',
+                      bgcolor: 'rgba(76, 175, 80, 0.1)'
+                    }
+                  }}
+                >
+                  View Files
+                </Button>
+              </Box>
             </Box>
           )}
 
@@ -741,9 +841,9 @@ const MultiIndividualTab = () => {
                         }
                       }}
                     >
-                      <MenuItem value="datetime">Datetime (YYYY-MM-DD HH:MM:SS)</MenuItem>
-                      <MenuItem value="unix-s">Unix Timestamp (seconds)</MenuItem>
-                      <MenuItem value="unix-ms">Unix Timestamp (milliseconds)</MenuItem>
+                      <MenuItem value="datetime">Datetime</MenuItem>
+                      <MenuItem value="unix-s">Unix - seconds</MenuItem>
+                      <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -868,9 +968,9 @@ const MultiIndividualTab = () => {
             </Box>
           )}
 
-          {/* Process Button */}
+          {/* Process and Reset Buttons */}
           {uploadedFiles.length > 0 && (
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Box sx={{ mt: 3, textAlign: 'center', display: 'flex', gap: 2, justifyContent: 'center' }}>
               <Button
                 variant="contained"
                 color="primary"
@@ -880,6 +980,16 @@ const MultiIndividualTab = () => {
                 sx={{ px: 4, py: 1.5 }}
               >
                 {bulkProcessing ? `Processing... (${bulkProcessingTime}s)` : 'Process All Files'}
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleBulkReset}
+                disabled={bulkProcessing}
+                startIcon={<RefreshIcon />}
+                sx={{ px: 4, py: 1.5 }}
+              >
+                Reset All
               </Button>
             </Box>
           )}
@@ -1023,6 +1133,66 @@ const MultiIndividualTab = () => {
       {bulkData && (
         <Grid item xs={12}>
           <Card sx={{ p: 3 }}>
+            {/* Processing Summary */}
+            <Box sx={{ mb: 3, p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
+              <Typography variant="h6" gutterBottom color="success.dark">
+                Processing Complete
+              </Typography>
+              
+              {/* Processing Summary */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                <Typography variant="body1" color="success.main" sx={{ fontWeight: 500 }}>
+                  Successfully processed: {bulkData.individual_results?.length || 0} files
+                </Typography>
+                
+                {bulkData.failed_files && bulkData.failed_files.length > 0 && (
+                  <Typography variant="body2" color="warning.dark">
+                    Handler creation failed: {bulkData.failed_files.length} files
+                  </Typography>
+                )}
+                
+                {bulkData.failed_handlers && bulkData.failed_handlers.length > 0 && (
+                  <Typography variant="body2" color="error.dark">
+                    Processing failed: {bulkData.failed_handlers.length} files
+                  </Typography>
+                )}
+                
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="body2" color="success.dark" sx={{ fontWeight: 600 }}>
+                  Total: {bulkData.total_files || uploadedFiles.length} files
+                </Typography>
+              </Box>
+              
+              {/* Action Buttons */}
+              <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {/* Failed Files Button */}
+                {bulkData.failed_files && bulkData.failed_files.length > 0 && (
+                  <Button
+                    variant="outlined"
+                    color="warning"
+                    startIcon={<WarningIcon />}
+                    onClick={() => setShowFailedFilesDialog(true)}
+                    size="small"
+                  >
+                    Handler Failures ({bulkData.failed_files.length})
+                  </Button>
+                )}
+                
+                {/* Processing Failures Button */}
+                {bulkData.failed_handlers && bulkData.failed_handlers.length > 0 && (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<ErrorIcon />}
+                    onClick={() => setShowProcessingFailuresDialog(true)}
+                    size="small"
+                  >
+                    Processing Failures ({bulkData.failed_handlers.length})
+                  </Button>
+                )}
+              </Box>
+            </Box>
+
             <Typography variant="h6" gutterBottom>
               Distribution Statistics
             </Typography>
@@ -1030,9 +1200,20 @@ const MultiIndividualTab = () => {
             {/* Summary Statistics */}
             {bulkData.summary_dataframe && bulkData.summary_dataframe.length > 0 && (
               <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Feature Summary
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="subtitle1">
+                    Feature Summary
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<BarChartIcon />}
+                    onClick={() => setShowFeatureDistributionsDialog(true)}
+                    size="small"
+                  >
+                    Feature Distributions
+                  </Button>
+                </Box>
                 <Box sx={{ overflowX: 'auto' }}>
                   <TableContainer component={Paper}>
                     <Table size="small">
@@ -1066,27 +1247,7 @@ const MultiIndividualTab = () => {
               </Box>
             )}
 
-            {/* Failed Handlers */}
-            {bulkData.failed_handlers && bulkData.failed_handlers.length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" gutterBottom color="error">
-                  Failed Processing ({bulkData.failed_handlers.length} files)
-                </Typography>
-                <List dense>
-                  {bulkData.failed_handlers.map((failed, index) => (
-                    <ListItem key={index}>
-                      <ListItemIcon>
-                        <WarningIcon color="error" />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={`File ${failed[0] + 1}`}
-                        secondary={failed[1]}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-            )}
+
 
             {/* Correlation Matrix Heatmap */}
             {bulkData.correlation_matrix && Object.keys(bulkData.correlation_matrix).length > 0 && (
@@ -1169,8 +1330,8 @@ const MultiIndividualTab = () => {
                         const value = bulkData.correlation_matrix[colFeature][rowFeature];
                         const numValue = typeof value === 'number' ? value : 0;
                         
-                        // Skip diagonal (self-correlation)
-                        if (rowIndex === colIndex) {
+                        // Skip diagonal (self-correlation) and lower triangle
+                        if (rowIndex === colIndex || rowIndex > colIndex) {
                           return (
                             <Box
                               key={colFeature}
@@ -1185,7 +1346,7 @@ const MultiIndividualTab = () => {
                                 color: '#999'
                               }}
                             >
-                              -
+                              {rowIndex === colIndex ? '-' : ''}
                             </Box>
                           );
                         }
@@ -1319,13 +1480,520 @@ const MultiIndividualTab = () => {
         </Grid>
       )}
       
-      {bulkSuccess && (
-        <Grid item xs={12}>
-          <Alert severity="success" onClose={() => setBulkSuccess(null)}>
-            {bulkSuccess}
+
+
+      {/* Failed Files Dialog */}
+      <Dialog
+        open={showFailedFilesDialog}
+        onClose={() => setShowFailedFilesDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <WarningIcon color="warning" />
+            Failed Files ({bulkData?.failed_files?.length || 0})
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            The following files could not be processed due to insufficient data or other issues:
+          </Typography>
+          <List>
+            {bulkData?.failed_files?.map((failedFile, index) => (
+              <ListItem key={index} sx={{ border: '1px solid', borderColor: 'error.light', borderRadius: 1, mb: 1 }}>
+                <ListItemIcon>
+                  <ErrorIcon color="error" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={failedFile.filename}
+                  secondary={
+                    <Box>
+                      <Typography variant="body2" color="error">
+                        Error: {failedFile.error}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        File ID: {failedFile.file_id}
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowFailedFilesDialog(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Processing Failures Dialog */}
+      <Dialog
+        open={showProcessingFailuresDialog}
+        onClose={() => setShowProcessingFailuresDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ErrorIcon color="error" />
+            Processing Failures ({bulkData?.failed_handlers?.length || 0})
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            The following files passed initial validation but failed during feature extraction:
+          </Typography>
+          <List>
+            {bulkData?.failed_handlers?.map((failedHandler, index) => (
+              <ListItem key={index} sx={{ border: '1px solid', borderColor: 'error.light', borderRadius: 1, mb: 1 }}>
+                <ListItemIcon>
+                  <ErrorIcon color="error" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={`File ${failedHandler[0] + 1}`}
+                  secondary={
+                    <Box>
+                      <Typography variant="body2" color="error">
+                        Error: {failedHandler[1]}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Processing step failed during feature extraction
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowProcessingFailuresDialog(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Uploaded Files Dialog */}
+      <Dialog
+        open={showUploadedFilesDialog}
+        onClose={() => setShowUploadedFilesDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CheckCircleIcon color="success" />
+            Uploaded Files ({uploadedFiles.length})
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            The following files were successfully uploaded:
+          </Typography>
+          <List>
+            {uploadedFiles.map((file, index) => (
+              <ListItem key={index} sx={{ border: '1px solid', borderColor: 'success.light', borderRadius: 1, mb: 1 }}>
+                <ListItemIcon>
+                  <CheckCircleIcon color="success" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={file.filename}
+                  secondary={`File ID: ${file.file_id}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowUploadedFilesDialog(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Feature Distributions Dialog */}
+      <Dialog
+        open={showFeatureDistributionsDialog}
+        onClose={() => setShowFeatureDistributionsDialog(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <BarChartIcon color="primary" />
+            Feature Distributions
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Distribution plots for each feature across all processed files:
+          </Typography>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              Note: Some metrics are calculated on a daily level, which is why the sample size (n) may be greater than the number of uploaded files.
+            </Typography>
           </Alert>
-        </Grid>
-      )}
+          
+          {bulkData && bulkData.individual_results && bulkData.individual_results.length > 0 && (
+            <Box>
+              {/* Extract all features from individual results */}
+                              {(() => {
+                  const allFeatures = {};
+                  const rejectedFeatures = {};
+                  
+                  // Helper function to flatten nested objects and extract numeric values
+                  const flattenAndExtractNumbers = (obj, prefix = '') => {
+                    const result = [];
+                    if (typeof obj === 'number' && !isNaN(obj) && isFinite(obj)) {
+                      result.push(obj);
+                    } else if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+                      Object.entries(obj).forEach(([key, value]) => {
+                        const newPrefix = prefix ? `${prefix}_${key}` : key;
+                        result.push(...flattenAndExtractNumbers(value, newPrefix));
+                      });
+                    } else if (Array.isArray(obj)) {
+                      obj.forEach((item, index) => {
+                        const newPrefix = prefix ? `${prefix}_${index}` : `${index}`;
+                        result.push(...flattenAndExtractNumbers(item, newPrefix));
+                      });
+                    }
+                    return result;
+                  };
+                
+                // Collect all features from individual results
+                bulkData.individual_results.forEach(result => {
+                  if (result.features) {
+                    Object.entries(result.features).forEach(([category, features]) => {
+                                              Object.entries(features).forEach(([featureName, value]) => {
+                          if (typeof value === 'number' && !isNaN(value) && isFinite(value)) {
+                            // Simple numeric value
+                            if (!allFeatures[featureName]) {
+                              allFeatures[featureName] = [];
+                            }
+                            allFeatures[featureName].push(value);
+                          } else if (value && typeof value === 'object') {
+                            // Nested object - flatten and extract numbers
+                            const flattenedNumbers = flattenAndExtractNumbers(value, featureName);
+                            if (flattenedNumbers.length > 0) {
+                              // Add all numeric values to the original feature name
+                              if (!allFeatures[featureName]) {
+                                allFeatures[featureName] = [];
+                              }
+                              allFeatures[featureName].push(...flattenedNumbers);
+                            } else {
+                              // No numeric values found in nested object
+                              if (!rejectedFeatures[featureName]) {
+                                rejectedFeatures[featureName] = [];
+                              }
+                              rejectedFeatures[featureName].push(value);
+                            }
+                          } else {
+                            // Track rejected features for debugging
+                            if (!rejectedFeatures[featureName]) {
+                              rejectedFeatures[featureName] = [];
+                            }
+                            rejectedFeatures[featureName].push(value);
+                          }
+                        });
+                    });
+                  }
+                });
+                
+                // Debug information
+                console.log('Available features:', Object.keys(allFeatures));
+                console.log('Rejected features:', Object.keys(rejectedFeatures));
+                console.log('Summary dataframe features:', bulkData.summary_dataframe ? bulkData.summary_dataframe.map(row => row.feature) : []);
+                
+                // Print detailed information about rejected features
+                Object.entries(rejectedFeatures).forEach(([featureName, values]) => {
+                  console.log(`Feature "${featureName}" rejected values:`, values);
+                  console.log(`Feature "${featureName}" value types:`, values.map(v => typeof v));
+                });
+                
+                // Debug: Check for specific missing features
+                const missingFeatures = ['TST', 'WASO', 'PTA', 'NWB', 'SOL', 'SRI'];
+                missingFeatures.forEach(feature => {
+                  const found = Object.keys(allFeatures).find(f => 
+                    f.toLowerCase().includes(feature.toLowerCase()) || 
+                    f.toLowerCase().includes(feature.toLowerCase().replace(/_/g, ''))
+                  );
+                  console.log(`Looking for ${feature}:`, found ? `Found as "${found}"` : 'NOT FOUND');
+                });
+
+                // Create histogram and density curve data for each feature
+                const createHistogramAndDensityData = (values, featureName) => {
+                  if (values.length === 0) return { histogram: [], density: [] };
+                  
+                  const min = Math.min(...values);
+                  const max = Math.max(...values);
+                  const range = max - min;
+                  
+                  // Create histogram data with equal-width buckets
+                  const binCount = Math.min(20, Math.max(5, Math.floor(Math.sqrt(values.length))));
+                  const binSize = range / binCount;
+                  
+                  // Initialize bins with equal-width ranges
+                  const bins = [];
+                  for (let i = 0; i < binCount; i++) {
+                    const binStart = min + i * binSize;
+                    const binEnd = min + (i + 1) * binSize;
+                    bins.push({
+                      range: `${binStart.toFixed(3).replace(/\.?0+$/, '')}-${binEnd.toFixed(3).replace(/\.?0+$/, '')}`,
+                      count: 0,
+                      start: binStart,
+                      end: binEnd
+                    });
+                  }
+                  
+                  // Assign values to bins
+                  values.forEach(value => {
+                    const binIndex = Math.min(Math.floor((value - min) / binSize), binCount - 1);
+                    bins[binIndex].count++;
+                  });
+                  
+                  const histogramData = bins.map(bin => ({
+                    range: bin.range,
+                    count: bin.count,
+                    feature: featureName
+                  }));
+                  
+                  // Create density curve data using kernel density estimation
+                  const numPoints = 100;
+                  const bandwidth = range / (Math.pow(values.length, 0.2)); // Silverman's rule of thumb
+                  
+                  const densityData = [];
+                  for (let i = 0; i <= numPoints; i++) {
+                    const x = min + (i / numPoints) * range;
+                    let density = 0;
+                    
+                    // Calculate kernel density estimate
+                    values.forEach(value => {
+                      const u = (x - value) / bandwidth;
+                      // Gaussian kernel
+                      density += Math.exp(-0.5 * u * u) / (bandwidth * Math.sqrt(2 * Math.PI));
+                    });
+                    
+                    density = density / values.length;
+                    
+                    // Debug for acrophase
+                    if (featureName.toLowerCase().includes('acrophase') && i < 10) {
+                      console.log(`Acrophase density at x=${x}: ${density}`);
+                    }
+                    
+                    densityData.push({
+                      x: x,
+                      density: density,
+                      feature: featureName
+                    });
+                  }
+                  
+                  // Create combined data for overlay
+                  const combinedData = histogramData.map(histItem => {
+                    // Fix parsing for negative ranges like "-6.075--5.073"
+                    let rangeParts;
+                    if (histItem.range.startsWith('-') && histItem.range.includes('--')) {
+                      // Handle negative ranges with double minus
+                      const parts = histItem.range.split('--');
+                      rangeParts = [parts[0], '-' + parts[1]];
+                    } else {
+                      rangeParts = histItem.range.split('-');
+                    }
+                    
+                    const midPoint = (parseFloat(rangeParts[0]) + parseFloat(rangeParts[1])) / 2;
+                    
+                    // Find the closest density point to this histogram bin midpoint
+                    let closestDensity = 0;
+                    let minDistance = Infinity;
+                    
+                    densityData.forEach(d => {
+                      const distance = Math.abs(d.x - midPoint);
+                      if (distance < minDistance) {
+                        minDistance = distance;
+                        closestDensity = d.density;
+                      }
+                    });
+                    
+                    // Debug for acrophase
+                    if (featureName.toLowerCase().includes('acrophase') && histItem.range.includes('-')) {
+                      console.log(`Acrophase bin: ${histItem.range}, parsed: [${rangeParts[0]}, ${rangeParts[1]}], midpoint: ${midPoint}, closest density: ${closestDensity}, minDistance: ${minDistance}`);
+                      if (closestDensity === 0) {
+                        console.log(`WARNING: Zero density found for acrophase bin ${histItem.range}`);
+                      }
+                    }
+                    
+                    return {
+                      ...histItem,
+                      density: closestDensity
+                    };
+                  });
+                  
+                  return { histogram: histogramData, density: densityData, combined: combinedData };
+                };
+
+                                // Use the exact order from the summary dataframe
+                const summaryFeatureOrder = bulkData.summary_dataframe ? 
+                  bulkData.summary_dataframe.map(row => row.feature) : [];
+                
+                // Get all available features
+                const availableFeatures = Object.keys(allFeatures);
+                
+                // Helper function to find matching feature without prefix
+                const findMatchingFeature = (summaryFeature) => {
+                  // Remove common prefixes and try to match
+                  const prefixes = ['cosinor_', 'nonparam_', 'physical_activity_'];
+                  let baseFeature = summaryFeature;
+                  
+                  for (const prefix of prefixes) {
+                    if (summaryFeature.startsWith(prefix)) {
+                      baseFeature = summaryFeature.substring(prefix.length);
+                      break;
+                    }
+                  }
+                  
+                  // Try to find exact match first, then base feature match
+                  if (availableFeatures.includes(summaryFeature)) {
+                    return summaryFeature;
+                  } else if (availableFeatures.includes(baseFeature)) {
+                    return baseFeature;
+                  }
+                  
+                  // Try case-insensitive matching
+                  const exactMatch = availableFeatures.find(f => f.toLowerCase() === summaryFeature.toLowerCase());
+                  if (exactMatch) {
+                    return exactMatch;
+                  }
+                  
+                  // Try partial matching for common sleep metrics
+                  const partialMatch = availableFeatures.find(f => 
+                    f.toLowerCase().includes(summaryFeature.toLowerCase()) ||
+                    summaryFeature.toLowerCase().includes(f.toLowerCase())
+                  );
+                  if (partialMatch) {
+                    return partialMatch;
+                  }
+                  
+                  return null;
+                };
+                
+                // Map summary features to available features
+                let finalFeatureOrder = summaryFeatureOrder
+                  .map(summaryFeature => findMatchingFeature(summaryFeature))
+                  .filter(feature => feature !== null);
+                
+                // If no features matched from summary, use all available features
+                if (finalFeatureOrder.length === 0) {
+                  console.log('No features matched from summary, using all available features');
+                  finalFeatureOrder = availableFeatures;
+                }
+                
+                console.log('Final feature order:', finalFeatureOrder);
+                console.log('Features with data:', availableFeatures);
+                console.log('Features in summary:', summaryFeatureOrder);
+                console.log('All features data:', allFeatures);
+                
+                return (
+                  <>
+                    <Grid container spacing={3}>
+                    {finalFeatureOrder.map((featureName) => {
+                    const values = allFeatures[featureName];
+                    const { histogram: histogramData, density: densityData, combined: combinedData } = createHistogramAndDensityData(values, featureName);
+                    
+                    if (histogramData.length === 0) return null;
+                    
+                    return (
+                      <Grid item xs={12} md={6} key={featureName}>
+                        <Card variant="outlined" sx={{ p: 2 }}>
+                          <Typography variant="h6" gutterBottom>
+                            {cleanFeatureName(featureName)}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            n = {values.length} | Mean = {(values.reduce((a, b) => a + b, 0) / values.length).toFixed(4)} | Std = {Math.sqrt(values.reduce((sq, n) => sq + Math.pow(n - values.reduce((a, b) => a + b, 0) / values.length, 2), 0) / values.length).toFixed(4)}
+                          </Typography>
+                          <Box sx={{ width: '100%', height: 200 }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                              <ComposedChart data={combinedData} margin={{ top: 20, right: 50, left: 80, bottom: 40 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis 
+                                  dataKey="range" 
+                                  angle={-45}
+                                  textAnchor="end"
+                                  height={60}
+                                  fontSize={10}
+                                />
+                                <YAxis 
+                                  yAxisId="left"
+                                  orientation="left"
+                                  label={{ 
+                                    value: 'Density', 
+                                    angle: -90, 
+                                    position: 'insideLeft', 
+                                    offset: -10,
+                                    style: { textAnchor: 'middle' }
+                                  }} 
+                                />
+                                <YAxis 
+                                  yAxisId="right"
+                                  orientation="right"
+                                  label={{ 
+                                    value: 'Frequency', 
+                                    angle: 90, 
+                                    position: 'insideRight', 
+                                    offset: 5,
+                                    style: { textAnchor: 'middle' }
+                                  }} 
+                                />
+                                <RechartsTooltip 
+                                  content={({ active, payload, label }) => {
+                                    if (active && payload && payload.length) {
+                                      return (
+                                        <div style={{ 
+                                          backgroundColor: 'white', 
+                                          padding: '10px', 
+                                          border: '1px solid #ccc',
+                                          borderRadius: '4px'
+                                        }}>
+                                          <p style={{ margin: '0 0 5px 0' }}>Range: {label}</p>
+                                          <p style={{ margin: '0' }}>Count: {payload[0].value}</p>
+                                          {payload[1] && <p style={{ margin: '0' }}>Density: {payload[1].value.toFixed(6)}</p>}
+                                        </div>
+                                      );
+                                    }
+                                    return null;
+                                  }}
+                                />
+                                <Bar yAxisId="right" dataKey="count" fill="#8884d8" fillOpacity={0.7} />
+                                <Line 
+                                  yAxisId="left"
+                                  type="monotone" 
+                                  dataKey="density" 
+                                  stroke="#ff7300" 
+                                  strokeWidth={2}
+                                  dot={false}
+                                  connectNulls={false}
+                                />
+                              </ComposedChart>
+                            </ResponsiveContainer>
+                          </Box>
+                        </Card>
+                      </Grid>
+                    );
+                  })}
+                  </Grid>
+                  </>
+                );
+              })()}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowFeatureDistributionsDialog(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

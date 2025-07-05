@@ -748,6 +748,56 @@ async def clear_state(file_id: str):
         logger.error(f"Error clearing state: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/clear_all_state")
+async def clear_all_state():
+    """
+    Clear all uploaded data and directories
+    """
+    try:
+        logger.info("=== CLEARING ALL STATE ===")
+        
+        # Clean up all temporary directories
+        for temp_dir in temp_dirs.values():
+            if os.path.exists(temp_dir):
+                try:
+                    shutil.rmtree(temp_dir)
+                    logger.info(f"Cleared temporary directory: {temp_dir}")
+                except Exception as e:
+                    logger.warning(f"Failed to clear temporary directory {temp_dir}: {str(e)}")
+        
+        # Clean up all permanent directories from uploaded_data
+        for file_data in uploaded_data.values():
+            if "permanent_dir" in file_data and os.path.exists(file_data["permanent_dir"]):
+                try:
+                    shutil.rmtree(file_data["permanent_dir"])
+                    logger.info(f"Cleared permanent directory: {file_data['permanent_dir']}")
+                except Exception as e:
+                    logger.warning(f"Failed to clear permanent directory {file_data['permanent_dir']}: {str(e)}")
+        
+        # Clear extracted_files directory completely
+        if os.path.exists(EXTRACTED_FILES_DIR):
+            try:
+                for item in os.listdir(EXTRACTED_FILES_DIR):
+                    item_path = os.path.join(EXTRACTED_FILES_DIR, item)
+                    if os.path.isdir(item_path):
+                        shutil.rmtree(item_path)
+                    else:
+                        os.remove(item_path)
+                logger.info(f"Cleared all contents from extracted_files directory: {EXTRACTED_FILES_DIR}")
+            except Exception as e:
+                logger.warning(f"Failed to clear extracted_files directory: {str(e)}")
+        
+        # Clear in-memory state
+        uploaded_data.clear()
+        temp_dirs.clear()
+        
+        logger.info("All state cleared successfully")
+        return {"message": "All uploaded data and directories cleared successfully"}
+        
+    except Exception as e:
+        logger.error(f"Error clearing all state: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Documentation API endpoints
 @app.get("/docs/content/{page_path:path}")
 async def get_docs_content(page_path: str = ""):
@@ -1006,12 +1056,19 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
             )
         
         handlers = []
+        failed_files = []
         
         for file_config in request.files:
             file_id = file_config["file_id"]
             
             if file_id not in uploaded_data:
-                raise HTTPException(status_code=404, detail=f"File {file_id} not found")
+                failed_files.append({
+                    "file_id": file_id,
+                    "filename": "Unknown",
+                    "error": f"File {file_id} not found in uploaded data"
+                })
+                logger.warning(f"File {file_id} not found in uploaded_data, skipping")
+                continue
             
             file_data = uploaded_data[file_id]
             
@@ -1043,7 +1100,13 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
             
             # Ensure time_column is not None
             if not time_column:
-                raise HTTPException(status_code=400, detail=f"Could not determine time column for file {file_id}. Please specify a time column.")
+                failed_files.append({
+                    "file_id": file_id,
+                    "filename": file_data.get("filename", "Unknown"),
+                    "error": f"Could not determine time column for file {file_id}. Please specify a time column."
+                })
+                logger.warning(f"Could not determine time column for file {file_id}, skipping")
+                continue
             
             # If data_columns is not provided, try to infer them based on data type
             if not data_columns:
@@ -1081,19 +1144,45 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
             
             logger.info(f"Using inferred columns for file {file_id}: time_column={time_column}, data_columns={data_columns}, timestamp_format={timestamp_format}")
             
-            # Create GenericDataHandler for each file
-            handler = GenericDataHandler(
-                file_path=file_data["file_path"],
-                data_format="csv",
-                data_type=data_type,
-                time_format=timestamp_format,
-                time_column=time_column,
-                data_columns=data_columns,
-                preprocess_args=request.preprocess_args,
-                verbose=True
-            )
-            
-            handlers.append(handler)
+            try:
+                # Create GenericDataHandler for each file
+                handler = GenericDataHandler(
+                    file_path=file_data["file_path"],
+                    data_format="csv",
+                    data_type=data_type,
+                    time_format=timestamp_format,
+                    time_column=time_column,
+                    data_columns=data_columns,
+                    preprocess_args=request.preprocess_args,
+                    verbose=True
+                )
+                handlers.append(handler)
+                logger.info(f"Successfully created handler for file {file_id}: {file_data.get('filename', 'Unknown')}")
+            except Exception as e:
+                error_msg = str(e)
+                logger.warning(f"Error creating GenericDataHandler for file {file_id}: {error_msg}")
+                failed_files.append({
+                    "file_id": file_id,
+                    "filename": file_data.get("filename", "Unknown"),
+                    "error": error_msg
+                })
+                continue
+        
+        # Check if we have any valid handlers to process
+        if not handlers:
+            logger.warning("No valid handlers created, all files failed processing")
+            return {
+                "message": "No files could be processed successfully",
+                "successful_files": 0,
+                "failed_files": failed_files,
+                "distribution_stats": {},
+                "individual_results": [],
+                "failed_handlers": [],
+                "summary_dataframe": [],
+                "correlation_matrix": {}
+            }
+        
+        logger.info(f"Successfully created {len(handlers)} handlers out of {len(request.files)} files. {len(failed_files)} files failed.")
         
         # Accept any valid numeric value for all preprocess_args
         default_preprocess = {
@@ -1206,7 +1295,10 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                         cleaned_correlation_matrix[col][idx] = value
         
         return {
-            "message": f"Successfully processed {len(handlers)} files",
+            "message": f"Successfully processed {len(handlers)} files out of {len(request.files)} total files",
+            "successful_files": len(handlers),
+            "total_files": len(request.files),
+            "failed_files": failed_files,
             "distribution_stats": cleaned_distribution_stats,
             "individual_results": cleaned_individual_results,
             "failed_handlers": failed_handlers,
@@ -1216,7 +1308,7 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
         
     except Exception as e:
         logger.error(f"Error processing bulk data: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error processing bulk data: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000) 
