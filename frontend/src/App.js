@@ -4026,19 +4026,11 @@ pip install -e .`}
                             Drop file to upload
                           </Box>
                         )}
-                      </Paper>
-                    </Grid>
-  
-                    {/* CSV Column Configuration and Processing Parameters */}
-                    {data?.file_id && (
+                                            {data?.file_id && (
                       <Grid item xs={12}>
-                        <Paper sx={{ p: 3, mb: 3 }}>
                           {/* CSV Column Configuration Section */}
                           {showColumnSelection && fileType === 'csv' && (
                             <>
-                              <Typography variant="h6" gutterBottom sx={{ textAlign: 'left', width: '100%' }}>
-                                CSV Column Configuration
-                              </Typography>
                               <Typography variant="body1" paragraph sx={{ textAlign: 'left', width: '100%' }}>
                                 Please select the appropriate column names from your CSV file for the {dataType} data type.
                               </Typography>
@@ -4358,178 +4350,342 @@ pip install -e .`}
                               </>
                             )}
 
-                            {/* Preprocessing Parameters */}
-                            <Grid item xs={12} md={6}>
-                              <Typography variant="subtitle1" gutterBottom>
-                                Preprocessing Parameters
-                              </Typography>
-                              <Grid container spacing={2}>
-                                <Grid item xs={12} sm={6}>
-                                  <TextField
-                                    fullWidth
-                                    label="Auto-calibration SD Criterion"
-                                    type="text"
-                                    value={preprocessParams.autocalib_sd_criter}
-                                    onChange={(e) => {
-                                      let value = e.target.value.replace(/,/g, '.');
-                                      // Allow any positive numeric value with arbitrary precision
-                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                        handlePreprocessParamChange('autocalib_sd_criter', value);
-                                      }
-                                    }}
-                                    inputProps={{ 
-                                      inputMode: "decimal",
-                                      lang: "en-US"
-                                    }}
-                                  />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                  <TextField
-                                    fullWidth
-                                    label="Auto-calibration Sphere Criterion"
-                                    type="text"
-                                    value={preprocessParams.autocalib_sphere_crit}
-                                    onChange={(e) => {
-                                      let value = e.target.value.replace(/,/g, '.');
-                                      // Allow any positive numeric value with arbitrary precision
-                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                        handlePreprocessParamChange('autocalib_sphere_crit', value);
-                                      }
-                                    }}
-                                    inputProps={{ 
-                                      inputMode: "decimal",
-                                      lang: "en-US"
-                                    }}
-                                  />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                  <TextField
-                                    fullWidth
-                                    label="Filter Cutoff"
-                                    type="text"
-                                    value={preprocessParams.filter_cutoff}
-                                    onChange={(e) => {
-                                      let value = e.target.value.replace(/,/g, '.');
-                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                        handlePreprocessParamChange('filter_cutoff', value);
-                                      }
-                                    }}
-                                    inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                                  />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                  <TextField
-                                    fullWidth
-                                    label="Required Daily Coverage"
-                                    type="text"
-                                    value={preprocessParams.required_daily_coverage}
-                                    onChange={(e) => {
-                                      let value = e.target.value.replace(/,/g, '.');
-                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                        handlePreprocessParamChange('required_daily_coverage', value);
-                                      }
-                                    }}
-                                    inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                                  />
-                                </Grid>
-                              </Grid>
-                            </Grid>
-
-                            {/* Feature Parameters */}
-                            <Grid item xs={12} md={6}>
-                              <Typography variant="subtitle1" gutterBottom>
-                                Feature Parameters
-                              </Typography>
-                              <Grid container spacing={2}>
-                                <Grid item xs={12}>
-                                  <FormControl fullWidth>
-                                    <FormControlLabel
-                                      control={
-                                        <Switch
-                                          checked={featureParams.sleep_rescore}
-                                          onChange={(e) => handleFeatureParamChange('sleep_rescore', e.target.checked)}
+                                                        {/* Processing Parameters - Only show after timestamp format and data unit are selected */}
+                            {data?.file_id && timestampFormat && dataUnit && (
+                              <Grid item xs={12}>
+                                <Typography variant="h6" gutterBottom>
+                                  Processing Parameters
+                                </Typography>
+                                <Grid container spacing={3}>
+                                  {/* Preprocessing Parameters */}
+                                  <Grid item xs={12} md={6}>
+                                    <Typography variant="subtitle1" gutterBottom>
+                                      Preprocessing Parameters
+                                    </Typography>
+                                    <Grid container spacing={2}>
+                                      <Grid item xs={12} sm={6}>
+                                        <TextField
+                                          fullWidth
+                                          label="Auto-calibration SD Criterion"
+                                          type="text"
+                                          value={preprocessParams.autocalib_sd_criter}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handlePreprocessParamChange('autocalib_sd_criter', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
                                         />
-                                      }
-                                      label="Sleep Rescore"
-                                    />
-                                  </FormControl>
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                  <TextField
-                                    fullWidth
-                                    label="PA Cutpoint SL"
-                                    type="text"
-                                    value={featureParams.pa_cutpoint_sl}
-                                    onChange={(e) => {
-                                      let value = e.target.value.replace(/,/g, '.');
-                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                        handleFeatureParamChange('pa_cutpoint_sl', value);
-                                      }
-                                    }}
-                                    inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                                  />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                  <TextField
-                                    fullWidth
-                                    label="PA Cutpoint LM"
-                                    type="text"
-                                    value={featureParams.pa_cutpoint_lm}
-                                    onChange={(e) => {
-                                      let value = e.target.value.replace(/,/g, '.');
-                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                        handleFeatureParamChange('pa_cutpoint_lm', value);
-                                      }
-                                    }}
-                                    inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                                  />
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                  <TextField
-                                    fullWidth
-                                    label="PA Cutpoint MV"
-                                    type="text"
-                                    value={featureParams.pa_cutpoint_mv}
-                                    onChange={(e) => {
-                                      let value = e.target.value.replace(/,/g, '.');
-                                      if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                        handleFeatureParamChange('pa_cutpoint_mv', value);
-                                      }
-                                    }}
-                                    inputProps={{ inputMode: "decimal", lang: "en-US" }}
-                                  />
+                                      </Grid>
+                                      <Grid item xs={12} sm={6}>
+                                        <TextField
+                                          fullWidth
+                                          label="Auto-calibration Sphere Criterion"
+                                          type="text"
+                                          value={preprocessParams.autocalib_sphere_crit}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handlePreprocessParamChange('autocalib_sphere_crit', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
+                                        />
+                                      </Grid>
+                                      <Grid item xs={12} sm={6}>
+                                        <FormControl fullWidth>
+                                          <InputLabel>Filter Type</InputLabel>
+                                          <Select
+                                            value={preprocessParams.filter_type}
+                                            label="Filter Type"
+                                            onChange={(e) => handlePreprocessParamChange('filter_type', e.target.value)}
+                                          >
+                                            <MenuItem value="lowpass">Lowpass</MenuItem>
+                                            <MenuItem value="highpass">Highpass</MenuItem>
+                                            <MenuItem value="bandpass">Bandpass</MenuItem>
+                                          </Select>
+                                        </FormControl>
+                                      </Grid>
+                                      <Grid item xs={12} sm={6}>
+                                        <TextField
+                                          fullWidth
+                                          label="Filter Cutoff"
+                                          type="text"
+                                          value={preprocessParams.filter_cutoff}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handlePreprocessParamChange('filter_cutoff', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
+                                        />
+                                      </Grid>
+                                      <Grid item xs={12} sm={6}>
+                                        <TextField
+                                          fullWidth
+                                          label="Wear SD Criterion"
+                                          type="text"
+                                          value={preprocessParams.wear_sd_crit}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handlePreprocessParamChange('wear_sd_crit', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
+                                        />
+                                      </Grid>
+                                      <Grid item xs={12} sm={6}>
+                                        <TextField
+                                          fullWidth
+                                          label="Wear Range Criterion"
+                                          type="text"
+                                          value={preprocessParams.wear_range_crit}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handlePreprocessParamChange('wear_range_crit', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
+                                        />
+                                      </Grid>
+                                      <Grid item xs={12} sm={6}>
+                                        <TextField
+                                          fullWidth
+                                          label="Wear Window Length"
+                                          type="text"
+                                          value={preprocessParams.wear_window_length}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handlePreprocessParamChange('wear_window_length', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
+                                        />
+                                      </Grid>
+                                      <Grid item xs={12} sm={6}>
+                                        <TextField
+                                          fullWidth
+                                          label="Wear Window Skip"
+                                          type="text"
+                                          value={preprocessParams.wear_window_skip}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handlePreprocessParamChange('wear_window_skip', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "numeric",
+                                            lang: "en-US"
+                                          }}
+                                        />
+                                      </Grid>
+                                      <Grid item xs={12} sm={12}>
+                                        <Typography gutterBottom>
+                                          Required Daily Coverage
+                                        </Typography>
+                                        <Slider
+                                          value={typeof preprocessParams.required_daily_coverage === 'number' ? preprocessParams.required_daily_coverage : 0.5}
+                                          min={0}
+                                          max={1}
+                                          step={0.01}
+                                          onChange={(e, newValue) => handlePreprocessParamChange('required_daily_coverage', newValue)}
+                                          valueLabelDisplay="auto"
+                                        />
+                                        <TextField
+                                          fullWidth
+                                          label="Required Daily Coverage (0-1)"
+                                          type="text"
+                                          value={preprocessParams.required_daily_coverage}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handlePreprocessParamChange('required_daily_coverage', value);
+                                            }
+                                          }}
+                                          inputProps={{
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
+                                          sx={{ mt: 2 }}
+                                        />
+                                        <Typography variant="caption" color="text.secondary">
+                                          Minimum fraction of valid data required per day (0 = 0%, 1 = 100%). Default: 0.5
+                                        </Typography>
+                                      </Grid>
+                                    </Grid>
+                                  </Grid>
+
+                                  {/* Feature Parameters */}
+                                  <Grid item xs={12} md={6}>
+                                    <Typography variant="subtitle1" gutterBottom>
+                                      Feature Parameters
+                                    </Typography>
+                                    <Grid container spacing={2}>
+                                      <Grid item xs={12}>
+                                        <FormControl fullWidth>
+                                          <FormControlLabel
+                                            control={
+                                              <Switch
+                                                checked={featureParams.sleep_rescore}
+                                                onChange={(e) => handleFeatureParamChange('sleep_rescore', e.target.checked)}
+                                              />
+                                            }
+                                            label="Sleep Rescore"
+                                          />
+                                        </FormControl>
+                                      </Grid>
+                                      <Grid item xs={12}>
+                                        <TextField
+                                          fullWidth
+                                          label="Sleep CK SF"
+                                          type="text"
+                                          value={featureParams.sleep_ck_sf}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handleFeatureParamChange('sleep_ck_sf', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
+                                        />
+                                      </Grid>
+                                      <Grid item xs={12} sm={4}>
+                                        <TextField
+                                          fullWidth
+                                          label="PA Cutpoint Sedentary-Light"
+                                          type="text"
+                                          value={featureParams.pa_cutpoint_sl}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handleFeatureParamChange('pa_cutpoint_sl', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
+                                        />
+                                      </Grid>
+                                      <Grid item xs={12} sm={4}>
+                                        <TextField
+                                          fullWidth
+                                          label="PA Cutpoint Light-Moderate"
+                                          type="text"
+                                          value={featureParams.pa_cutpoint_lm}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handleFeatureParamChange('pa_cutpoint_lm', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
+                                        />
+                                      </Grid>
+                                      <Grid item xs={12} sm={4}>
+                                        <TextField
+                                          fullWidth
+                                          label="PA Cutpoint Moderate-Vigorous"
+                                          type="text"
+                                          value={featureParams.pa_cutpoint_mv}
+                                          onChange={(e) => {
+                                            let value = e.target.value.replace(/,/g, '.');
+                                            // Allow any positive numeric value with arbitrary precision
+                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                              handleFeatureParamChange('pa_cutpoint_mv', value);
+                                            }
+                                          }}
+                                          inputProps={{ 
+                                            inputMode: "decimal",
+                                            lang: "en-US"
+                                          }}
+                                        />
+                                      </Grid>
+                                    </Grid>
+                                  </Grid>
                                 </Grid>
                               </Grid>
-                            </Grid>
-                          </Grid>
+                            )}
 
-                          {/* Process and Reset Buttons */}
-                          <Box sx={{ mt: 3, textAlign: 'center', display: 'flex', gap: 2, justifyContent: 'center' }}>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              onClick={handleProcessData}
-                              disabled={processing}
-                              startIcon={processing ? <CircularProgress size={20} /> : <PlayArrowIcon />}
-                              sx={{ px: 4, py: 1.5 }}
-                            >
-                              {processing ? `Processing... (${formatTime(processingTime)})` : 'Process Data'}
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              color="secondary"
-                              onClick={handleReset}
-                              disabled={processing}
-                              startIcon={<RefreshIcon />}
-                              sx={{ px: 4, py: 1.5 }}
-                            >
-                              Reset All
-                            </Button>
-                          </Box>
-                          
-                        </Paper>
+                            {/* Process and Reset Buttons - Only show when parameters are shown */}
+                            {data?.file_id && timestampFormat && dataUnit && (
+                              <Grid item xs={12}>
+                                <Box sx={{ 
+                                  mt: 3, 
+                                  display: 'flex', 
+                                  gap: 2, 
+                                  justifyContent: 'center',
+                                  alignItems: 'center'
+                                }}>
+                                  <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleProcessData}
+                                    disabled={processing}
+                                    startIcon={processing ? <CircularProgress size={20} /> : <PlayArrowIcon />}
+                                    sx={{ px: 4, py: 1.5 }}
+                                  >
+                                    {processing ? `Processing... (${formatTime(processingTime)})` : 'Process Data'}
+                                  </Button>
+                                  <Button
+                                    variant="outlined"
+                                    color="secondary"
+                                    onClick={handleReset}
+                                    disabled={processing}
+                                    startIcon={<RefreshIcon />}
+                                    sx={{ px: 4, py: 1.5 }}
+                                  >
+                                    Reset All
+                                  </Button>
+                                </Box>
+                              </Grid>
+                            )}
+                        </Grid>
                       </Grid>
                     )}
+                      </Paper>
+                    </Grid>
 
                     {/* Processing Complete Summary */}
                     {data?.data && (
