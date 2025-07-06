@@ -70,7 +70,7 @@ const cleanFeatureName = (featureName) => {
   if (featureName === "cosinorage_advance") {
     return "Cosinorage\nAdvance";
   }
-  
+
   // Remove category prefixes from feature names
   const prefixes = ["sleep_", "cosinor_", "physical_activity_", "nonparam_"];
   let cleanedName = featureName;
@@ -87,7 +87,10 @@ const cleanFeatureName = (featureName) => {
     return "MESOR";
   }
   // Special case for acrophase time
-  if (cleanedName.toLowerCase().includes("acrophase") && cleanedName.toLowerCase().includes("time")) {
+  if (
+    cleanedName.toLowerCase().includes("acrophase") &&
+    cleanedName.toLowerCase().includes("time")
+  ) {
     return "Acrophase\nTime";
   }
   // Preserve original capitalization, only apply title case to all-lowercase words
@@ -516,7 +519,7 @@ const MultiIndividualTab = () => {
       // Prepare cosinorage inputs for the API (only if enabled)
       if (enableCosinorage) {
         const validation = getCosinorageValidationStatus();
-        
+
         if (!validation.isValid) {
           throw new Error(
             `Cosinorage is enabled but age and gender are not properly set for ${validation.missingCount} file(s). Please set valid age and gender for all files or disable cosinorage.`
@@ -537,10 +540,12 @@ const MultiIndividualTab = () => {
           preprocess_args: bulkPreprocessParams,
           features_args: bulkFeatureParams,
           enable_cosinorage: enableCosinorage,
-          cosinor_age_inputs: enableCosinorage ? bulkCosinorAgeInputs.map((input) => ({
-            gender: input.gender,
-            age: parseFloat(input.age),
-          })) : [],
+          cosinor_age_inputs: enableCosinorage
+            ? bulkCosinorAgeInputs.map((input) => ({
+                gender: input.gender,
+                age: parseFloat(input.age),
+              }))
+            : [],
         }),
       });
 
@@ -661,24 +666,22 @@ const MultiIndividualTab = () => {
   const handleBulkCosinorAgeInputChange = (fileId, field, value) => {
     setBulkCosinorAgeInputs((prev) =>
       prev.map((input) =>
-        input.file_id === fileId
-          ? { ...input, [field]: value }
-          : input
+        input.file_id === fileId ? { ...input, [field]: value } : input
       )
     );
   };
 
   const getCosinorageValidationStatus = () => {
     if (!enableCosinorage) return { isValid: true, missingCount: 0 };
-    
+
     const missingInputs = bulkCosinorAgeInputs.filter(
       (input) => !input.age || input.age === "" || input.gender === ""
     );
-    
+
     return {
       isValid: missingInputs.length === 0,
       missingCount: missingInputs.length,
-      totalCount: bulkCosinorAgeInputs.length
+      totalCount: bulkCosinorAgeInputs.length,
     };
   };
 
@@ -1683,15 +1686,24 @@ const MultiIndividualTab = () => {
                 <Typography variant="subtitle1" gutterBottom>
                   Cosinorage Age Prediction
                 </Typography>
-                
+
                 {/* Enable/Disable Switch and Settings Button */}
                 <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      mb: 1,
+                    }}
+                  >
                     <FormControlLabel
                       control={
                         <Switch
                           checked={enableCosinorage}
-                          onChange={(e) => setEnableCosinorage(e.target.checked)}
+                          onChange={(e) =>
+                            setEnableCosinorage(e.target.checked)
+                          }
                         />
                       }
                       label="Enable cosinorage age prediction"
@@ -1707,10 +1719,15 @@ const MultiIndividualTab = () => {
                       </Button>
                     )}
                   </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
-                    Enable to predict biological age using cosinor analysis. Requires chronological age and gender for each file.
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ ml: 4 }}
+                  >
+                    Enable to predict biological age using cosinor analysis.
+                    Requires chronological age and gender for each file.
                   </Typography>
-                  
+
                   {/* Status indicator */}
                   {enableCosinorage && (
                     <Box sx={{ mt: 1, ml: 4 }}>
@@ -1720,7 +1737,9 @@ const MultiIndividualTab = () => {
                           return (
                             <Alert severity="warning" sx={{ py: 0.5 }}>
                               <Typography variant="body2">
-                                ⚠️ {validation.missingCount} out of {validation.totalCount} files need age and gender set
+                                ⚠️ {validation.missingCount} out of{" "}
+                                {validation.totalCount} files need age and
+                                gender set
                               </Typography>
                             </Alert>
                           );
@@ -1728,7 +1747,8 @@ const MultiIndividualTab = () => {
                           return (
                             <Alert severity="success" sx={{ py: 0.5 }}>
                               <Typography variant="body2">
-                                ✅ All {validation.totalCount} files have age and gender set
+                                ✅ All {validation.totalCount} files have age
+                                and gender set
                               </Typography>
                             </Alert>
                           );
@@ -1768,7 +1788,8 @@ const MultiIndividualTab = () => {
                     !bulkDataUnit ||
                     !bulkTimestampFormat ||
                     !bulkColumnSelectionComplete ||
-                    (enableCosinorage && !getCosinorageValidationStatus().isValid)
+                    (enableCosinorage &&
+                      !getCosinorageValidationStatus().isValid)
                   }
                   startIcon={
                     bulkProcessing ? (
@@ -2271,8 +2292,6 @@ const MultiIndividualTab = () => {
                   </Accordion>
                 </Box>
               )}
-
-
           </Paper>
         </Grid>
       )}
@@ -3358,9 +3377,10 @@ const MultiIndividualTab = () => {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Set chronological age and gender for each file to enable cosinorage age prediction:
+            Set chronological age and gender for each file to enable cosinorage
+            age prediction:
           </Typography>
-          
+
           {/* Validation message */}
           {(() => {
             const validation = getCosinorageValidationStatus();
@@ -3368,7 +3388,9 @@ const MultiIndividualTab = () => {
               return (
                 <Alert severity="warning" sx={{ mb: 2 }}>
                   <Typography variant="body2">
-                    Please set age and gender for {validation.missingCount} out of {validation.totalCount} file(s) to enable cosinorage processing.
+                    Please set age and gender for {validation.missingCount} out
+                    of {validation.totalCount} file(s) to enable cosinorage
+                    processing.
                   </Typography>
                 </Alert>
               );
@@ -3376,7 +3398,8 @@ const MultiIndividualTab = () => {
               return (
                 <Alert severity="success" sx={{ mb: 2 }}>
                   <Typography variant="body2">
-                    All {validation.totalCount} files have age and gender set. Ready for cosinorage processing.
+                    All {validation.totalCount} files have age and gender set.
+                    Ready for cosinorage processing.
                   </Typography>
                 </Alert>
               );
@@ -3387,12 +3410,18 @@ const MultiIndividualTab = () => {
           <Grid container spacing={2}>
             {bulkCosinorAgeInputs.map((input, index) => (
               <Grid item xs={12} key={input.file_id}>
-                <Card 
-                  variant="outlined" 
-                  sx={{ 
+                <Card
+                  variant="outlined"
+                  sx={{
                     p: 2,
-                    borderColor: (!input.age || input.age === "" || input.gender === "") ? "warning.main" : "success.main",
-                    bgcolor: (!input.age || input.age === "" || input.gender === "") ? "warning.50" : "success.50"
+                    borderColor:
+                      !input.age || input.age === "" || input.gender === ""
+                        ? "warning.main"
+                        : "success.main",
+                    bgcolor:
+                      !input.age || input.age === "" || input.gender === ""
+                        ? "warning.50"
+                        : "success.50",
                   }}
                 >
                   <Typography variant="subtitle2" gutterBottom>

@@ -2327,9 +2327,7 @@ const SingleIndividualLabSubTab = ({
                           color="secondary.main"
                           gutterBottom
                         >
-                          {chronologicalAge
-                            ? `${chronologicalAge} years`
-                            : "-"}
+                          {chronologicalAge ? `${chronologicalAge} years` : "-"}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           Chronological Age

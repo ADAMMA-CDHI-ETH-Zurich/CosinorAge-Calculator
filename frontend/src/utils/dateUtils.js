@@ -37,4 +37,4 @@ export function getDateForIndex(key, index, data) {
     return new Date(data.data[index].TIMESTAMP).toLocaleDateString("en-CA");
   }
   return `Day ${index + 1}`;
-} 
+}

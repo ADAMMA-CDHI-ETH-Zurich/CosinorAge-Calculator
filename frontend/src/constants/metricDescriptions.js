@@ -101,4 +101,4 @@ export const metricDescriptions = {
     title: "Sleep Onset Latency (SOL)",
     description: "Minutes it took to fall asleep after going to bed.",
   },
-}; 
+};

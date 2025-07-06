@@ -9,7 +9,16 @@ export const useFileUpload = () => {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
 
-  const handleFileUpload = async (event, dataSource, fileType, dataType, timestampFormat, genericTimeFormat, genericTimeColumn, genericDataColumns) => {
+  const handleFileUpload = async (
+    event,
+    dataSource,
+    fileType,
+    dataType,
+    timestampFormat,
+    genericTimeFormat,
+    genericTimeColumn,
+    genericDataColumns
+  ) => {
     console.log("handleFileUpload called", event);
     console.log("Current dataSource:", dataSource);
     const file = event.target.files[0];
@@ -80,7 +89,9 @@ export const useFileUpload = () => {
           const result = JSON.parse(xhr.responseText);
           setData(result);
           setUploadProgress(100);
-          setSuccess('File uploaded successfully. Click "Process Data" to continue.');
+          setSuccess(
+            'File uploaded successfully. Click "Process Data" to continue.'
+          );
         } else {
           const errorData = JSON.parse(xhr.responseText);
           throw new Error(errorData.detail || "Failed to upload file");
@@ -119,7 +130,12 @@ export const useFileUpload = () => {
     if (dataSource === "other" && !dataType) return; // Also require dataType for 'other' data source
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileUpload({ target: { files: e.dataTransfer.files } }, dataSource, fileType, dataType);
+      handleFileUpload(
+        { target: { files: e.dataTransfer.files } },
+        dataSource,
+        fileType,
+        dataType
+      );
     }
   };
 
@@ -139,4 +155,4 @@ export const useFileUpload = () => {
     handleDrag,
     handleDrop,
   };
-}; 
+};

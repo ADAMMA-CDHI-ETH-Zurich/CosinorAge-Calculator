@@ -11,12 +11,12 @@ import { metricDescriptions } from "../../constants/metricDescriptions";
 
 function SectionInfoButton({ metric }) {
   const [open, setOpen] = useState(false);
-  
+
   if (!metric) return null;
-  
+
   const desc = metricDescriptions[metric.toLowerCase()];
   if (!desc) return null;
-  
+
   return (
     <>
       <IconButton
@@ -38,4 +38,4 @@ function SectionInfoButton({ metric }) {
   );
 }
 
-export default SectionInfoButton; 
+export default SectionInfoButton;

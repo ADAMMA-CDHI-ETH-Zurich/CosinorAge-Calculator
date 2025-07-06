@@ -42,4 +42,4 @@ export const useTimer = () => {
     startTimer,
     stopTimer,
   };
-}; 
+};

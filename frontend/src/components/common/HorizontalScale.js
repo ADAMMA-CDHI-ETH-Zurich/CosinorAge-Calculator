@@ -6,7 +6,7 @@ function HorizontalScale({ value, min, max, color = "#1976d2", label }) {
   // Clamp value to [min, max]
   const clamped = Math.max(min, Math.min(max, value));
   const percent = ((clamped - min) / (max - min)) * 100;
-  
+
   return (
     <Box sx={{ width: "100%", mt: 2, mb: 2 }}>
       {label && (
@@ -79,4 +79,4 @@ function HorizontalScale({ value, min, max, color = "#1976d2", label }) {
   );
 }
 
-export default HorizontalScale; 
+export default HorizontalScale;

@@ -54,4 +54,4 @@ export function interpolateColor(wear) {
   const g = Math.round(g0 + (g1 - g0) * wear);
   const b = Math.round(b0 + (b1 - b0) * wear);
   return `rgb(${r},${g},${b})`;
-} 
+}

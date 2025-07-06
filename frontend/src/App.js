@@ -30,18 +30,6 @@ import { appTheme } from "./theme";
 import { useTimer } from "./hooks/useTimer";
 import { useFileUpload } from "./hooks/useFileUpload";
 
-
-
-
-
-
-
-
-
-
-
-
-
 function App() {
   // Use custom hooks for timer and file upload functionality
   const {
@@ -152,8 +140,6 @@ function App() {
     setCsvColumns([]);
     setCsvPreview([]);
   }, [dataSource]);
-
-
 
   // Clear all state on mount
   useEffect(() => {
@@ -521,8 +507,6 @@ function App() {
     }
   };
 
-
-
   const handlePredictAge = async () => {
     if (!data?.file_id || !chronologicalAge) {
       setError("Please enter chronological age and ensure data is processed");
@@ -645,8 +629,6 @@ function App() {
     setCurrentTab(newValue);
   };
 
-
-
   const handleReset = () => {
     setData(null);
     setDataSource("");
@@ -692,8 +674,6 @@ function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentTab]);
-
-
 
   return (
     <ThemeProvider theme={appTheme}>

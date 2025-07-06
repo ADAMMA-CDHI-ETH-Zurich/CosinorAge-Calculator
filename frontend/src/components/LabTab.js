@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Grid,
-  Tabs,
-  Tab,
-} from "@mui/material";
+import { Box, Grid, Tabs, Tab } from "@mui/material";
 import SingleIndividualLabSubTab from "./subcomponents/SingleIndividualLabSubTab";
 import { MultiIndividualTab } from "./subcomponents/MultiIndividualLabSubTab";
 
@@ -206,4 +201,4 @@ const LabTab = ({
   );
 };
 
-export default LabTab; 
+export default LabTab;

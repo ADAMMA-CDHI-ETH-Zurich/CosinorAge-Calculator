@@ -13,8 +13,8 @@ function LabDocumentationSubTab() {
       </Typography>
       <Typography variant="body1" paragraph>
         Welcome to the Lab Documentation section. This area provides
-        comprehensive guides and tutorials for using the CosinorLab
-        interactive interface.
+        comprehensive guides and tutorials for using the CosinorLab interactive
+        interface.
       </Typography>
 
       <Typography variant="h6" gutterBottom sx={{ mt: 4, mb: 2 }}>
@@ -22,23 +22,23 @@ function LabDocumentationSubTab() {
       </Typography>
       <Typography variant="body1" paragraph>
         The Lab interface allows you to upload, process, and analyze
-        accelerometer data through an intuitive web interface. Follow
-        these steps to get started:
+        accelerometer data through an intuitive web interface. Follow these
+        steps to get started:
       </Typography>
 
       <ol style={{ paddingLeft: "2rem", marginBottom: "2rem" }}>
         <li style={{ marginBottom: "1rem" }}>
           <Typography variant="body1">
             <strong>Upload Data:</strong> Select your data source (Samsung
-            Galaxy Smartwatch) and file type (Binary ZIP or CSV), then
-            upload your accelerometer data file.
+            Galaxy Smartwatch) and file type (Binary ZIP or CSV), then upload
+            your accelerometer data file.
           </Typography>
         </li>
         <li style={{ marginBottom: "1rem" }}>
           <Typography variant="body1">
-            <strong>Configure Parameters:</strong> Adjust preprocessing
-            and feature extraction parameters according to your needs, or
-            use the default settings.
+            <strong>Configure Parameters:</strong> Adjust preprocessing and
+            feature extraction parameters according to your needs, or use the
+            default settings.
           </Typography>
         </li>
         <li style={{ marginBottom: "1rem" }}>
@@ -59,8 +59,8 @@ function LabDocumentationSubTab() {
         Supported Data Formats
       </Typography>
       <Typography variant="body1" paragraph>
-        Currently, the Lab supports Samsung Galaxy Smartwatch
-        accelerometer data in the following formats:
+        Currently, the Lab supports Samsung Galaxy Smartwatch accelerometer data
+        in the following formats:
       </Typography>
       <ul style={{ paddingLeft: "2rem", marginBottom: "2rem" }}>
         <li style={{ marginBottom: "0.5rem" }}>
@@ -71,8 +71,7 @@ function LabDocumentationSubTab() {
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            <strong>CSV:</strong> Processed accelerometer data in CSV
-            format
+            <strong>CSV:</strong> Processed accelerometer data in CSV format
           </Typography>
         </li>
       </ul>
@@ -86,15 +85,14 @@ function LabDocumentationSubTab() {
       <ul style={{ paddingLeft: "2rem", marginBottom: "2rem" }}>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            <strong>Cosinor Analysis:</strong> Circadian rhythm analysis
-            with mesor, amplitude, and acrophase calculations
+            <strong>Cosinor Analysis:</strong> Circadian rhythm analysis with
+            mesor, amplitude, and acrophase calculations
           </Typography>
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            <strong>Non-parametric Features:</strong> Interdaily
-            stability, intradaily variability, and relative amplitude
-            metrics
+            <strong>Non-parametric Features:</strong> Interdaily stability,
+            intradaily variability, and relative amplitude metrics
           </Typography>
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
@@ -105,14 +103,14 @@ function LabDocumentationSubTab() {
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            <strong>Sleep Analysis:</strong> Sleep onset, duration, and
-            quality metrics
+            <strong>Sleep Analysis:</strong> Sleep onset, duration, and quality
+            metrics
           </Typography>
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            <strong>Biological Age Prediction:</strong> Age prediction
-            based on activity patterns
+            <strong>Biological Age Prediction:</strong> Age prediction based on
+            activity patterns
           </Typography>
         </li>
       </ul>
@@ -131,8 +129,8 @@ function LabDocumentationSubTab() {
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            Check that your data contains the required columns (timestamp,
-            x, y, z for accelerometer data)
+            Check that your data contains the required columns (timestamp, x, y,
+            z for accelerometer data)
           </Typography>
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
@@ -143,14 +141,14 @@ function LabDocumentationSubTab() {
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            For large files, processing may take several minutes - please
-            be patient
+            For large files, processing may take several minutes - please be
+            patient
           </Typography>
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            If processing fails, try adjusting the preprocessing
-            parameters or check the error messages for guidance
+            If processing fails, try adjusting the preprocessing parameters or
+            check the error messages for guidance
           </Typography>
         </li>
       </ul>
@@ -170,8 +168,8 @@ function LabDocumentationSubTab() {
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            <strong>Parameter Tuning:</strong> Fine-tune preprocessing
-            and feature extraction parameters for optimal results
+            <strong>Parameter Tuning:</strong> Fine-tune preprocessing and
+            feature extraction parameters for optimal results
           </Typography>
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
@@ -182,8 +180,8 @@ function LabDocumentationSubTab() {
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            <strong>Visualization Options:</strong> Customize charts and
-            graphs to focus on specific aspects of your data
+            <strong>Visualization Options:</strong> Customize charts and graphs
+            to focus on specific aspects of your data
           </Typography>
         </li>
       </ul>
@@ -207,14 +205,14 @@ function LabDocumentationSubTab() {
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            Collect data over multiple days for more reliable circadian
-            rhythm analysis
+            Collect data over multiple days for more reliable circadian rhythm
+            analysis
           </Typography>
         </li>
         <li style={{ marginBottom: "0.5rem" }}>
           <Typography variant="body1">
-            Review and clean your data before processing to remove
-            artifacts or invalid measurements
+            Review and clean your data before processing to remove artifacts or
+            invalid measurements
           </Typography>
         </li>
       </ul>
@@ -222,4 +220,4 @@ function LabDocumentationSubTab() {
   );
 }
 
-export default LabDocumentationSubTab; 
+export default LabDocumentationSubTab;
