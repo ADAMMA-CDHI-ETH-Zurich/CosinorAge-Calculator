@@ -3,489 +3,78 @@ import {
   Box,
   Container,
   Typography,
-  Paper,
   AppBar,
   Toolbar,
   CssBaseline,
   ThemeProvider,
-  createTheme,
-  Grid,
-  Card,
-  CardContent,
-  Button,
-  CircularProgress,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  TextField,
+  Tabs,
+  Tab,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
-  IconButton,
-  LinearProgress,
-  FormControlLabel,
-  Switch,
-  Slider,
-  Tabs,
-  Tab,
+  Button,
   DialogActions,
-  FormHelperText,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Alert,
-  Tooltip,
-  Divider,
 } from "@mui/material";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  Legend,
-  ResponsiveContainer,
-  ReferenceArea,
-  BarChart,
-  Bar,
-  Area,
-  AreaChart,
-  ComposedChart,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import UploadIcon from "@mui/icons-material/Upload";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import HomeIcon from "@mui/icons-material/Home";
 import ScienceIcon from "@mui/icons-material/Science";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import InfoIcon from "@mui/icons-material/Info";
-import RefreshIcon from "@mui/icons-material/Refresh";
-import TimelineIcon from "@mui/icons-material/Timeline";
-import ShowChartIcon from "@mui/icons-material/ShowChart";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import WarningIcon from "@mui/icons-material/Warning";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ErrorIcon from "@mui/icons-material/Error";
-import BarChartIcon from "@mui/icons-material/BarChart";
 import logo from "./assets/logo.png";
 import HomeTab from "./components/HomeTab";
 import DocumentationTab from "./components/DocumentationTab";
 import LabTab from "./components/LabTab";
 import AboutTab from "./components/AboutTab";
-import SGSBinaryZippedExample from "./assets/SGS_Binary_Zipped_Example.png";
-import SGSCSVExample from "./assets/SGS_CSV_Example.png";
 import config from "./config";
+import { appTheme } from "./theme";
+import { useTimer } from "./hooks/useTimer";
+import { useFileUpload } from "./hooks/useFileUpload";
 
-// Create a modern theme
-const appTheme = createTheme({
-  palette: {
-    primary: {
-      main: "#2E3B55", // Deep navy blue
-      light: "#4A5B7A",
-      dark: "#1A2238",
-    },
-    secondary: {
-      main: "#E76F51", // Coral orange
-      light: "#F4A261",
-      dark: "#C65D3E",
-    },
-    background: {
-      default: "#F8F9FA", // Light gray background
-      paper: "#FFFFFF",
-    },
-    success: {
-      main: "#2A9D8F", // Teal green
-      light: "#4CAF9F",
-      dark: "#1E7A6F",
-    },
-    error: {
-      main: "#E63946", // Bright red
-      light: "#FF4D5A",
-      dark: "#C62A36",
-    },
-    text: {
-      primary: "#2E3B55", // Deep navy blue
-      secondary: "#6C757D", // Medium gray
-    },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h4: {
-      fontWeight: 700,
-      color: "#2E3B55",
-    },
-    h6: {
-      fontWeight: 600,
-      color: "#2E3B55",
-    },
-    subtitle1: {
-      fontWeight: 500,
-      color: "#4A5B7A",
-    },
-    subtitle2: {
-      fontWeight: 500,
-      color: "#6C757D",
-    },
-  },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
-          border: "1px solid rgba(0, 0, 0, 0.08)",
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: "none",
-          fontWeight: 600,
-        },
-        contained: {
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-          "&:hover": {
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
-          },
-        },
-      },
-    },
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          backgroundColor: "#2E3B55",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-          borderRadius: 0, // Remove rounded corners
-        },
-      },
-    },
-  },
-});
 
-// Descriptions for each section
-const metricDescriptions = {
-  // Cosinor
-  mesor: {
-    title: "Mesor",
-    description:
-      "The mean value of the fitted cosine curve, representing the average activity level over 24 hours (in mg).",
-  },
-  amplitude: {
-    title: "Amplitude",
-    description:
-      "Half the difference between the peak and trough of the fitted cosine curve, indicating the strength of the rhythm (in mg).",
-  },
-  acrophase: {
-    title: "Acrophase",
-    description:
-      "The timing of the peak of the fitted cosine curve, expressed in radians or minutes, indicating when the highest activity occurs.",
-  },
-  acrophase_time: {
-    title: "Acrophase Time",
-    description:
-      "The time of day (in HH:MM format) when the peak of the fitted cosine curve occurs.",
-  },
-  // Nonparametric
-  is: {
-    title: "Interdaily Stability (IS)",
-    description:
-      "A measure of the consistency of activity patterns between days. Ranges from 0 (random) to 1 (perfectly stable). Higher values indicate more regular daily rhythms.",
-  },
-  iv: {
-    title: "Intradaily Variability (IV)",
-    description:
-      "A measure of fragmentation of activity within a day. It is greater than 0 - values close to 0 reflect a smooth pattern whereas greater values indicate more transitions between rest and activity. Values below 2 are considered as being acceptable.",
-  },
-  ra: {
-    title: "Relative Amplitude (RA)",
-    description:
-      "The difference between the most active 10 hours (M10) and least active 5 hours (L5), normalized by their sum. Ranges from 0 to 1. Higher values indicate a more robust rhythm.",
-  },
-  sri: {
-    title: "Sleep Regularity Index (SRI)",
-    description:
-      "A measure of the consistency of sleep/wake patterns across days. Ranges from -100 (irregular) to 100 (perfectly regular).",
-  },
-  m10: {
-    title: "L5 & M10",
-    description:
-      "L5 represents the mean activity during the 5 least active consecutive hours of the day (in mg), and M10 represents the mean activity during the 10 most active consecutive hours; together, these metrics describe the least and most active periods within a 24-hour cycle.",
-  },
-  l5: {
-    title: "L5 & M10",
-    description:
-      "L5 represents the mean activity during the 5 least active consecutive hours of the day (in mg), and M10 represents the mean activity during the 10 most active consecutive hours; together, these metrics describe the least and most active periods within a 24-hour cycle.",
-  },
-  m10_start: {
-    title: "M10 Start",
-    description:
-      "The start time of the 10 most active consecutive hours of the day.",
-  },
-  l5_start: {
-    title: "L5 Start",
-    description:
-      "The start time of the 5 least active consecutive hours of the day.",
-  },
-  // Physical Activity
-  sedentary: {
-    title: "Sedentary",
-    description:
-      "Total minutes per day spent in sedentary activity (<1.5 METs).",
-  },
-  light: {
-    title: "Light",
-    description: "Total minutes per day spent in light activity (1.5–3 METs).",
-  },
-  moderate: {
-    title: "Moderate",
-    description: "Total minutes per day spent in moderate activity (3–6 METs).",
-  },
-  vigorous: {
-    title: "Vigorous",
-    description: "Total minutes per day spent in vigorous activity (>6 METs).",
-  },
-  // Sleep
-  tst: {
-    title: "Total Sleep Time (TST)",
-    description: "Total minutes of sleep obtained per night.",
-  },
-  waso: {
-    title: "Wake After Sleep Onset (WASO)",
-    description: "Total minutes spent awake after initially falling asleep.",
-  },
-  pta: {
-    title: "Percent Time Asleep (PTA)",
-    description: "Percentage of the sleep period spent asleep.",
-  },
-  nwb: {
-    title: "Number of Wake Bouts (NWB)",
-    description: "Number of times the person woke up during the sleep period.",
-  },
-  sol: {
-    title: "Sleep Onset Latency (SOL)",
-    description: "Minutes it took to fall asleep after going to bed.",
-  },
-};
 
-function SectionInfoButton({ metric }) {
-  const [open, setOpen] = React.useState(false);
-  if (!metric) return null;
-  const desc = metricDescriptions[metric.toLowerCase()];
-  if (!desc) return null;
-  return (
-    <>
-      <IconButton
-        size="small"
-        onClick={() => setOpen(true)}
-        aria-label={`Info about ${desc.title}`}
-      >
-        <InfoOutlinedIcon fontSize="small" />
-      </IconButton>
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>{desc.title}</DialogTitle>
-        <DialogContent>
-          <DialogContentText style={{ whiteSpace: "pre-line" }}>
-            {desc.description}
-          </DialogContentText>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
 
-// HorizontalScale component for IS and IV
-function HorizontalScale({ value, min, max, color = "#1976d2", label }) {
-  // Clamp value to [min, max]
-  const clamped = Math.max(min, Math.min(max, value));
-  const percent = ((clamped - min) / (max - min)) * 100;
-  return (
-    <Box sx={{ width: "100%", mt: 2, mb: 2 }}>
-      {label && (
-        <Typography variant="subtitle2" align="center" sx={{ mb: 1 }}>
-          {label}
-        </Typography>
-      )}
-      <Box sx={{ position: "relative", height: 48, width: "100%" }}>
-        {/* Value above marker */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: `calc(${percent}% - 20px)`,
-            top: 0,
-            width: 40,
-            textAlign: "center",
-            zIndex: 3,
-          }}
-        >
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            {clamped.toFixed(2)}
-          </Typography>
-        </Box>
-        {/* Horizontal line */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 32,
-            left: 0,
-            right: 0,
-            height: 4,
-            bgcolor: "#ccc",
-            borderRadius: 2,
-          }}
-        />
-        {/* Marker */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 24,
-            left: `calc(${percent}% - 10px)`,
-            width: 20,
-            height: 20,
-            bgcolor: color,
-            borderRadius: "50%",
-            border: "2px solid #fff",
-            boxShadow: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 2,
-          }}
-        />
-        {/* Min label */}
-        <Typography
-          variant="caption"
-          sx={{ position: "absolute", left: 0, top: 40 }}
-        >
-          {min}
-        </Typography>
-        {/* Max label */}
-        <Typography
-          variant="caption"
-          sx={{ position: "absolute", right: 0, top: 40 }}
-        >
-          {max}
-        </Typography>
-      </Box>
-    </Box>
-  );
-}
 
-// Helper function to get the first date in YYYY-MM-DD from data.data
-function getFirstDate(data) {
-  if (data.data && data.data.length > 0 && data.data[0].TIMESTAMP) {
-    const d = new Date(data.data[0].TIMESTAMP);
-    // Use the local date string as base, then parse back to Date to avoid timezone issues
-    const dateStr = d.toLocaleDateString("en-CA");
-    return new Date(dateStr);
-  }
-  return null;
-}
 
-function getDateForIndex(key, index, data) {
-  if (
-    key === "M10" &&
-    data.features.nonparam.M10_start &&
-    data.features.nonparam.M10_start[index]
-  ) {
-    return data.features.nonparam.M10_start[index].split("T")[0];
-  }
-  if (
-    key === "L5" &&
-    data.features.nonparam.L5_start &&
-    data.features.nonparam.L5_start[index]
-  ) {
-    return data.features.nonparam.L5_start[index].split("T")[0];
-  }
-  // For sleep features and RA, generate sequential dates if possible
-  if (["TST", "WASO", "PTA", "NWB", "SOL", "RA"].includes(key.toUpperCase())) {
-    const firstDate = getFirstDate(data);
-    if (firstDate) {
-      const d = new Date(firstDate);
-      d.setDate(d.getDate() + index);
-      return d.toLocaleDateString("en-CA");
-    }
-  }
-  if (data.data && data.data[index] && data.data[index].TIMESTAMP) {
-    return new Date(data.data[index].TIMESTAMP).toLocaleDateString("en-CA");
-  }
-  return `Day ${index + 1}`;
-}
 
-// Helper to clean and format feature names for display
-const cleanFeatureName = (featureName) => {
-  // Remove category prefixes from feature names
-  const prefixes = ["sleep_", "cosinor_", "physical_activity_", "nonparam_"];
-  let cleanedName = featureName;
-  for (const prefix of prefixes) {
-    if (cleanedName.startsWith(prefix)) {
-      cleanedName = cleanedName.substring(prefix.length);
-      break;
-    }
-  }
-  // Replace underscores with spaces
-  cleanedName = cleanedName.replace(/_/g, " ");
-  // Special case for MESOR - keep it in all caps
-  if (cleanedName.toLowerCase() === "mesor") {
-    return "MESOR";
-  }
-  // Preserve original capitalization, only apply title case to all-lowercase words
-  return cleanedName
-    .split(" ")
-    .map((word) => {
-      if (word.toLowerCase() === "mesor") {
-        return "MESOR";
-      }
-      // If the word is all lowercase, capitalize it
-      if (word === word.toLowerCase()) {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      }
-      // Otherwise, keep the original capitalization
-      return word;
-    })
-    .join(" ");
-};
+
+
+
+
+
 
 function App() {
-  const [data, setData] = useState(null);
+  // Use custom hooks for timer and file upload functionality
+  const {
+    processingTime,
+    setProcessingTime,
+    timerInterval,
+    setTimerInterval,
+    startTimer,
+    stopTimer,
+  } = useTimer();
+
+  const {
+    data,
+    setData,
+    error,
+    setError,
+    success,
+    setSuccess,
+    uploadProgress,
+    setUploadProgress,
+    dragActive,
+    setDragActive,
+    fileInputRef,
+    handleFileUpload,
+    handleDrag,
+    handleDrop,
+  } = useFileUpload();
+
   const [dataSource, setDataSource] = useState("");
   const [predictedAge, setPredictedAge] = useState(null);
   const [chronologicalAge, setChronologicalAge] = useState("");
   const [gender, setGender] = useState("invariant");
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
   const [processing, setProcessing] = useState(false);
-  const [processingTime, setProcessingTime] = useState(0);
-  const [timerInterval, setTimerInterval] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const fileInputRef = useRef(null);
   const [preprocessDialogOpen, setPreprocessDialogOpen] = useState(false);
   const [preprocessParams, setPreprocessParams] = useState({
     autocalib_sd_criter: 0.00013,
@@ -626,47 +215,12 @@ function App() {
     }
   }, [data?.features]);
 
-  // Function to start the timer
-  const startTimer = () => {
-    // Clear any existing timer first
-    if (timerInterval) {
-      clearInterval(timerInterval);
-    }
-    setProcessingTime(0);
-    const interval = setInterval(() => {
-      setProcessingTime((prev) => prev + 1);
-    }, 1000);
-    setTimerInterval(interval);
-  };
-
-  // Function to stop the timer
-  const stopTimer = useCallback(() => {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      setTimerInterval(null);
-    }
-  }, [timerInterval]);
-
   // Clean up timer on component unmount and when processing state changes
   useEffect(() => {
     if (!processing && timerInterval) {
       stopTimer();
     }
-    return () => {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-      }
-    };
   }, [processing, timerInterval, stopTimer]);
-
-  // Format time in MM:SS
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  };
 
   const fetchColumnNames = async (fileId) => {
     try {
@@ -853,110 +407,29 @@ function App() {
     }
   };
 
-  const handleFileUpload = async (event) => {
-    console.log("handleFileUpload called", event);
-    console.log("Current dataSource:", dataSource);
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // File size limit: 2GB
-    const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2GB in bytes
-    if (file.size > MAX_SIZE) {
-      setError("File is too large. Maximum allowed size is 2GB.");
-      setUploadProgress(0);
-      return;
-    }
-
-    setError(null);
-    setSuccess(null);
-    setData(null);
-    setUploadProgress(0);
-
-    const formData = new FormData();
-    formData.append("file", file);
-    // Set data_source based on dataSource for backend compatibility
-    formData.append(
-      "data_source",
-      dataSource === "other"
-        ? "other"
-        : fileType === "binary"
-        ? "samsung_galaxy_binary"
-        : "samsung_galaxy_csv"
+  const handleFileUploadWithParams = async (event) => {
+    // Call the hook's handleFileUpload with all required parameters
+    await handleFileUpload(
+      event,
+      dataSource,
+      fileType,
+      dataType,
+      timestampFormat,
+      genericTimeFormat,
+      genericTimeColumn,
+      genericDataColumns
     );
 
-    console.log("=== Upload Debug ===");
-    console.log("dataSource:", dataSource);
-    console.log("fileType:", fileType);
-    console.log("dataType:", dataType);
-    console.log("dataUnit:", dataUnit);
-    console.log("timestampFormat:", timestampFormat);
-
-    // Add parameters for other data source
-    if (dataSource === "other") {
-      // For CSV files, we'll handle data_type in the column selection step
-      if (fileType === "csv") {
-        // Don't set data_type here - it will be set in handleColumnSelection
-        formData.append("time_format", timestampFormat || "unix-ms"); // Default timestamp format
-        console.log("Added time_format (CSV):", timestampFormat || "unix-ms");
-      } else {
-        // For other cases, use generic parameters
-        // Don't set data_type here - it will be set in handleColumnSelection
-        formData.append("time_format", genericTimeFormat);
-        console.log("Added time_format (non-CSV):", genericTimeFormat);
+    // After successful upload, handle column selection if needed
+    if (data?.file_id) {
+      if (
+        (dataSource === "other" && fileType === "csv") ||
+        (dataSource === "samsung_galaxy_csv" &&
+          dataType === "alternative_count") ||
+        (dataSource === "other" && fileType !== "csv")
+      ) {
+        fetchColumnNames(data.file_id);
       }
-      formData.append("time_column", genericTimeColumn);
-      formData.append("data_columns", genericDataColumns);
-      console.log("Added time_column:", genericTimeColumn);
-      console.log("Added data_columns:", genericDataColumns);
-    }
-
-    // For Samsung Galaxy CSV with alternative_counts, we'll handle data_type in the column selection step
-    // Don't set data_type here - it will be set in handleColumnSelection
-
-    try {
-      const xhr = new XMLHttpRequest();
-
-      xhr.upload.addEventListener("progress", (event) => {
-        if (event.lengthComputable) {
-          const progress = (event.loaded / event.total) * 100;
-          setUploadProgress(progress);
-        }
-      });
-
-      xhr.addEventListener("load", () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          const result = JSON.parse(xhr.responseText);
-          setData(result);
-          setUploadProgress(100);
-
-          // For all cases where data_type needs to be computed from dataType + dataUnit, fetch column names
-          if (
-            (dataSource === "other" && fileType === "csv") ||
-            (dataSource === "samsung_galaxy_csv" &&
-              dataType === "alternative_count") ||
-            (dataSource === "other" && fileType !== "csv")
-          ) {
-            fetchColumnNames(result.file_id);
-          } else {
-            setSuccess(
-              'File uploaded successfully. Click "Process Data" to continue.'
-            );
-          }
-        } else {
-          const errorData = JSON.parse(xhr.responseText);
-          throw new Error(errorData.detail || "Failed to upload file");
-        }
-      });
-
-      xhr.addEventListener("error", () => {
-        throw new Error("Network error occurred during upload");
-      });
-
-      xhr.open("POST", config.getApiUrl("upload"));
-      xhr.send(formData);
-    } catch (err) {
-      setError(err.message);
-      setUploadProgress(0);
     }
   };
 
@@ -1048,20 +521,7 @@ function App() {
     }
   };
 
-  // Helper to interpolate between red and green
-  function interpolateColor(wear) {
-    // Linear interpolation between #ff5252 and #4caf50
-    const r0 = 255,
-      g0 = 82,
-      b0 = 82; // red
-    const r1 = 76,
-      g1 = 175,
-      b1 = 80; // green
-    const r = Math.round(r0 + (r1 - r0) * wear);
-    const g = Math.round(g0 + (g1 - g0) * wear);
-    const b = Math.round(b0 + (b1 - b0) * wear);
-    return `rgb(${r},${g},${b})`;
-  }
+
 
   const handlePredictAge = async () => {
     if (!data?.file_id || !chronologicalAge) {
@@ -1096,28 +556,13 @@ function App() {
     }
   };
 
-  // Drag and drop handlers
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!dataSource || !fileType) return; // Only allow drag if both dataSource and fileType are selected
-    if (dataSource === "other" && !dataType) return; // Also require dataType for 'other' data source
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+  // Drag and drop handlers with parameters
+  const handleDragWithParams = (e) => {
+    handleDrag(e, dataSource, fileType, dataType);
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!dataSource || !fileType) return; // Only allow drop if both dataSource and fileType are selected
-    if (dataSource === "other" && !dataType) return; // Also require dataType for 'other' data source
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileUpload({ target: { files: e.dataTransfer.files } });
-    }
+  const handleDropWithParams = (e) => {
+    handleDrop(e, dataSource, fileType, dataType);
   };
 
   // Add handler for parameter changes
@@ -1416,6 +861,9 @@ function App() {
               setSelectedDataColumns={setSelectedDataColumns}
               columnSelectionComplete={columnSelectionComplete}
               setColumnSelectionComplete={setColumnSelectionComplete}
+              handleFileUpload={handleFileUploadWithParams}
+              handleDrag={handleDragWithParams}
+              handleDrop={handleDropWithParams}
               handleReset={handleReset}
             />
           )}

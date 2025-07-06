@@ -1,4 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { metricDescriptions } from "../../constants/metricDescriptions";
+import { formatTime, interpolateColor, cleanFeatureName } from "../../utils/formatUtils";
+import { getFirstDate, getDateForIndex } from "../../utils/dateUtils";
+import HorizontalScale from "../common/HorizontalScale";
+import SectionInfoButton from "../common/SectionInfoButton";
 import {
   Box,
   Container,
@@ -80,288 +85,15 @@ import SGSCSVExample from "../../assets/SGS_CSV_Example.png";
 import config from "../../config";
 import InfoIcon from "@mui/icons-material/Info";
 
-// Descriptions for each section
-const metricDescriptions = {
-    // Cosinor
-    mesor: {
-      title: "Mesor",
-      description:
-        "The mean value of the fitted cosine curve, representing the average activity level over 24 hours (in mg).",
-    },
-    amplitude: {
-      title: "Amplitude",
-      description:
-        "Half the difference between the peak and trough of the fitted cosine curve, indicating the strength of the rhythm (in mg).",
-    },
-    acrophase: {
-      title: "Acrophase",
-      description:
-        "The timing of the peak of the fitted cosine curve, expressed in radians or minutes, indicating when the highest activity occurs.",
-    },
-    acrophase_time: {
-      title: "Acrophase Time",
-      description:
-        "The time of day (in HH:MM format) when the peak of the fitted cosine curve occurs.",
-    },
-    // Nonparametric
-    is: {
-      title: "Interdaily Stability (IS)",
-      description:
-        "A measure of the consistency of activity patterns between days. Ranges from 0 (random) to 1 (perfectly stable). Higher values indicate more regular daily rhythms.",
-    },
-    iv: {
-      title: "Intradaily Variability (IV)",
-      description:
-        "A measure of fragmentation of activity within a day. It is greater than 0 - values close to 0 reflect a smooth pattern whereas greater values indicate more transitions between rest and activity. Values below 2 are considered as being acceptable.",
-    },
-    ra: {
-      title: "Relative Amplitude (RA)",
-      description:
-        "The difference between the most active 10 hours (M10) and least active 5 hours (L5), normalized by their sum. Ranges from 0 to 1. Higher values indicate a more robust rhythm.",
-    },
-    sri: {
-      title: "Sleep Regularity Index (SRI)",
-      description:
-        "A measure of the consistency of sleep/wake patterns across days. Ranges from -100 (irregular) to 100 (perfectly regular).",
-    },
-    m10: {
-      title: "L5 & M10",
-      description:
-        "L5 represents the mean activity during the 5 least active consecutive hours of the day (in mg), and M10 represents the mean activity during the 10 most active consecutive hours; together, these metrics describe the least and most active periods within a 24-hour cycle.",
-    },
-    l5: {
-      title: "L5 & M10",
-      description:
-        "L5 represents the mean activity during the 5 least active consecutive hours of the day (in mg), and M10 represents the mean activity during the 10 most active consecutive hours; together, these metrics describe the least and most active periods within a 24-hour cycle.",
-    },
-    m10_start: {
-      title: "M10 Start",
-      description:
-        "The start time of the 10 most active consecutive hours of the day.",
-    },
-    l5_start: {
-      title: "L5 Start",
-      description:
-        "The start time of the 5 least active consecutive hours of the day.",
-    },
-    // Physical Activity
-    sedentary: {
-      title: "Sedentary",
-      description:
-        "Total minutes per day spent in sedentary activity (<1.5 METs).",
-    },
-    light: {
-      title: "Light",
-      description: "Total minutes per day spent in light activity (1.5–3 METs).",
-    },
-    moderate: {
-      title: "Moderate",
-      description: "Total minutes per day spent in moderate activity (3–6 METs).",
-    },
-    vigorous: {
-      title: "Vigorous",
-      description: "Total minutes per day spent in vigorous activity (>6 METs).",
-    },
-    // Sleep
-    tst: {
-      title: "Total Sleep Time (TST)",
-      description: "Total minutes of sleep obtained per night.",
-    },
-    waso: {
-      title: "Wake After Sleep Onset (WASO)",
-      description: "Total minutes spent awake after initially falling asleep.",
-    },
-    pta: {
-      title: "Percent Time Asleep (PTA)",
-      description: "Percentage of the sleep period spent asleep.",
-    },
-    nwb: {
-      title: "Number of Wake Bouts (NWB)",
-      description: "Number of times the person woke up during the sleep period.",
-    },
-    sol: {
-      title: "Sleep Onset Latency (SOL)",
-      description: "Minutes it took to fall asleep after going to bed.",
-    },
-};
 
-function SectionInfoButton({ metric }) {
-  const [open, setOpen] = React.useState(false);
-  if (!metric) return null;
-  const desc = metricDescriptions[metric.toLowerCase()];
-  if (!desc) return null;
-  return (
-    <>
-      <IconButton
-        size="small"
-        onClick={() => setOpen(true)}
-        aria-label={`Info about ${desc.title}`}
-      >
-        <InfoOutlinedIcon fontSize="small" />
-      </IconButton>
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>{desc.title}</DialogTitle>
-        <DialogContent>
-          <DialogContentText style={{ whiteSpace: "pre-line" }}>
-            {desc.description}
-          </DialogContentText>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
 
-// HorizontalScale component for IS and IV
-function HorizontalScale({ value, min, max, color = "#1976d2", label }) {
-  // Clamp value to [min, max]
-  const clamped = Math.max(min, Math.min(max, value));
-  const percent = ((clamped - min) / (max - min)) * 100;
-  return (
-    <Box sx={{ width: "100%", mt: 2, mb: 2 }}>
-      {label && (
-        <Typography variant="subtitle2" align="center" sx={{ mb: 1 }}>
-          {label}
-        </Typography>
-      )}
-      <Box sx={{ position: "relative", height: 48, width: "100%" }}>
-        {/* Value above marker */}
-        <Box
-          sx={{
-            position: "absolute",
-            left: `calc(${percent}% - 20px)`,
-            top: 0,
-            width: 40,
-            textAlign: "center",
-            zIndex: 3,
-          }}
-        >
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            {clamped.toFixed(2)}
-          </Typography>
-        </Box>
-        {/* Horizontal line */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 32,
-            left: 0,
-            right: 0,
-            height: 4,
-            bgcolor: "#ccc",
-            borderRadius: 2,
-          }}
-        />
-        {/* Marker */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 24,
-            left: `calc(${percent}% - 10px)`,
-            width: 20,
-            height: 20,
-            bgcolor: color,
-            borderRadius: "50%",
-            border: "2px solid #fff",
-            boxShadow: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 2,
-          }}
-        />
-        {/* Min label */}
-        <Typography
-          variant="caption"
-          sx={{ position: "absolute", left: 0, top: 40 }}
-        >
-          {min}
-        </Typography>
-        {/* Max label */}
-        <Typography
-          variant="caption"
-          sx={{ position: "absolute", right: 0, top: 40 }}
-        >
-          {max}
-        </Typography>
-      </Box>
-    </Box>
-  );
-}
 
-// Helper function to get the first date in YYYY-MM-DD from data.data
-function getFirstDate(data) {
-  if (data.data && data.data.length > 0 && data.data[0].TIMESTAMP) {
-    const d = new Date(data.data[0].TIMESTAMP);
-    // Use the local date string as base, then parse back to Date to avoid timezone issues
-    const dateStr = d.toLocaleDateString("en-CA");
-    return new Date(dateStr);
-  }
-  return null;
-}
 
-function getDateForIndex(key, index, data) {
-  if (
-    key === "M10" &&
-    data.features.nonparam.M10_start &&
-    data.features.nonparam.M10_start[index]
-  ) {
-    return data.features.nonparam.M10_start[index].split("T")[0];
-  }
-  if (
-    key === "L5" &&
-    data.features.nonparam.L5_start &&
-    data.features.nonparam.L5_start[index]
-  ) {
-    return data.features.nonparam.L5_start[index].split("T")[0];
-  }
-  // For sleep features and RA, generate sequential dates if possible
-  if (["TST", "WASO", "PTA", "NWB", "SOL", "RA"].includes(key.toUpperCase())) {
-    const firstDate = getFirstDate(data);
-    if (firstDate) {
-      const d = new Date(firstDate);
-      d.setDate(d.getDate() + index);
-      return d.toLocaleDateString("en-CA");
-    }
-  }
-  if (data.data && data.data[index] && data.data[index].TIMESTAMP) {
-    return new Date(data.data[index].TIMESTAMP).toLocaleDateString("en-CA");
-  }
-  return `Day ${index + 1}`;
-}
 
-// Helper to clean and format feature names for display
-const cleanFeatureName = (featureName) => {
-  // Remove category prefixes from feature names
-  const prefixes = ["sleep_", "cosinor_", "physical_activity_", "nonparam_"];
-  let cleanedName = featureName;
-  for (const prefix of prefixes) {
-    if (cleanedName.startsWith(prefix)) {
-      cleanedName = cleanedName.substring(prefix.length);
-      break;
-    }
-  }
-  // Replace underscores with spaces
-  cleanedName = cleanedName.replace(/_/g, " ");
-  // Special case for MESOR - keep it in all caps
-  if (cleanedName.toLowerCase() === "mesor") {
-    return "MESOR";
-  }
-  // Preserve original capitalization, only apply title case to all-lowercase words
-  return cleanedName
-    .split(" ")
-    .map((word) => {
-      if (word.toLowerCase() === "mesor") {
-        return "MESOR";
-      }
-      // If the word is all lowercase, capitalize it
-      if (word === word.toLowerCase()) {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      }
-      // Otherwise, keep the original capitalization
-      return word;
-    })
-    .join(" ");
-};
+
+
+
+
 
 // Single Individual Lab Sub Tab Component
 const SingleIndividualLabSubTab = ({ 
@@ -430,20 +162,7 @@ const SingleIndividualLabSubTab = ({
   setColumnSelectionComplete,
   handleReset
 }) => {
-  // Helper to interpolate between red and green
-  function interpolateColor(wear) {
-    // Linear interpolation between #ff5252 and #4caf50
-    const r0 = 255,
-      g0 = 82,
-      b0 = 82; // red
-    const r1 = 76,
-      g1 = 175,
-      b1 = 80; // green
-    const r = Math.round(r0 + (r1 - r0) * wear);
-    const g = Math.round(g0 + (g1 - g0) * wear);
-    const b = Math.round(b0 + (b1 - b0) * wear);
-    return `rgb(${r},${g},${b})`;
-  }
+  
 
   // Function to start the timer
   const startTimer = () => {
@@ -478,14 +197,7 @@ const SingleIndividualLabSubTab = ({
     };
   }, [processing, timerInterval, stopTimer]);
 
-  // Format time in MM:SS
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  };
+  
 
   const fetchColumnNames = async (fileId) => {
     try {
