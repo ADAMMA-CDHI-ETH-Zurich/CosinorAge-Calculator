@@ -58,7 +58,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ErrorIcon from "@mui/icons-material/Error";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
-import config from "../config";
+import config from "../../config";
 
 // Helper to clean and format feature names for display
 const cleanFeatureName = (featureName) => {
