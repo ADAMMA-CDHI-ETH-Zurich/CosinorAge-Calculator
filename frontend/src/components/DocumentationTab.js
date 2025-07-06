@@ -30,7 +30,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import HomeIcon from '@mui/icons-material/Home';
 import FolderIcon from '@mui/icons-material/Folder';
 import DescriptionIcon from '@mui/icons-material/Description';
-import config from './config';
+import config from '../config';
 
 function EnhancedDocumentationTab() {
   const [activeTab, setActiveTab] = useState(() => {
