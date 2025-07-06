@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { metricDescriptions } from "../../constants/metricDescriptions";
-import { formatTime, interpolateColor, cleanFeatureName } from "../../utils/formatUtils";
+import {
+  formatTime,
+  interpolateColor,
+  cleanFeatureName,
+} from "../../utils/formatUtils";
 import { getFirstDate, getDateForIndex } from "../../utils/dateUtils";
 import HorizontalScale from "../common/HorizontalScale";
 import SectionInfoButton from "../common/SectionInfoButton";
@@ -85,85 +89,73 @@ import SGSCSVExample from "../../assets/SGS_CSV_Example.png";
 import config from "../../config";
 import InfoIcon from "@mui/icons-material/Info";
 
-
-
-
-
-
-
-
-
-
-
 // Single Individual Lab Sub Tab Component
-const SingleIndividualLabSubTab = ({ 
-  data, 
-  setData, 
-  dataSource, 
-  setDataSource, 
-  predictedAge, 
-  setPredictedAge, 
-  chronologicalAge, 
-  setChronologicalAge, 
-  gender, 
-  setGender, 
-  error, 
-  setError, 
-  success, 
-  setSuccess, 
-  processing, 
-  setProcessing, 
-  processingTime, 
-  setProcessingTime, 
-  timerInterval, 
-  setTimerInterval, 
-  dragActive, 
-  setDragActive, 
-  uploadProgress, 
-  setUploadProgress, 
-  fileInputRef, 
-  preprocessDialogOpen, 
-  setPreprocessDialogOpen, 
-  preprocessParams, 
-  setPreprocessParams, 
-  featureParams, 
-  setFeatureParams, 
-  gettingStartedOpen, 
-  setGettingStartedOpen, 
-  fileType, 
-  setFileType, 
-  dataType, 
-  setDataType, 
-  dataUnit, 
-  setDataUnit, 
-  timestampFormat, 
-  setTimestampFormat, 
-  isGeneric, 
-  setIsGeneric, 
-  genericDataType, 
-  setGenericDataType, 
-  genericTimeFormat, 
-  setGenericTimeFormat, 
-  genericTimeColumn, 
-  setGenericTimeColumn, 
-  genericDataColumns, 
-  setGenericDataColumns, 
-  csvColumns, 
-  setCsvColumns, 
-  csvPreview, 
-  setCsvPreview, 
-  showColumnSelection, 
-  setShowColumnSelection, 
-  selectedTimeColumn, 
-  setSelectedTimeColumn, 
-  selectedDataColumns, 
-  setSelectedDataColumns, 
-  columnSelectionComplete, 
+const SingleIndividualLabSubTab = ({
+  data,
+  setData,
+  dataSource,
+  setDataSource,
+  predictedAge,
+  setPredictedAge,
+  chronologicalAge,
+  setChronologicalAge,
+  gender,
+  setGender,
+  error,
+  setError,
+  success,
+  setSuccess,
+  processing,
+  setProcessing,
+  processingTime,
+  setProcessingTime,
+  timerInterval,
+  setTimerInterval,
+  dragActive,
+  setDragActive,
+  uploadProgress,
+  setUploadProgress,
+  fileInputRef,
+  preprocessDialogOpen,
+  setPreprocessDialogOpen,
+  preprocessParams,
+  setPreprocessParams,
+  featureParams,
+  setFeatureParams,
+  gettingStartedOpen,
+  setGettingStartedOpen,
+  fileType,
+  setFileType,
+  dataType,
+  setDataType,
+  dataUnit,
+  setDataUnit,
+  timestampFormat,
+  setTimestampFormat,
+  isGeneric,
+  setIsGeneric,
+  genericDataType,
+  setGenericDataType,
+  genericTimeFormat,
+  setGenericTimeFormat,
+  genericTimeColumn,
+  setGenericTimeColumn,
+  genericDataColumns,
+  setGenericDataColumns,
+  csvColumns,
+  setCsvColumns,
+  csvPreview,
+  setCsvPreview,
+  showColumnSelection,
+  setShowColumnSelection,
+  selectedTimeColumn,
+  setSelectedTimeColumn,
+  selectedDataColumns,
+  setSelectedDataColumns,
+  columnSelectionComplete,
   setColumnSelectionComplete,
-  handleReset
+  handleReset,
 }) => {
-  
-
   // Function to start the timer
   const startTimer = () => {
     // Clear any existing timer first
@@ -196,8 +188,6 @@ const SingleIndividualLabSubTab = ({
       }
     };
   }, [processing, timerInterval, stopTimer]);
-
-  
 
   const fetchColumnNames = async (fileId) => {
     try {
@@ -712,177 +702,155 @@ const SingleIndividualLabSubTab = ({
     }));
   };
 
-
-
   return (
     <>
-    <Grid item xs={12}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          mb: 3,
-        }}
-      >
-        {/* Getting Started Button - only show when no file is uploaded */}
-        {!data?.file_id && (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setGettingStartedOpen(true)}
-            startIcon={<InfoIcon />}
-            sx={{
-              borderRadius: 2,
-              px: 4,
-              py: 1.5,
-              fontSize: "1.1rem",
-              fontWeight: 600,
-              textTransform: "none",
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-              "&:hover": {
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
-              },
-            }}
-          >
-            Getting Started
-          </Button>
-        )}
-      </Box>
-    </Grid>
-    <Grid item xs={12}>
-      <Paper
-        elevation={3}
-        sx={{
-          p: 3,
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          alignItems: "stretch", // changed from 'center' to 'stretch'
-          width: "100%", // ensure full width
-          maxWidth: "none", // remove any maxWidth restriction
-          border: dragActive ? "2px dashed #2196f3" : "none",
-          background: dragActive
-            ? "rgba(33,150,243,0.05)"
-            : undefined,
-          position: "relative",
-        }}
-        onDragEnter={
-          dataSource && (dataSource !== "other" || dataType)
-            ? handleDrag
-            : undefined
-        }
-        onDragOver={
-          dataSource && (dataSource !== "other" || dataType)
-            ? handleDrag
-            : undefined
-        }
-        onDragLeave={
-          dataSource && (dataSource !== "other" || dataType)
-            ? handleDrag
-            : undefined
-        }
-        onDrop={
-          dataSource && (dataSource !== "other" || dataType)
-            ? handleDrop
-            : undefined
-        }
-      >
-        <Typography
-          variant="h6"
-          gutterBottom
-          sx={{ textAlign: "left", width: "100%" }}
+      <Grid item xs={12}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            mb: 3,
+          }}
         >
-          Data Upload
-        </Typography>
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={4}>
-            <FormControl fullWidth>
-              <InputLabel id="data-source-label">
-                Data Source
-              </InputLabel>
-              <Select
-                labelId="data-source-label"
-                value={dataSource}
-                label="Data Source"
-                onChange={(e) => {
-                  setDataSource(e.target.value);
-                  setFileType("");
-                  setDataType("");
-                }}
-                sx={{ minWidth: 120 }}
-                disabled={!!data?.file_id}
-              >
-                <MenuItem value="samsung_galaxy">
-                  Samsung Galaxy Smartwatch
-                </MenuItem>
-                <MenuItem value="other">Other</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={4}>
-            <FormControl fullWidth>
-              <InputLabel id="file-type-label">
-                File Type
-              </InputLabel>
-              <Select
-                labelId="file-type-label"
-                value={fileType}
-                label="File Type"
-                onChange={(e) => setFileType(e.target.value)}
-                sx={{ minWidth: 120 }}
-                disabled={
-                  !!data?.file_id ||
-                  dataSource === "other" ||
-                  !dataSource
-                }
-              >
-                <MenuItem value="binary">
-                  Binary (Zipped)
-                </MenuItem>
-                <MenuItem value="csv">CSV</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={4}>
-            <FormControl
-              fullWidth
-              disabled={dataSource !== "other"}
+          {/* Getting Started Button - only show when no file is uploaded */}
+          {!data?.file_id && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setGettingStartedOpen(true)}
+              startIcon={<InfoIcon />}
+              sx={{
+                borderRadius: 2,
+                px: 4,
+                py: 1.5,
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                textTransform: "none",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                "&:hover": {
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
+                },
+              }}
             >
-              <InputLabel id="data-type-label">
-                Data Type
-              </InputLabel>
-              <Select
-                labelId="data-type-label"
-                value={dataType}
-                label="Data Type"
-                onChange={(e) => setDataType(e.target.value)}
-                sx={{ minWidth: 120 }}
-              >
-                <MenuItem value="accelerometer">
-                  Accelerometer
-                </MenuItem>
-                <MenuItem value="enmo">ENMO</MenuItem>
-                <MenuItem value="alternative_count">
-                  Alternative Count
-                </MenuItem>
-                {dataSource !== "other" && (
-                  <>
-                    <MenuItem value="raw">Raw</MenuItem>
-                  </>
-                )}
-              </Select>
-            </FormControl>
+              Getting Started
+            </Button>
+          )}
+        </Box>
+      </Grid>
+      <Grid item xs={12}>
+        <Paper
+          elevation={3}
+          sx={{
+            p: 3,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            alignItems: "stretch", // changed from 'center' to 'stretch'
+            width: "100%", // ensure full width
+            maxWidth: "none", // remove any maxWidth restriction
+            border: dragActive ? "2px dashed #2196f3" : "none",
+            background: dragActive ? "rgba(33,150,243,0.05)" : undefined,
+            position: "relative",
+          }}
+          onDragEnter={
+            dataSource && (dataSource !== "other" || dataType)
+              ? handleDrag
+              : undefined
+          }
+          onDragOver={
+            dataSource && (dataSource !== "other" || dataType)
+              ? handleDrag
+              : undefined
+          }
+          onDragLeave={
+            dataSource && (dataSource !== "other" || dataType)
+              ? handleDrag
+              : undefined
+          }
+          onDrop={
+            dataSource && (dataSource !== "other" || dataType)
+              ? handleDrop
+              : undefined
+          }
+        >
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{ textAlign: "left", width: "100%" }}
+          >
+            Data Upload
+          </Typography>
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={4}>
+              <FormControl fullWidth>
+                <InputLabel id="data-source-label">Data Source</InputLabel>
+                <Select
+                  labelId="data-source-label"
+                  value={dataSource}
+                  label="Data Source"
+                  onChange={(e) => {
+                    setDataSource(e.target.value);
+                    setFileType("");
+                    setDataType("");
+                  }}
+                  sx={{ minWidth: 120 }}
+                  disabled={!!data?.file_id}
+                >
+                  <MenuItem value="samsung_galaxy">
+                    Samsung Galaxy Smartwatch
+                  </MenuItem>
+                  <MenuItem value="other">Other</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={4}>
+              <FormControl fullWidth>
+                <InputLabel id="file-type-label">File Type</InputLabel>
+                <Select
+                  labelId="file-type-label"
+                  value={fileType}
+                  label="File Type"
+                  onChange={(e) => setFileType(e.target.value)}
+                  sx={{ minWidth: 120 }}
+                  disabled={
+                    !!data?.file_id || dataSource === "other" || !dataSource
+                  }
+                >
+                  <MenuItem value="binary">Binary (Zipped)</MenuItem>
+                  <MenuItem value="csv">CSV</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={4}>
+              <FormControl fullWidth disabled={dataSource !== "other"}>
+                <InputLabel id="data-type-label">Data Type</InputLabel>
+                <Select
+                  labelId="data-type-label"
+                  value={dataType}
+                  label="Data Type"
+                  onChange={(e) => setDataType(e.target.value)}
+                  sx={{ minWidth: 120 }}
+                >
+                  <MenuItem value="accelerometer">Accelerometer</MenuItem>
+                  <MenuItem value="enmo">ENMO</MenuItem>
+                  <MenuItem value="alternative_count">
+                    Alternative Count
+                  </MenuItem>
+                  {dataSource !== "other" && (
+                    <>
+                      <MenuItem value="raw">Raw</MenuItem>
+                    </>
+                  )}
+                </Select>
+              </FormControl>
+            </Grid>
           </Grid>
-        </Grid>
 
-        {((dataSource && fileType && dataType) ||
-          (dataSource === "other" &&
-            fileType === "csv" &&
-            dataType)) && (
-          <>
-            {/* Data Format Requirements for binary */}
-            {fileType === "binary" &&
-              dataSource === "samsung_galaxy" && (
+          {((dataSource && fileType && dataType) ||
+            (dataSource === "other" && fileType === "csv" && dataType)) && (
+            <>
+              {/* Data Format Requirements for binary */}
+              {fileType === "binary" && dataSource === "samsung_galaxy" && (
                 <Box
                   sx={{
                     mt: 2,
@@ -906,18 +874,13 @@ const SingleIndividualLabSubTab = ({
                   >
                     Data Format Requirements
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    paragraph
-                    sx={{ mb: 2 }}
-                  >
-                    The uploaded ZIP file is expected to follow
-                    a specific structure: it should contain a
-                    single top-level parent directory, within
-                    which there are subdirectories organized by
-                    day. These daily subdirectories must contain
-                    binary files. This layout corresponds to the
-                    default export format (see example below).
+                  <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                    The uploaded ZIP file is expected to follow a specific
+                    structure: it should contain a single top-level parent
+                    directory, within which there are subdirectories organized
+                    by day. These daily subdirectories must contain binary
+                    files. This layout corresponds to the default export format
+                    (see example below).
                   </Typography>
                   <Box
                     sx={{
@@ -945,9 +908,8 @@ const SingleIndividualLabSubTab = ({
                 </Box>
               )}
 
-            {/* Data Format Requirements for CSV format */}
-            {fileType === "csv" &&
-              dataSource === "samsung_galaxy" && (
+              {/* Data Format Requirements for CSV format */}
+              {fileType === "csv" && dataSource === "samsung_galaxy" && (
                 <Box
                   sx={{
                     mt: 2,
@@ -971,11 +933,7 @@ const SingleIndividualLabSubTab = ({
                   >
                     Data Format Requirements
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    paragraph
-                    sx={{ mb: 2 }}
-                  >
+                  <Typography variant="body2" paragraph sx={{ mb: 2 }}>
                     {dataType === "accelerometer" && (
                       <span
                         dangerouslySetInnerHTML={{
@@ -1033,58 +991,10 @@ const SingleIndividualLabSubTab = ({
                 </Box>
               )}
 
-            {/* Disclaimers for Other data source */}
-            {dataSource === "other" && (
-              <>
-                {/* Validation Notice in Red Box */}
-                <Box
-                  sx={{
-                    mt: 2,
-                    mb: 3,
-                    p: 3,
-                    bgcolor: "background.paper",
-                    borderRadius: 2,
-                    border: "1px solid",
-                    borderColor: "error.main",
-                    maxWidth: 1200,
-                    mx: "auto",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 1,
-                    }}
-                  >
-                    <WarningIcon sx={{ color: "error.main" }} />
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: "error.main",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Validation Notice
-                    </Typography>
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    paragraph
-                    sx={{ mb: 2 }}
-                  >
-                    The data preprocessing and biological age
-                    estimation pipeline has been validated using
-                    data (raw accelerometer and/or ENMO data)
-                    from the UK Biobank, NHANES, and Samsung
-                    Galaxy Watch. Results from other devices may
-                    vary in accuracy.
-                  </Typography>
-                </Box>
-
-                {/* Data Format Requirements in Blue Box */}
-                {dataType !== "alternative_count" && (
+              {/* Disclaimers for Other data source */}
+              {dataSource === "other" && (
+                <>
+                  {/* Validation Notice in Red Box */}
                   <Box
                     sx={{
                       mt: 2,
@@ -1093,213 +1003,238 @@ const SingleIndividualLabSubTab = ({
                       bgcolor: "background.paper",
                       borderRadius: 2,
                       border: "1px solid",
-                      borderColor: "primary.main",
+                      borderColor: "error.main",
                       maxWidth: 1200,
                       mx: "auto",
                     }}
                   >
-                    <Typography
-                      variant="h6"
-                      gutterBottom
+                    <Box
                       sx={{
-                        color: "primary.main",
-                        fontWeight: 600,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        mb: 1,
                       }}
                     >
-                      Data Format Requirements
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      paragraph
-                      sx={{ mb: 2 }}
-                    >
-                      {dataType === "accelerometer" && (
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: `The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in ${dataUnit} units. The timestamp column should be in ${
-                              timestampFormat === "unix-ms"
-                                ? "Unix milliseconds"
-                                : timestampFormat === "unix-s"
-                                ? "Unix seconds"
-                                : "datetime"
-                            } format.`,
-                          }}
-                        />
-                      )}
-                      {dataType === "enmo" && (
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: `The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in ${dataUnit} units, representing the magnitude of acceleration minus 1g. The timestamp column should be in ${
-                              timestampFormat === "unix-ms"
-                                ? "Unix milliseconds"
-                                : timestampFormat === "unix-s"
-                                ? "Unix seconds"
-                                : "datetime"
-                            } format.`,
-                          }}
-                        />
-                      )}
-
-                      {!dataType && (
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html:
-                              "The uploaded CSV file must contain time series data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>. Please select a data type above to see specific requirements.",
-                          }}
-                        />
-                      )}
+                      <WarningIcon sx={{ color: "error.main" }} />
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          color: "error.main",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Validation Notice
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                      The data preprocessing and biological age estimation
+                      pipeline has been validated using data (raw accelerometer
+                      and/or ENMO data) from the UK Biobank, NHANES, and Samsung
+                      Galaxy Watch. Results from other devices may vary in
+                      accuracy.
                     </Typography>
                   </Box>
-                )}
-              </>
-            )}
 
-            {/* File Upload Drop Zone - now appears after Data Format Requirements */}
-            <Box
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              sx={{
-                width: "100%",
-                maxWidth: "100%",
-                mx: "auto",
-                border: "2px dashed",
-                borderColor: dragActive
-                  ? "primary.main"
-                  : "grey.300",
-                borderRadius: 2,
-                p: 4,
-                textAlign: "center",
-                bgcolor: dragActive
-                  ? "primary.50"
-                  : "background.paper",
-                cursor: "pointer",
-                transition: "all 0.2s ease-in-out",
-                position: "relative",
-                "&:hover": {
-                  borderColor: "primary.main",
-                  bgcolor: "primary.50",
-                },
-              }}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={fileType === "binary" ? ".zip" : ".csv"}
-                onChange={handleFileUpload}
-                style={{ display: "none" }}
-                disabled={!dataSource || !fileType}
-              />
-              <UploadIcon
-                sx={{ fontSize: 48, color: "grey.500", mb: 2 }}
-              />
-              <Typography variant="h6" gutterBottom>
-                Drop file here or click to select
-              </Typography>
+                  {/* Data Format Requirements in Blue Box */}
+                  {dataType !== "alternative_count" && (
+                    <Box
+                      sx={{
+                        mt: 2,
+                        mb: 3,
+                        p: 3,
+                        bgcolor: "background.paper",
+                        borderRadius: 2,
+                        border: "1px solid",
+                        borderColor: "primary.main",
+                        maxWidth: 1200,
+                        mx: "auto",
+                      }}
+                    >
+                      <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{
+                          color: "primary.main",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Data Format Requirements
+                      </Typography>
+                      <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                        {dataType === "accelerometer" && (
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: `The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in ${dataUnit} units. The timestamp column should be in ${
+                                timestampFormat === "unix-ms"
+                                  ? "Unix milliseconds"
+                                  : timestampFormat === "unix-s"
+                                  ? "Unix seconds"
+                                  : "datetime"
+                              } format.`,
+                            }}
+                          />
+                        )}
+                        {dataType === "enmo" && (
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: `The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in ${dataUnit} units, representing the magnitude of acceleration minus 1g. The timestamp column should be in ${
+                                timestampFormat === "unix-ms"
+                                  ? "Unix milliseconds"
+                                  : timestampFormat === "unix-s"
+                                  ? "Unix seconds"
+                                  : "datetime"
+                              } format.`,
+                            }}
+                          />
+                        )}
+
+                        {!dataType && (
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html:
+                                "The uploaded CSV file must contain time series data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'data'</strong>. Please select a data type above to see specific requirements.",
+                            }}
+                          />
+                        )}
+                      </Typography>
+                    </Box>
+                  )}
+                </>
+              )}
+
+              {/* File Upload Drop Zone - now appears after Data Format Requirements */}
+              <Box
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                sx={{
+                  width: "100%",
+                  maxWidth: "100%",
+                  mx: "auto",
+                  border: "2px dashed",
+                  borderColor: dragActive ? "primary.main" : "grey.300",
+                  borderRadius: 2,
+                  p: 4,
+                  textAlign: "center",
+                  bgcolor: dragActive ? "primary.50" : "background.paper",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease-in-out",
+                  position: "relative",
+                  "&:hover": {
+                    borderColor: "primary.main",
+                    bgcolor: "primary.50",
+                  },
+                }}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={fileType === "binary" ? ".zip" : ".csv"}
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
+                  disabled={!dataSource || !fileType}
+                />
+                <UploadIcon sx={{ fontSize: 48, color: "grey.500", mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  Drop file here or click to select
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {fileType === "binary"
+                    ? "Upload a zipped binary file"
+                    : "Upload a CSV file"}
+                </Typography>
+                {dragActive && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: 10,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#2196f3",
+                      fontSize: 24,
+                      pointerEvents: "none",
+                      background: "rgba(255,255,255,0.5)",
+                    }}
+                  >
+                    Drop file to upload
+                  </Box>
+                )}
+              </Box>
+            </>
+          )}
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <Box sx={{ width: "100%", mt: 2 }}>
+              <LinearProgress variant="determinate" value={uploadProgress} />
               <Typography
                 variant="body2"
                 color="text.secondary"
+                align="center"
+                sx={{ mt: 1 }}
               >
-                {fileType === "binary"
-                  ? "Upload a zipped binary file"
-                  : "Upload a CSV file"}
+                Uploading: {Math.round(uploadProgress)}%
               </Typography>
-              {dragActive && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#2196f3",
-                    fontSize: 24,
-                    pointerEvents: "none",
-                    background: "rgba(255,255,255,0.5)",
-                  }}
-                >
-                  Drop file to upload
-                </Box>
-              )}
             </Box>
-          </>
-        )}
-        {uploadProgress > 0 && uploadProgress < 100 && (
-          <Box sx={{ width: "100%", mt: 2 }}>
-            <LinearProgress
-              variant="determinate"
-              value={uploadProgress}
-            />
+          )}
+          {data?.file_id && (
             <Typography
               variant="body2"
-              color="text.secondary"
-              align="center"
-              sx={{ mt: 1 }}
+              color="success.main"
+              sx={{
+                mt: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
             >
-              Uploading: {Math.round(uploadProgress)}%
+              <CheckCircleIcon fontSize="small" />
+              Successfully uploaded: {data.filename}
             </Typography>
-          </Box>
-        )}
-        {data?.file_id && (
-          <Typography
-            variant="body2"
-            color="success.main"
-            sx={{
-              mt: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <CheckCircleIcon fontSize="small" />
-            Successfully uploaded: {data.filename}
-          </Typography>
-        )}
-        {dragActive && (
-          <Box
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 10,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#2196f3",
-              fontSize: 24,
-              pointerEvents: "none",
-              background: "rgba(255,255,255,0.5)",
-            }}
-          >
-            Drop file to upload
-          </Box>
-        )}
-        {data?.file_id && (
-          <Grid item xs={12}>
-            {/* CSV Column Configuration Section */}
-            {showColumnSelection && fileType === "csv" && (
-              <>
-                <Typography
-                  variant="body1"
-                  paragraph
-                  sx={{ textAlign: "left", width: "100%" }}
-                >
-                  Please select the appropriate column names
-                  from your CSV file for the {dataType} data
-                  type.
-                </Typography>
+          )}
+          {dragActive && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#2196f3",
+                fontSize: 24,
+                pointerEvents: "none",
+                background: "rgba(255,255,255,0.5)",
+              }}
+            >
+              Drop file to upload
+            </Box>
+          )}
+          {data?.file_id && (
+            <Grid item xs={12}>
+              {/* CSV Column Configuration Section */}
+              {showColumnSelection && fileType === "csv" && (
+                <>
+                  <Typography
+                    variant="body1"
+                    paragraph
+                    sx={{ textAlign: "left", width: "100%" }}
+                  >
+                    Please select the appropriate column names from your CSV
+                    file for the {dataType} data type.
+                  </Typography>
 
-                {/* CSV Preview Section */}
-                {fileType === "csv" &&
-                  csvPreview.length > 0 && (
+                  {/* CSV Preview Section */}
+                  {fileType === "csv" && csvPreview.length > 0 && (
                     <Box
                       sx={{
                         mb: 3,
@@ -1318,8 +1253,7 @@ const SingleIndividualLabSubTab = ({
                           color: "primary.main",
                         }}
                       >
-                        CSV Preview (First 2 rows including
-                        header):
+                        CSV Preview (First 2 rows including header):
                       </Typography>
                       <Box
                         sx={{
@@ -1337,55 +1271,44 @@ const SingleIndividualLabSubTab = ({
                         >
                           <thead>
                             <tr>
-                              {csvColumns.map(
-                                (column, index) => (
-                                  <th
-                                    key={index}
+                              {csvColumns.map((column, index) => (
+                                <th
+                                  key={index}
+                                  style={{
+                                    border: "1px solid #ccc",
+                                    padding: "8px",
+                                    backgroundColor: "#f5f5f5",
+                                    fontWeight: 600,
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  {column}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {csvPreview.slice(0, 2).map((row, rowIndex) => (
+                              <tr key={rowIndex}>
+                                {csvColumns.map((column, colIndex) => (
+                                  <td
+                                    key={colIndex}
                                     style={{
                                       border: "1px solid #ccc",
                                       padding: "8px",
                                       backgroundColor:
-                                        "#f5f5f5",
-                                      fontWeight: 600,
-                                      textAlign: "left",
+                                        rowIndex % 2 === 0
+                                          ? "#ffffff"
+                                          : "#fafafa",
                                     }}
                                   >
-                                    {column}
-                                  </th>
-                                )
-                              )}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {csvPreview
-                              .slice(0, 2)
-                              .map((row, rowIndex) => (
-                                <tr key={rowIndex}>
-                                  {csvColumns.map(
-                                    (column, colIndex) => (
-                                      <td
-                                        key={colIndex}
-                                        style={{
-                                          border:
-                                            "1px solid #ccc",
-                                          padding: "8px",
-                                          backgroundColor:
-                                            rowIndex % 2 === 0
-                                              ? "#ffffff"
-                                              : "#fafafa",
-                                        }}
-                                      >
-                                        {row[column] !==
-                                        undefined
-                                          ? String(
-                                              row[column]
-                                            ).substring(0, 50)
-                                          : ""}
-                                      </td>
-                                    )
-                                  )}
-                                </tr>
-                              ))}
+                                    {row[column] !== undefined
+                                      ? String(row[column]).substring(0, 50)
+                                      : ""}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </Box>
@@ -1394,1363 +1317,1154 @@ const SingleIndividualLabSubTab = ({
                         color="text.secondary"
                         sx={{ mt: 1, display: "block" }}
                       >
-                        Note: Values are truncated to 50
-                        characters for display. Use this preview
-                        to identify the correct column names.
+                        Note: Values are truncated to 50 characters for display.
+                        Use this preview to identify the correct column names.
                       </Typography>
                     </Box>
                   )}
-              </>
-            )}
-
-            {/* Unified Grid for Column Selection and Processing Parameters */}
-            <Grid item xs={12}>
-              {/* CSV Column Selection - Only for CSV files */}
-              {showColumnSelection && fileType === "csv" && (
-                <>
-                  {/* Data Configuration */}
-                  <Box sx={{ mt: 3 }}>
-                    <Typography
-                      variant="subtitle1"
-                      gutterBottom
-                    >
-                      Data Configuration
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {/* Timestamp Format Selection */}
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>
-                            Timestamp Format
-                          </InputLabel>
-                          <Select
-                            value={timestampFormat || ""}
-                            onChange={(e) => {
-                              setTimestampFormat(
-                                e.target.value
-                              );
-                            }}
-                            label="Timestamp Format"
-                            MenuProps={{
-                              PaperProps: {
-                                style: {
-                                  maxHeight: 300,
-                                  zIndex: 9999,
-                                },
-                              },
-                              container: document.body,
-                            }}
-                          >
-                            <MenuItem value="unix-ms">
-                              Unix - milliseconds
-                            </MenuItem>
-                            <MenuItem value="unix-s">
-                              Unix - seconds
-                            </MenuItem>
-                            <MenuItem value="datetime">
-                              Datetime
-                            </MenuItem>
-                          </Select>
-                          <FormHelperText>
-                            Select the format of your timestamp
-                            column
-                          </FormHelperText>
-                        </FormControl>
-                      </Grid>
-                      {/* Data Unit Selection */}
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>Data Unit</InputLabel>
-                          {/* Accelerometer Data Unit */}
-                          {dataType === "accelerometer" && (
-                            <Select
-                              value={dataUnit || ""}
-                              onChange={(e) => {
-                                setDataUnit(e.target.value);
-                              }}
-                              label="Data Unit"
-                              displayEmpty
-                            >
-                              <MenuItem value="g">g</MenuItem>
-                              <MenuItem value="mg">mg</MenuItem>
-                              <MenuItem value="m/s^2">
-                                m/s²
-                              </MenuItem>
-                            </Select>
-                          )}
-                          {/* ENMO Data Unit */}
-                          {dataType === "enmo" && (
-                            <Select
-                              value={dataUnit || ""}
-                              onChange={(e) => {
-                                setDataUnit(e.target.value);
-                              }}
-                              label="Data Unit"
-                              displayEmpty
-                            >
-                              <MenuItem value="g">g</MenuItem>
-                              <MenuItem value="mg">mg</MenuItem>
-                            </Select>
-                          )}
-                          {/* Alternative Count Data Unit */}
-                          {dataType === "alternative_count" && (
-                            <Select
-                              value={dataUnit || ""}
-                              onChange={(e) => {
-                                setDataUnit(e.target.value);
-                              }}
-                              label="Data Unit"
-                              displayEmpty
-                            >
-                              <MenuItem value="">
-                                No unit required
-                              </MenuItem>
-                            </Select>
-                          )}
-                          {/* Default Data Unit */}
-                          {![
-                            "accelerometer",
-                            "enmo",
-                            "alternative_count",
-                          ].includes(dataType) && (
-                            <Select
-                              value={dataUnit || ""}
-                              onChange={(e) => {
-                                setDataUnit(e.target.value);
-                              }}
-                              label="Data Unit"
-                              displayEmpty
-                            >
-                              <MenuItem value="">
-                                No unit required
-                              </MenuItem>
-                            </Select>
-                          )}
-                          <FormHelperText>
-                            Select the unit of your data values
-                          </FormHelperText>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                  </Box>
                 </>
               )}
 
-              {/* Column Selection - Only show after Data Configuration is complete */}
-              {timestampFormat && dataUnit && (
-                <>
-                  {/* Column Selection */}
-                  <Box sx={{ mt: 3 }}>
-                    <Typography
-                      variant="subtitle1"
-                      gutterBottom
-                    >
-                      Column Selection
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {/* Time Column Selection */}
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>
-                            Timestamp Column
-                          </InputLabel>
-                          <Select
-                            value={selectedTimeColumn || ""}
-                            onChange={(e) =>
-                              setSelectedTimeColumn(
-                                e.target.value
-                              )
-                            }
-                            label="Timestamp Column"
-                            MenuProps={{
-                              PaperProps: {
-                                style: {
-                                  maxHeight: 300,
-                                  zIndex: 9999,
+              {/* Unified Grid for Column Selection and Processing Parameters */}
+              <Grid item xs={12}>
+                {/* CSV Column Selection - Only for CSV files */}
+                {showColumnSelection && fileType === "csv" && (
+                  <>
+                    {/* Data Configuration */}
+                    <Box sx={{ mt: 3 }}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Data Configuration
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {/* Timestamp Format Selection */}
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>Timestamp Format</InputLabel>
+                            <Select
+                              value={timestampFormat || ""}
+                              onChange={(e) => {
+                                setTimestampFormat(e.target.value);
+                              }}
+                              label="Timestamp Format"
+                              MenuProps={{
+                                PaperProps: {
+                                  style: {
+                                    maxHeight: 300,
+                                    zIndex: 9999,
+                                  },
                                 },
-                              },
-                              container: document.body,
-                            }}
-                          >
-                            {csvColumns.map((column) => (
-                              <MenuItem
-                                key={column}
-                                value={column}
-                              >
-                                {column}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                          <FormHelperText>
-                            Select the column containing
-                            timestamp data
-                          </FormHelperText>
-                        </FormControl>
-                      </Grid>
-                      {/* Data Columns Selection */}
-                      <Grid item xs={12} md={6}>
-                        {dataType === "accelerometer" ? (
-                          <Box>
-                            <Typography
-                              variant="subtitle2"
-                              gutterBottom
+                                container: document.body,
+                              }}
                             >
-                              Accelerometer Columns (X, Y, Z)
-                            </Typography>
-                            <Grid container spacing={2}>
-                              {["x", "y", "z"].map((axis) => (
-                                <Grid
-                                  item
-                                  xs={12}
-                                  sm={4}
-                                  key={axis}
-                                >
-                                  <FormControl fullWidth>
-                                    <InputLabel>
-                                      {axis.toUpperCase()}{" "}
-                                      Column
-                                    </InputLabel>
-                                    <Select
-                                      value={
-                                        selectedDataColumns.find(
-                                          (col) =>
-                                            col
-                                              .toLowerCase()
-                                              .includes(axis)
-                                        ) || ""
-                                      }
-                                      onChange={(e) => {
-                                        const newColumns =
-                                          selectedDataColumns.filter(
-                                            (col) =>
-                                              !col
-                                                .toLowerCase()
-                                                .includes(axis)
-                                          );
-                                        if (e.target.value) {
-                                          newColumns.push(
-                                            e.target.value
-                                          );
+                              <MenuItem value="unix-ms">
+                                Unix - milliseconds
+                              </MenuItem>
+                              <MenuItem value="unix-s">Unix - seconds</MenuItem>
+                              <MenuItem value="datetime">Datetime</MenuItem>
+                            </Select>
+                            <FormHelperText>
+                              Select the format of your timestamp column
+                            </FormHelperText>
+                          </FormControl>
+                        </Grid>
+                        {/* Data Unit Selection */}
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>Data Unit</InputLabel>
+                            {/* Accelerometer Data Unit */}
+                            {dataType === "accelerometer" && (
+                              <Select
+                                value={dataUnit || ""}
+                                onChange={(e) => {
+                                  setDataUnit(e.target.value);
+                                }}
+                                label="Data Unit"
+                                displayEmpty
+                              >
+                                <MenuItem value="g">g</MenuItem>
+                                <MenuItem value="mg">mg</MenuItem>
+                                <MenuItem value="m/s^2">m/s²</MenuItem>
+                              </Select>
+                            )}
+                            {/* ENMO Data Unit */}
+                            {dataType === "enmo" && (
+                              <Select
+                                value={dataUnit || ""}
+                                onChange={(e) => {
+                                  setDataUnit(e.target.value);
+                                }}
+                                label="Data Unit"
+                                displayEmpty
+                              >
+                                <MenuItem value="g">g</MenuItem>
+                                <MenuItem value="mg">mg</MenuItem>
+                              </Select>
+                            )}
+                            {/* Alternative Count Data Unit */}
+                            {dataType === "alternative_count" && (
+                              <Select
+                                value={dataUnit || ""}
+                                onChange={(e) => {
+                                  setDataUnit(e.target.value);
+                                }}
+                                label="Data Unit"
+                                displayEmpty
+                              >
+                                <MenuItem value="">No unit required</MenuItem>
+                              </Select>
+                            )}
+                            {/* Default Data Unit */}
+                            {![
+                              "accelerometer",
+                              "enmo",
+                              "alternative_count",
+                            ].includes(dataType) && (
+                              <Select
+                                value={dataUnit || ""}
+                                onChange={(e) => {
+                                  setDataUnit(e.target.value);
+                                }}
+                                label="Data Unit"
+                                displayEmpty
+                              >
+                                <MenuItem value="">No unit required</MenuItem>
+                              </Select>
+                            )}
+                            <FormHelperText>
+                              Select the unit of your data values
+                            </FormHelperText>
+                          </FormControl>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  </>
+                )}
+
+                {/* Column Selection - Only show after Data Configuration is complete */}
+                {timestampFormat && dataUnit && (
+                  <>
+                    {/* Column Selection */}
+                    <Box sx={{ mt: 3 }}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Column Selection
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {/* Time Column Selection */}
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>Timestamp Column</InputLabel>
+                            <Select
+                              value={selectedTimeColumn || ""}
+                              onChange={(e) =>
+                                setSelectedTimeColumn(e.target.value)
+                              }
+                              label="Timestamp Column"
+                              MenuProps={{
+                                PaperProps: {
+                                  style: {
+                                    maxHeight: 300,
+                                    zIndex: 9999,
+                                  },
+                                },
+                                container: document.body,
+                              }}
+                            >
+                              {csvColumns.map((column) => (
+                                <MenuItem key={column} value={column}>
+                                  {column}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                            <FormHelperText>
+                              Select the column containing timestamp data
+                            </FormHelperText>
+                          </FormControl>
+                        </Grid>
+                        {/* Data Columns Selection */}
+                        <Grid item xs={12} md={6}>
+                          {dataType === "accelerometer" ? (
+                            <Box>
+                              <Typography variant="subtitle2" gutterBottom>
+                                Accelerometer Columns (X, Y, Z)
+                              </Typography>
+                              <Grid container spacing={2}>
+                                {["x", "y", "z"].map((axis) => (
+                                  <Grid item xs={12} sm={4} key={axis}>
+                                    <FormControl fullWidth>
+                                      <InputLabel>
+                                        {axis.toUpperCase()} Column
+                                      </InputLabel>
+                                      <Select
+                                        value={
+                                          selectedDataColumns.find((col) =>
+                                            col.toLowerCase().includes(axis)
+                                          ) || ""
                                         }
-                                        setSelectedDataColumns(
-                                          newColumns
-                                        );
-                                      }}
-                                      label={`${axis.toUpperCase()} Column`}
-                                      MenuProps={{
-                                        PaperProps: {
-                                          style: {
-                                            maxHeight: 300,
-                                            zIndex: 9999,
+                                        onChange={(e) => {
+                                          const newColumns =
+                                            selectedDataColumns.filter(
+                                              (col) =>
+                                                !col
+                                                  .toLowerCase()
+                                                  .includes(axis)
+                                            );
+                                          if (e.target.value) {
+                                            newColumns.push(e.target.value);
+                                          }
+                                          setSelectedDataColumns(newColumns);
+                                        }}
+                                        label={`${axis.toUpperCase()} Column`}
+                                        MenuProps={{
+                                          PaperProps: {
+                                            style: {
+                                              maxHeight: 300,
+                                              zIndex: 9999,
+                                            },
                                           },
-                                        },
-                                        container:
-                                          document.body,
-                                      }}
-                                    >
-                                      <MenuItem value="">
-                                        <em>None</em>
-                                      </MenuItem>
-                                      {csvColumns.map(
-                                        (column) => (
-                                          <MenuItem
-                                            key={column}
-                                            value={column}
-                                          >
+                                          container: document.body,
+                                        }}
+                                      >
+                                        <MenuItem value="">
+                                          <em>None</em>
+                                        </MenuItem>
+                                        {csvColumns.map((column) => (
+                                          <MenuItem key={column} value={column}>
                                             {column}
                                           </MenuItem>
-                                        )
-                                      )}
-                                    </Select>
-                                  </FormControl>
-                                </Grid>
-                              ))}
-                            </Grid>
-                          </Box>
-                        ) : dataType === "enmo" ? (
-                          <FormControl fullWidth>
-                            <InputLabel>ENMO Column</InputLabel>
-                            <Select
-                              value={
-                                selectedDataColumns[0] || ""
-                              }
-                              onChange={(e) =>
-                                setSelectedDataColumns([
-                                  e.target.value,
-                                ])
-                              }
-                              label="ENMO Column"
-                              MenuProps={{
-                                PaperProps: {
-                                  style: {
-                                    maxHeight: 300,
-                                    zIndex: 9999,
+                                        ))}
+                                      </Select>
+                                    </FormControl>
+                                  </Grid>
+                                ))}
+                              </Grid>
+                            </Box>
+                          ) : dataType === "enmo" ? (
+                            <FormControl fullWidth>
+                              <InputLabel>ENMO Column</InputLabel>
+                              <Select
+                                value={selectedDataColumns[0] || ""}
+                                onChange={(e) =>
+                                  setSelectedDataColumns([e.target.value])
+                                }
+                                label="ENMO Column"
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: 300,
+                                      zIndex: 9999,
+                                    },
                                   },
-                                },
-                                container: document.body,
-                              }}
-                            >
-                              {csvColumns.map((column) => (
-                                <MenuItem
-                                  key={column}
-                                  value={column}
-                                >
-                                  {column}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                            <FormHelperText>
-                              Select the column containing ENMO
-                              data
-                            </FormHelperText>
-                          </FormControl>
-                        ) : dataType === "alternative_count" ? (
-                          <FormControl fullWidth>
-                            <InputLabel>
-                              Counts Column
-                            </InputLabel>
-                            <Select
-                              value={
-                                selectedDataColumns[0] || ""
-                              }
-                              onChange={(e) =>
-                                setSelectedDataColumns([
-                                  e.target.value,
-                                ])
-                              }
-                              label="Counts Column"
-                              MenuProps={{
-                                PaperProps: {
-                                  style: {
-                                    maxHeight: 300,
-                                    zIndex: 9999,
+                                  container: document.body,
+                                }}
+                              >
+                                {csvColumns.map((column) => (
+                                  <MenuItem key={column} value={column}>
+                                    {column}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                              <FormHelperText>
+                                Select the column containing ENMO data
+                              </FormHelperText>
+                            </FormControl>
+                          ) : dataType === "alternative_count" ? (
+                            <FormControl fullWidth>
+                              <InputLabel>Counts Column</InputLabel>
+                              <Select
+                                value={selectedDataColumns[0] || ""}
+                                onChange={(e) =>
+                                  setSelectedDataColumns([e.target.value])
+                                }
+                                label="Counts Column"
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: 300,
+                                      zIndex: 9999,
+                                    },
                                   },
-                                },
-                                container: document.body,
-                              }}
-                            >
-                              {csvColumns.map((column) => (
-                                <MenuItem
-                                  key={column}
-                                  value={column}
-                                >
-                                  {column}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                            <FormHelperText>
-                              Select the column containing
-                              activity counts
-                            </FormHelperText>
-                          </FormControl>
-                        ) : null}
+                                  container: document.body,
+                                }}
+                              >
+                                {csvColumns.map((column) => (
+                                  <MenuItem key={column} value={column}>
+                                    {column}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                              <FormHelperText>
+                                Select the column containing activity counts
+                              </FormHelperText>
+                            </FormControl>
+                          ) : null}
+                        </Grid>
                       </Grid>
-                    </Grid>
-                  </Box>
-                </>
-              )}
+                    </Box>
+                  </>
+                )}
 
-              {/* Processing Parameters - Only show after timestamp format and data unit are selected */}
-              {data?.file_id && timestampFormat && dataUnit && (
-                <Box sx={{ mt: 3 }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Parameter Selection
-                  </Typography>
-                  <Accordion>
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
-                    >
-                      <Typography
-                        variant="subtitle2"
-                        color="text.secondary"
-                      >
-                        Advanced Settings
-                      </Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Grid container spacing={3}>
-                        {/* Preprocessing Parameters */}
-                        <Grid item xs={12} md={6}>
-                          <Typography
-                            variant="subtitle1"
-                            gutterBottom
-                          >
-                            Preprocessing Parameters
-                          </Typography>
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                label="Auto-calibration SD Criterion"
-                                type="text"
-                                value={
-                                  preprocessParams.autocalib_sd_criter
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
+                {/* Processing Parameters - Only show after timestamp format and data unit are selected */}
+                {data?.file_id && timestampFormat && dataUnit && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Parameter Selection
+                    </Typography>
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Advanced Settings
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Grid container spacing={3}>
+                          {/* Preprocessing Parameters */}
+                          <Grid item xs={12} md={6}>
+                            <Typography variant="subtitle1" gutterBottom>
+                              Preprocessing Parameters
+                            </Typography>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} sm={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Auto-calibration SD Criterion"
+                                  type="text"
+                                  value={preprocessParams.autocalib_sd_criter}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handlePreprocessParamChange(
-                                      "autocalib_sd_criter",
-                                      value
-                                    );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                label="Auto-calibration Sphere Criterion"
-                                type="text"
-                                value={
-                                  preprocessParams.autocalib_sphere_crit
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handlePreprocessParamChange(
+                                        "autocalib_sd_criter",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Auto-calibration Sphere Criterion"
+                                  type="text"
+                                  value={preprocessParams.autocalib_sphere_crit}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handlePreprocessParamChange(
-                                      "autocalib_sphere_crit",
-                                      value
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handlePreprocessParamChange(
+                                        "autocalib_sphere_crit",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <FormControl fullWidth>
+                                  <InputLabel>Filter Type</InputLabel>
+                                  <Select
+                                    value={preprocessParams.filter_type}
+                                    label="Filter Type"
+                                    onChange={(e) =>
+                                      handlePreprocessParamChange(
+                                        "filter_type",
+                                        e.target.value
+                                      )
+                                    }
+                                  >
+                                    <MenuItem value="lowpass">Lowpass</MenuItem>
+                                    <MenuItem value="highpass">
+                                      Highpass
+                                    </MenuItem>
+                                    <MenuItem value="bandpass">
+                                      Bandpass
+                                    </MenuItem>
+                                  </Select>
+                                </FormControl>
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Filter Cutoff"
+                                  type="text"
+                                  value={preprocessParams.filter_cutoff}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
+                                      /,/g,
+                                      "."
                                     );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <FormControl fullWidth>
-                                <InputLabel>
-                                  Filter Type
-                                </InputLabel>
-                                <Select
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handlePreprocessParamChange(
+                                        "filter_cutoff",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Wear SD Criterion"
+                                  type="text"
+                                  value={preprocessParams.wear_sd_crit}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
+                                      /,/g,
+                                      "."
+                                    );
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handlePreprocessParamChange(
+                                        "wear_sd_crit",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Wear Range Criterion"
+                                  type="text"
+                                  value={preprocessParams.wear_range_crit}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
+                                      /,/g,
+                                      "."
+                                    );
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handlePreprocessParamChange(
+                                        "wear_range_crit",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Wear Window Length"
+                                  type="text"
+                                  value={preprocessParams.wear_window_length}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
+                                      /,/g,
+                                      "."
+                                    );
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handlePreprocessParamChange(
+                                        "wear_window_length",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Wear Window Skip"
+                                  type="text"
+                                  value={preprocessParams.wear_window_skip}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
+                                      /,/g,
+                                      "."
+                                    );
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handlePreprocessParamChange(
+                                        "wear_window_skip",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "numeric",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={12}>
+                                <Typography gutterBottom>
+                                  Required Daily Coverage
+                                </Typography>
+                                <Slider
                                   value={
-                                    preprocessParams.filter_type
+                                    typeof preprocessParams.required_daily_coverage ===
+                                    "number"
+                                      ? preprocessParams.required_daily_coverage
+                                      : 0.5
                                   }
-                                  label="Filter Type"
-                                  onChange={(e) =>
-                                    handlePreprocessParamChange(
-                                      "filter_type",
-                                      e.target.value
-                                    )
-                                  }
-                                >
-                                  <MenuItem value="lowpass">
-                                    Lowpass
-                                  </MenuItem>
-                                  <MenuItem value="highpass">
-                                    Highpass
-                                  </MenuItem>
-                                  <MenuItem value="bandpass">
-                                    Bandpass
-                                  </MenuItem>
-                                </Select>
-                              </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                label="Filter Cutoff"
-                                type="text"
-                                value={
-                                  preprocessParams.filter_cutoff
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
-                                      /,/g,
-                                      "."
-                                    );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handlePreprocessParamChange(
-                                      "filter_cutoff",
-                                      value
-                                    );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                label="Wear SD Criterion"
-                                type="text"
-                                value={
-                                  preprocessParams.wear_sd_crit
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
-                                      /,/g,
-                                      "."
-                                    );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handlePreprocessParamChange(
-                                      "wear_sd_crit",
-                                      value
-                                    );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                label="Wear Range Criterion"
-                                type="text"
-                                value={
-                                  preprocessParams.wear_range_crit
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
-                                      /,/g,
-                                      "."
-                                    );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handlePreprocessParamChange(
-                                      "wear_range_crit",
-                                      value
-                                    );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                label="Wear Window Length"
-                                type="text"
-                                value={
-                                  preprocessParams.wear_window_length
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
-                                      /,/g,
-                                      "."
-                                    );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handlePreprocessParamChange(
-                                      "wear_window_length",
-                                      value
-                                    );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                label="Wear Window Skip"
-                                type="text"
-                                value={
-                                  preprocessParams.wear_window_skip
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
-                                      /,/g,
-                                      "."
-                                    );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handlePreprocessParamChange(
-                                      "wear_window_skip",
-                                      value
-                                    );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "numeric",
-                                  lang: "en-US",
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} sm={12}>
-                              <Typography gutterBottom>
-                                Required Daily Coverage
-                              </Typography>
-                              <Slider
-                                value={
-                                  typeof preprocessParams.required_daily_coverage ===
-                                  "number"
-                                    ? preprocessParams.required_daily_coverage
-                                    : 0.5
-                                }
-                                min={0}
-                                max={1}
-                                step={0.01}
-                                onChange={(e, newValue) =>
-                                  handlePreprocessParamChange(
-                                    "required_daily_coverage",
-                                    newValue
-                                  )
-                                }
-                                valueLabelDisplay="auto"
-                              />
-                              <TextField
-                                fullWidth
-                                label="Required Daily Coverage (0-1)"
-                                type="text"
-                                value={
-                                  preprocessParams.required_daily_coverage
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
-                                      /,/g,
-                                      "."
-                                    );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
+                                  min={0}
+                                  max={1}
+                                  step={0.01}
+                                  onChange={(e, newValue) =>
                                     handlePreprocessParamChange(
                                       "required_daily_coverage",
-                                      value
-                                    );
+                                      newValue
+                                    )
                                   }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                                sx={{ mt: 2 }}
-                              />
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                              >
-                                Minimum fraction of valid data
-                                required per day (0 = 0%, 1 =
-                                100%). Default: 0.5
-                              </Typography>
-                            </Grid>
-                          </Grid>
-                        </Grid>
-                        {/* Feature Parameters */}
-                        <Grid item xs={12} md={6}>
-                          <Typography
-                            variant="subtitle1"
-                            gutterBottom
-                          >
-                            Feature Parameters
-                          </Typography>
-                          <Grid container spacing={2}>
-                            <Grid item xs={12}>
-                              <FormControl fullWidth>
-                                <FormControlLabel
-                                  control={
-                                    <Switch
-                                      checked={
-                                        featureParams.sleep_rescore
-                                      }
-                                      onChange={(e) =>
-                                        handleFeatureParamChange(
-                                          "sleep_rescore",
-                                          e.target.checked
-                                        )
-                                      }
-                                    />
-                                  }
-                                  label="Sleep Rescore"
+                                  valueLabelDisplay="auto"
                                 />
-                              </FormControl>
-                            </Grid>
-                            <Grid item xs={12}>
-                              <TextField
-                                fullWidth
-                                label="Sleep CK SF"
-                                type="text"
-                                value={
-                                  featureParams.sleep_ck_sf
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
+                                <TextField
+                                  fullWidth
+                                  label="Required Daily Coverage (0-1)"
+                                  type="text"
+                                  value={
+                                    preprocessParams.required_daily_coverage
+                                  }
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handleFeatureParamChange(
-                                      "sleep_ck_sf",
-                                      value
-                                    );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                              />
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handlePreprocessParamChange(
+                                        "required_daily_coverage",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                  sx={{ mt: 2 }}
+                                />
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  Minimum fraction of valid data required per
+                                  day (0 = 0%, 1 = 100%). Default: 0.5
+                                </Typography>
+                              </Grid>
                             </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <TextField
-                                fullWidth
-                                label="PA Cutpoint Sedentary-Light"
-                                type="text"
-                                value={
-                                  featureParams.pa_cutpoint_sl
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
+                          </Grid>
+                          {/* Feature Parameters */}
+                          <Grid item xs={12} md={6}>
+                            <Typography variant="subtitle1" gutterBottom>
+                              Feature Parameters
+                            </Typography>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                  <FormControlLabel
+                                    control={
+                                      <Switch
+                                        checked={featureParams.sleep_rescore}
+                                        onChange={(e) =>
+                                          handleFeatureParamChange(
+                                            "sleep_rescore",
+                                            e.target.checked
+                                          )
+                                        }
+                                      />
+                                    }
+                                    label="Sleep Rescore"
+                                  />
+                                </FormControl>
+                              </Grid>
+                              <Grid item xs={12}>
+                                <TextField
+                                  fullWidth
+                                  label="Sleep CK SF"
+                                  type="text"
+                                  value={featureParams.sleep_ck_sf}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handleFeatureParamChange(
-                                      "pa_cutpoint_sl",
-                                      value
-                                    );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <TextField
-                                fullWidth
-                                label="PA Cutpoint Light-Moderate"
-                                type="text"
-                                value={
-                                  featureParams.pa_cutpoint_lm
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handleFeatureParamChange(
+                                        "sleep_ck_sf",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={4}>
+                                <TextField
+                                  fullWidth
+                                  label="PA Cutpoint Sedentary-Light"
+                                  type="text"
+                                  value={featureParams.pa_cutpoint_sl}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handleFeatureParamChange(
-                                      "pa_cutpoint_lm",
-                                      value
-                                    );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <TextField
-                                fullWidth
-                                label="PA Cutpoint Moderate-Vigorous"
-                                type="text"
-                                value={
-                                  featureParams.pa_cutpoint_mv
-                                }
-                                onChange={(e) => {
-                                  let value =
-                                    e.target.value.replace(
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handleFeatureParamChange(
+                                        "pa_cutpoint_sl",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={4}>
+                                <TextField
+                                  fullWidth
+                                  label="PA Cutpoint Light-Moderate"
+                                  type="text"
+                                  value={featureParams.pa_cutpoint_lm}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                  if (
-                                    /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                      value
-                                    ) ||
-                                    value === "" ||
-                                    value === "."
-                                  ) {
-                                    handleFeatureParamChange(
-                                      "pa_cutpoint_mv",
-                                      value
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handleFeatureParamChange(
+                                        "pa_cutpoint_lm",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={12} sm={4}>
+                                <TextField
+                                  fullWidth
+                                  label="PA Cutpoint Moderate-Vigorous"
+                                  type="text"
+                                  value={featureParams.pa_cutpoint_mv}
+                                  onChange={(e) => {
+                                    let value = e.target.value.replace(
+                                      /,/g,
+                                      "."
                                     );
-                                  }
-                                }}
-                                inputProps={{
-                                  inputMode: "decimal",
-                                  lang: "en-US",
-                                }}
-                              />
+                                    if (
+                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
+                                        value
+                                      ) ||
+                                      value === "" ||
+                                      value === "."
+                                    ) {
+                                      handleFeatureParamChange(
+                                        "pa_cutpoint_mv",
+                                        value
+                                      );
+                                    }
+                                  }}
+                                  inputProps={{
+                                    inputMode: "decimal",
+                                    lang: "en-US",
+                                  }}
+                                />
+                              </Grid>
                             </Grid>
                           </Grid>
                         </Grid>
-                      </Grid>
-                    </AccordionDetails>
-                  </Accordion>
-                </Box>
-              )}
-
-              {/* Process and Reset Buttons - Only show when parameters are shown */}
-              {data?.file_id && timestampFormat && (dataType === "alternative_count" || dataUnit) && (
-                <Grid item xs={12}>
-                  <Box
-                    sx={{
-                      mt: 3,
-                      display: "flex",
-                      gap: 2,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={handleProcessData}
-                      disabled={processing}
-                      startIcon={
-                        processing ? (
-                          <CircularProgress size={20} />
-                        ) : (
-                          <PlayArrowIcon />
-                        )
-                      }
-                      sx={{ px: 4, py: 1.5 }}
-                    >
-                      {processing
-                        ? `Processing... (${formatTime(
-                            processingTime
-                          )})`
-                        : "Process Data"}
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      onClick={handleReset}
-                      disabled={processing}
-                      startIcon={<RefreshIcon />}
-                      sx={{ px: 4, py: 1.5 }}
-                    >
-                      Reset All
-                    </Button>
+                      </AccordionDetails>
+                    </Accordion>
                   </Box>
-                </Grid>
-              )}
+                )}
+
+                {/* Process and Reset Buttons - Only show when parameters are shown */}
+                {data?.file_id &&
+                  timestampFormat &&
+                  (dataType === "alternative_count" || dataUnit) && (
+                    <Grid item xs={12}>
+                      <Box
+                        sx={{
+                          mt: 3,
+                          display: "flex",
+                          gap: 2,
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={handleProcessData}
+                          disabled={processing}
+                          startIcon={
+                            processing ? (
+                              <CircularProgress size={20} />
+                            ) : (
+                              <PlayArrowIcon />
+                            )
+                          }
+                          sx={{ px: 4, py: 1.5 }}
+                        >
+                          {processing
+                            ? `Processing... (${formatTime(processingTime)})`
+                            : "Process Data"}
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          onClick={handleReset}
+                          disabled={processing}
+                          startIcon={<RefreshIcon />}
+                          sx={{ px: 4, py: 1.5 }}
+                        >
+                          Reset All
+                        </Button>
+                      </Box>
+                    </Grid>
+                  )}
+              </Grid>
             </Grid>
-          </Grid>
-        )}
-      </Paper>
-    </Grid>
-
-    {/* Processing Complete Summary */}
-    {data?.data && (
-      <Grid item xs={12}>
-        <Paper
-          sx={{
-            p: 3,
-            bgcolor: "#e8f5e8",
-            border: "1px solid #4caf50",
-          }}
-        >
-          {/* Processing Summary */}
-          <Box sx={{ p: 2 }}>
-            <Typography
-              variant="h6"
-              gutterBottom
-              color="success.dark"
-            >
-              Processing Complete
-            </Typography>
-
-            {/* Processing Summary */}
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 1,
-                mb: 2,
-              }}
-            >
-              <Typography
-                variant="body1"
-                color="success.main"
-                sx={{ fontWeight: 500 }}
-              >
-                Data was successfully preprocessed.
-              </Typography>
-              <Typography
-                variant="body1"
-                color="success.main"
-                sx={{ fontWeight: 500 }}
-              >
-                Features were successfully computed.
-              </Typography>
-            </Box>
-          </Box>
+          )}
         </Paper>
       </Grid>
-    )}
 
-    {/* Results Display */}
-    {data?.data && (
-      <>
+      {/* Processing Complete Summary */}
+      {data?.data && (
         <Grid item xs={12}>
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Raw Data Information
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
+          <Paper
+            sx={{
+              p: 3,
+              bgcolor: "#e8f5e8",
+              border: "1px solid #4caf50",
+            }}
+          >
+            {/* Processing Summary */}
+            <Box sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom color="success.dark">
+                Processing Complete
+              </Typography>
+
+              {/* Processing Summary */}
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                  mb: 2,
+                }}
+              >
                 <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
+                  variant="body1"
+                  color="success.main"
+                  sx={{ fontWeight: 500 }}
                 >
-                  Data Frequency
+                  Data was successfully preprocessed.
                 </Typography>
-                <Typography variant="body1">
-                  {data.metadata?.raw_data_frequency || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
                 <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
+                  variant="body1"
+                  color="success.main"
+                  sx={{ fontWeight: 500 }}
                 >
-                  Start Time
+                  Features were successfully computed.
                 </Typography>
-                <Typography variant="body1">
-                  {data.metadata?.raw_start_datetime || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                >
-                  End Time
-                </Typography>
-                <Typography variant="body1">
-                  {data.metadata?.raw_end_datetime || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                >
-                  Data Type
-                </Typography>
-                <Typography variant="body1">
-                  {data.metadata?.raw_data_type || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                >
-                  Data Unit
-                </Typography>
-                <Typography variant="body1">
-                  {data.metadata?.raw_data_unit || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                >
-                  Number of Data Points
-                </Typography>
-                <Typography variant="body1">
-                  {data.metadata?.raw_n_datapoints || "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                >
-                  Follow-up Time
-                </Typography>
-                <Typography variant="body1">
-                  {data.metadata?.raw_start_datetime &&
-                  data.metadata?.raw_end_datetime
-                    ? (() => {
-                        const diff =
-                          new Date(
-                            data.metadata.raw_end_datetime
-                          ) -
-                          new Date(
-                            data.metadata.raw_start_datetime
-                          );
-                        const days = Math.floor(
-                          diff / (1000 * 60 * 60 * 24)
-                        );
-                        const hours = Math.floor(
-                          (diff % (1000 * 60 * 60 * 24)) /
-                            (1000 * 60 * 60)
-                        );
-                        const minutes = Math.floor(
-                          (diff % (1000 * 60 * 60)) /
-                            (1000 * 60)
-                        );
-                        return `${days} ${
-                          days === 1 ? "day" : "days"
-                        } ${hours} ${
-                          hours === 1 ? "hour" : "hours"
-                        } ${minutes} ${
-                          minutes === 1 ? "minute" : "minutes"
-                        }`;
-                      })()
-                    : "N/A"}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                >
-                  Cohort Size
-                </Typography>
-                <Typography variant="body1">
-                  1 individual
-                </Typography>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </Paper>
         </Grid>
+      )}
 
-        {/* Cosinor Age Prediction */}
-        {data?.features && (
-          <>
-            <Grid item xs={12}>
-              <Paper sx={{ p: 3, mb: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Cosinor Age Prediction
-                </Typography>
-
-                {/* Age and Gender Input */}
-                <Grid container spacing={3} sx={{ mb: 3 }}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Chronological Age"
-                      type="number"
-                      value={chronologicalAge}
-                      onChange={(e) =>
-                        setChronologicalAge(e.target.value)
-                      }
-                      inputProps={{ min: 0, max: 120 }}
-                      helperText="Enter your chronological age"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Gender</InputLabel>
-                      <Select
-                        value={gender}
-                        label="Gender"
-                        onChange={(e) =>
-                          setGender(e.target.value)
-                        }
-                      >
-                        <MenuItem value="male">Male</MenuItem>
-                        <MenuItem value="female">
-                          Female
-                        </MenuItem>
-                        <MenuItem value="invariant">
-                          Invariant
-                        </MenuItem>
-                      </Select>
-                      <FormHelperText>
-                        Select your gender for age prediction
-                      </FormHelperText>
-                    </FormControl>
-                  </Grid>
+      {/* Results Display */}
+      {data?.data && (
+        <>
+          <Grid item xs={12}>
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Raw Data Information
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Data Frequency
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.metadata?.raw_data_frequency || "N/A"}
+                  </Typography>
                 </Grid>
-
-                {/* Age Prediction Results */}
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <Box sx={{ textAlign: "center", p: 2 }}>
-                      <Typography
-                        variant="h4"
-                        color="primary.main"
-                        gutterBottom
-                      >
-                        {predictedAge
-                          ? `${predictedAge.toFixed(1)} years`
-                          : "N/A"}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                      >
-                        Predicted Biological Age
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box sx={{ textAlign: "center", p: 2 }}>
-                      <Typography
-                        variant="h4"
-                        color="secondary.main"
-                        gutterBottom
-                      >
-                        {chronologicalAge
-                          ? `${chronologicalAge} years`
-                          : "N/A"}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                      >
-                        Chronological Age
-                      </Typography>
-                    </Box>
-                  </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Start Time
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.metadata?.raw_start_datetime || "N/A"}
+                  </Typography>
                 </Grid>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    mt: 2,
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    onClick={handlePredictAge}
-                    disabled={
-                      !data?.features || !chronologicalAge
-                    }
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    End Time
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.metadata?.raw_end_datetime || "N/A"}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Data Type
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.metadata?.raw_data_type || "N/A"}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Data Unit
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.metadata?.raw_data_unit || "N/A"}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Number of Data Points
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.metadata?.raw_n_datapoints || "N/A"}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Follow-up Time
+                  </Typography>
+                  <Typography variant="body1">
+                    {data.metadata?.raw_start_datetime &&
+                    data.metadata?.raw_end_datetime
+                      ? (() => {
+                          const diff =
+                            new Date(data.metadata.raw_end_datetime) -
+                            new Date(data.metadata.raw_start_datetime);
+                          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                          const hours = Math.floor(
+                            (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+                          );
+                          const minutes = Math.floor(
+                            (diff % (1000 * 60 * 60)) / (1000 * 60)
+                          );
+                          return `${days} ${
+                            days === 1 ? "day" : "days"
+                          } ${hours} ${
+                            hours === 1 ? "hour" : "hours"
+                          } ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+                        })()
+                      : "N/A"}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Cohort Size
+                  </Typography>
+                  <Typography variant="body1">1 individual</Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
+
+          {/* Cosinor Age Prediction */}
+          {data?.features && (
+            <>
+              <Grid item xs={12}>
+                <Paper sx={{ p: 3, mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Cosinor Age Prediction
+                  </Typography>
+
+                  {/* Age and Gender Input */}
+                  <Grid container spacing={3} sx={{ mb: 3 }}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Chronological Age"
+                        type="number"
+                        value={chronologicalAge}
+                        onChange={(e) => setChronologicalAge(e.target.value)}
+                        inputProps={{ min: 0, max: 120 }}
+                        helperText="Enter your chronological age"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Gender</InputLabel>
+                        <Select
+                          value={gender}
+                          label="Gender"
+                          onChange={(e) => setGender(e.target.value)}
+                        >
+                          <MenuItem value="male">Male</MenuItem>
+                          <MenuItem value="female">Female</MenuItem>
+                          <MenuItem value="invariant">Invariant</MenuItem>
+                        </Select>
+                        <FormHelperText>
+                          Select your gender for age prediction
+                        </FormHelperText>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+
+                  {/* Age Prediction Results */}
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                      <Box sx={{ textAlign: "center", p: 2 }}>
+                        <Typography
+                          variant="h4"
+                          color="primary.main"
+                          gutterBottom
+                        >
+                          {predictedAge
+                            ? `${predictedAge.toFixed(1)} years`
+                            : "-"}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Predicted Biological Age
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Box sx={{ textAlign: "center", p: 2 }}>
+                        <Typography
+                          variant="h4"
+                          color="secondary.main"
+                          gutterBottom
+                        >
+                          {chronologicalAge
+                            ? `${chronologicalAge} years`
+                            : "-"}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Chronological Age
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                  <Box
                     sx={{
-                      minWidth: 120,
-                      "&:hover": {
-                        backgroundColor: "primary.main",
-                        color: "white",
-                      },
+                      display: "flex",
+                      justifyContent: "center",
+                      mt: 2,
                     }}
                   >
-                    Predict Age
-                  </Button>
-                </Box>
-              </Paper>
-            </Grid>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={handlePredictAge}
+                      disabled={!data?.features || !chronologicalAge}
+                      sx={{
+                        minWidth: 120,
+                        "&:hover": {
+                          backgroundColor: "primary.main",
+                          color: "white",
+                        },
+                      }}
+                    >
+                      Predict Age
+                    </Button>
+                  </Box>
+                </Paper>
+              </Grid>
 
-            {/* Plots */}
-            {(() => {
-              return (
-                data?.data && (
-                  <Grid item xs={12}>
-                    {/* Check if data contains x, y, z columns */}
-                    {(() => {
-                      const hasXYZColumns =
-                        data.data[0] &&
-                        "x" in data.data[0] &&
-                        "y" in data.data[0] &&
-                        "z" in data.data[0];
+              {/* Plots */}
+              {(() => {
+                return (
+                  data?.data && (
+                    <Grid item xs={12}>
+                      {/* Check if data contains x, y, z columns */}
+                      {(() => {
+                        const hasXYZColumns =
+                          data.data[0] &&
+                          "x" in data.data[0] &&
+                          "y" in data.data[0] &&
+                          "z" in data.data[0];
 
-                      if (hasXYZColumns) {
-                        return (
-                          <>
-                            {/* X, Y, Z Accelerometer Data Plot */}
-                            <Paper sx={{ p: 3, mb: 3 }}>
-                              <Typography
-                                variant="h6"
-                                gutterBottom
-                              >
-                                Raw Accelerometer Data (X, Y, Z
-                                axes)
-                              </Typography>
-                              <ResponsiveContainer
-                                width="100%"
-                                height={400}
-                              >
-                                <LineChart
-                                  data={data.data}
-                                  margin={{
-                                    top: 20,
-                                    right: 30,
-                                    left: 30,
-                                    bottom: 20,
-                                  }}
-                                >
-                                  <XAxis
-                                    dataKey="TIMESTAMP"
-                                    label={{
-                                      value: "Time",
-                                      position: "insideBottom",
-                                      offset: -5,
+                        if (hasXYZColumns) {
+                          return (
+                            <>
+                              {/* X, Y, Z Accelerometer Data Plot */}
+                              <Paper sx={{ p: 3, mb: 3 }}>
+                                <Typography variant="h6" gutterBottom>
+                                  Raw Accelerometer Data (X, Y, Z axes)
+                                </Typography>
+                                <ResponsiveContainer width="100%" height={400}>
+                                  <LineChart
+                                    data={data.data}
+                                    margin={{
+                                      top: 20,
+                                      right: 30,
+                                      left: 30,
+                                      bottom: 20,
                                     }}
-                                    tickFormatter={(
-                                      timestamp
-                                    ) => {
-                                      const date = new Date(
-                                        timestamp
-                                      );
-                                      return date.toLocaleDateString();
-                                    }}
-                                    interval={0}
-                                    tick={(props) => {
-                                      const { x, y, payload } =
-                                        props;
-                                      const date = new Date(
-                                        payload.value
-                                      );
-                                      const isStartOfDay =
-                                        date.getHours() === 0 &&
-                                        date.getMinutes() === 0;
-                                      return isStartOfDay ? (
-                                        <g
-                                          transform={`translate(${x},${y})`}
-                                        >
-                                          <text
-                                            x={0}
-                                            y={0}
-                                            dy={16}
-                                            textAnchor="middle"
-                                            fill="#666"
-                                          >
-                                            {date.toLocaleDateString()}
-                                          </text>
-                                        </g>
-                                      ) : null;
-                                    }}
-                                  />
-                                  <YAxis
-                                    label={{
-                                      value: "Acceleration (g)",
-                                      angle: -90,
-                                      position: "insideLeft",
-                                    }}
-                                  />
-                                  <RechartsTooltip
-                                    content={({
-                                      active,
-                                      payload,
-                                      label,
-                                    }) => {
-                                      if (
-                                        active &&
-                                        payload &&
-                                        payload.length
-                                      ) {
-                                        return (
-                                          <div
-                                            style={{
-                                              backgroundColor:
-                                                "white",
-                                              padding: "10px",
-                                              border:
-                                                "1px solid #ccc",
-                                              borderRadius:
-                                                "4px",
-                                            }}
-                                          >
-                                            <p
+                                  >
+                                    <XAxis
+                                      dataKey="TIMESTAMP"
+                                      label={{
+                                        value: "Time",
+                                        position: "insideBottom",
+                                        offset: -5,
+                                      }}
+                                      tickFormatter={(timestamp) => {
+                                        const date = new Date(timestamp);
+                                        return date.toLocaleDateString();
+                                      }}
+                                      interval={0}
+                                      tick={(props) => {
+                                        const { x, y, payload } = props;
+                                        const date = new Date(payload.value);
+                                        const isStartOfDay =
+                                          date.getHours() === 0 &&
+                                          date.getMinutes() === 0;
+                                        return isStartOfDay ? (
+                                          <g transform={`translate(${x},${y})`}>
+                                            <text
+                                              x={0}
+                                              y={0}
+                                              dy={16}
+                                              textAnchor="middle"
+                                              fill="#666"
+                                            >
+                                              {date.toLocaleDateString()}
+                                            </text>
+                                          </g>
+                                        ) : null;
+                                      }}
+                                    />
+                                    <YAxis
+                                      label={{
+                                        value: "Acceleration (g)",
+                                        angle: -90,
+                                        position: "insideLeft",
+                                      }}
+                                    />
+                                    <RechartsTooltip
+                                      content={({ active, payload, label }) => {
+                                        if (
+                                          active &&
+                                          payload &&
+                                          payload.length
+                                        ) {
+                                          return (
+                                            <div
                                               style={{
-                                                margin:
-                                                  "0 0 5px 0",
+                                                backgroundColor: "white",
+                                                padding: "10px",
+                                                border: "1px solid #ccc",
+                                                borderRadius: "4px",
                                               }}
                                             >
-                                              {new Date(
-                                                label
-                                              ).toLocaleString()}
-                                            </p>
-                                            {payload.map(
-                                              (
-                                                entry,
-                                                index
-                                              ) => (
+                                              <p
+                                                style={{
+                                                  margin: "0 0 5px 0",
+                                                }}
+                                              >
+                                                {new Date(
+                                                  label
+                                                ).toLocaleString()}
+                                              </p>
+                                              {payload.map((entry, index) => (
                                                 <p
                                                   key={index}
                                                   style={{
                                                     margin: "0",
-                                                    color:
-                                                      entry.color,
+                                                    color: entry.color,
                                                   }}
                                                 >
                                                   {`${
@@ -2759,182 +2473,159 @@ const SingleIndividualLabSubTab = ({
                                                     4
                                                   )} g`}
                                                 </p>
-                                              )
-                                            )}
-                                          </div>
-                                        );
-                                      }
-                                      return null;
-                                    }}
-                                  />
-                                  <Legend />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="x"
-                                    stroke="#ff0000"
-                                    dot={false}
-                                    name="X-axis"
-                                  />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="y"
-                                    stroke="#00ff00"
-                                    dot={false}
-                                    name="Y-axis"
-                                  />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="z"
-                                    stroke="#0000ff"
-                                    dot={false}
-                                    name="Z-axis"
-                                  />
-                                </LineChart>
-                              </ResponsiveContainer>
-                            </Paper>
-                          </>
-                        );
-                      }
-                      return null;
-                    })()}
+                                              ))}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      }}
+                                    />
+                                    <Legend />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="x"
+                                      stroke="#ff0000"
+                                      dot={false}
+                                      name="X-axis"
+                                    />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="y"
+                                      stroke="#00ff00"
+                                      dot={false}
+                                      name="Y-axis"
+                                    />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="z"
+                                      stroke="#0000ff"
+                                      dot={false}
+                                      name="Z-axis"
+                                    />
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              </Paper>
+                            </>
+                          );
+                        }
+                        return null;
+                      })()}
 
-                    {/* ENMO Data Plot */}
-                    <Paper sx={{ p: 3, mb: 3 }}>
-                      <Typography variant="h6" gutterBottom>
-                        ENMO time series (incl. wear/non-wear
-                        segments)
-                      </Typography>
-                      {/* Custom legend for wear/non-wear */}
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          mb: 2,
-                          ml: 1,
-                        }}
-                      >
+                      {/* ENMO Data Plot */}
+                      <Paper sx={{ p: 3, mb: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                          ENMO time series (incl. wear/non-wear segments)
+                        </Typography>
+                        {/* Custom legend for wear/non-wear */}
                         <Box
                           sx={{
-                            width: 18,
-                            height: 18,
-                            bgcolor: "#4caf50",
-                            opacity: 0.3,
-                            border: "1px solid #4caf50",
-                            mr: 1,
-                          }}
-                        />
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ mr: 2 }}
-                        >
-                          wear
-                        </Typography>
-                        <Box
-                          sx={{
-                            width: 18,
-                            height: 18,
-                            bgcolor: "#ff5252",
-                            opacity: 0.3,
-                            border: "1px solid #ff5252",
-                            mr: 1,
-                          }}
-                        />
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                        >
-                          non-wear
-                        </Typography>
-                      </Box>
-                      <ResponsiveContainer
-                        width="100%"
-                        height={400}
-                      >
-                        <LineChart
-                          data={data.data}
-                          margin={{
-                            top: 20,
-                            right: 30,
-                            left: 30,
-                            bottom: 20,
+                            display: "flex",
+                            alignItems: "center",
+                            mb: 2,
+                            ml: 1,
                           }}
                         >
-                          <XAxis
-                            dataKey="TIMESTAMP"
-                            label={{
-                              value: "Time",
-                              position: "insideBottom",
-                              offset: -5,
-                            }}
-                            tickFormatter={(timestamp) => {
-                              const date = new Date(timestamp);
-                              return date.toLocaleDateString();
-                            }}
-                            interval={0}
-                            tick={(props) => {
-                              const { x, y, payload } = props;
-                              const date = new Date(
-                                payload.value
-                              );
-                              const isStartOfDay =
-                                date.getHours() === 0 &&
-                                date.getMinutes() === 0;
-                              return isStartOfDay ? (
-                                <g
-                                  transform={`translate(${x},${y})`}
-                                >
-                                  <text
-                                    x={0}
-                                    y={0}
-                                    dy={16}
-                                    textAnchor="middle"
-                                    fill="#666"
-                                  >
-                                    {date.toLocaleDateString()}
-                                  </text>
-                                </g>
-                              ) : null;
+                          <Box
+                            sx={{
+                              width: 18,
+                              height: 18,
+                              bgcolor: "#4caf50",
+                              opacity: 0.3,
+                              border: "1px solid #4caf50",
+                              mr: 1,
                             }}
                           />
-                          <YAxis
-                            label={{
-                              value: "ENMO (mg)",
-                              angle: -90,
-                              position: "insideLeft",
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mr: 2 }}
+                          >
+                            wear
+                          </Typography>
+                          <Box
+                            sx={{
+                              width: 18,
+                              height: 18,
+                              bgcolor: "#ff5252",
+                              opacity: 0.3,
+                              border: "1px solid #ff5252",
+                              mr: 1,
                             }}
                           />
-                          <RechartsTooltip
-                            content={({
-                              active,
-                              payload,
-                              label,
-                            }) => {
-                              if (
-                                active &&
-                                payload &&
-                                payload.length
-                              ) {
-                                return (
-                                  <div
-                                    style={{
-                                      backgroundColor: "white",
-                                      padding: "10px",
-                                      border: "1px solid #ccc",
-                                      borderRadius: "4px",
-                                    }}
-                                  >
-                                    <p
+                          <Typography variant="body2" color="text.secondary">
+                            non-wear
+                          </Typography>
+                        </Box>
+                        <ResponsiveContainer width="100%" height={400}>
+                          <LineChart
+                            data={data.data}
+                            margin={{
+                              top: 20,
+                              right: 30,
+                              left: 30,
+                              bottom: 20,
+                            }}
+                          >
+                            <XAxis
+                              dataKey="TIMESTAMP"
+                              label={{
+                                value: "Time",
+                                position: "insideBottom",
+                                offset: -5,
+                              }}
+                              tickFormatter={(timestamp) => {
+                                const date = new Date(timestamp);
+                                return date.toLocaleDateString();
+                              }}
+                              interval={0}
+                              tick={(props) => {
+                                const { x, y, payload } = props;
+                                const date = new Date(payload.value);
+                                const isStartOfDay =
+                                  date.getHours() === 0 &&
+                                  date.getMinutes() === 0;
+                                return isStartOfDay ? (
+                                  <g transform={`translate(${x},${y})`}>
+                                    <text
+                                      x={0}
+                                      y={0}
+                                      dy={16}
+                                      textAnchor="middle"
+                                      fill="#666"
+                                    >
+                                      {date.toLocaleDateString()}
+                                    </text>
+                                  </g>
+                                ) : null;
+                              }}
+                            />
+                            <YAxis
+                              label={{
+                                value: "ENMO (mg)",
+                                angle: -90,
+                                position: "insideLeft",
+                              }}
+                            />
+                            <RechartsTooltip
+                              content={({ active, payload, label }) => {
+                                if (active && payload && payload.length) {
+                                  return (
+                                    <div
                                       style={{
-                                        margin: "0 0 5px 0",
+                                        backgroundColor: "white",
+                                        padding: "10px",
+                                        border: "1px solid #ccc",
+                                        borderRadius: "4px",
                                       }}
                                     >
-                                      {new Date(
-                                        label
-                                      ).toLocaleString()}
-                                    </p>
-                                    {payload.map(
-                                      (entry, index) => {
+                                      <p
+                                        style={{
+                                          margin: "0 0 5px 0",
+                                        }}
+                                      >
+                                        {new Date(label).toLocaleString()}
+                                      </p>
+                                      {payload.map((entry, index) => {
                                         <p
                                           key={index}
                                           style={{
@@ -2944,210 +2635,99 @@ const SingleIndividualLabSubTab = ({
                                         >
                                           {`${
                                             entry.name
-                                          }: ${entry.value.toFixed(
-                                            2
-                                          )} mg`}
+                                          }: ${entry.value.toFixed(2)} mg`}
                                         </p>;
-                                      }
-                                    )}
-                                  </div>
-                                );
-                              }
-                              return null;
-                            }}
-                          />
-                          <Legend />
-                          <Line
-                            type="monotone"
-                            dataKey="ENMO"
-                            stroke="#8884d8"
-                            dot={false}
-                          />
-                          {/* Shaded background for wear/non-wear segments */}
-                          {(() => {
-                            const areas = [];
-                            let currentWear =
-                              data.data[0]?.wear;
-                            let segStart =
-                              data.data[0]?.TIMESTAMP;
-                            // Log timestamps
-                            console.log(
-                              "Min Timestamp:",
-                              data.data[0]?.TIMESTAMP
-                            );
-                            console.log(
-                              "M10 Start:",
-                              data.features.nonparam.m10_start
-                            );
-                            console.log(
-                              "L5 Start:",
-                              data.features.nonparam.l5_start
-                            );
-                            for (
-                              let i = 1;
-                              i <= data.data.length;
-                              i++
-                            ) {
-                              const point = data.data[i];
-                              if (
-                                i === data.data.length ||
-                                point?.wear !== currentWear
-                              ) {
-                                const segEnd =
-                                  data.data[i - 1]?.TIMESTAMP;
-                                // Only add shaded area if wear is not -1
-                                if (currentWear !== -1) {
-                                  const color =
-                                    interpolateColor(
-                                      currentWear
-                                    );
-                                  areas.push(
-                                    <ReferenceArea
-                                      key={`wear-seg-${segStart}`}
-                                      x1={segStart}
-                                      x2={segEnd}
-                                      fill={color}
-                                      fillOpacity={0.3}
-                                      stroke={color}
-                                      strokeOpacity={0.5}
-                                      label={null}
-                                    />
+                                      })}
+                                    </div>
                                   );
                                 }
-                                if (i < data.data.length) {
-                                  currentWear = point.wear;
-                                  segStart = point.TIMESTAMP;
+                                return null;
+                              }}
+                            />
+                            <Legend />
+                            <Line
+                              type="monotone"
+                              dataKey="ENMO"
+                              stroke="#8884d8"
+                              dot={false}
+                            />
+                            {/* Shaded background for wear/non-wear segments */}
+                            {(() => {
+                              const areas = [];
+                              let currentWear = data.data[0]?.wear;
+                              let segStart = data.data[0]?.TIMESTAMP;
+                              // Log timestamps
+                              console.log(
+                                "Min Timestamp:",
+                                data.data[0]?.TIMESTAMP
+                              );
+                              console.log(
+                                "M10 Start:",
+                                data.features.nonparam.m10_start
+                              );
+                              console.log(
+                                "L5 Start:",
+                                data.features.nonparam.l5_start
+                              );
+                              for (let i = 1; i <= data.data.length; i++) {
+                                const point = data.data[i];
+                                if (
+                                  i === data.data.length ||
+                                  point?.wear !== currentWear
+                                ) {
+                                  const segEnd = data.data[i - 1]?.TIMESTAMP;
+                                  // Only add shaded area if wear is not -1
+                                  if (currentWear !== -1) {
+                                    const color = interpolateColor(currentWear);
+                                    areas.push(
+                                      <ReferenceArea
+                                        key={`wear-seg-${segStart}`}
+                                        x1={segStart}
+                                        x2={segEnd}
+                                        fill={color}
+                                        fillOpacity={0.3}
+                                        stroke={color}
+                                        strokeOpacity={0.5}
+                                        label={null}
+                                      />
+                                    );
+                                  }
+                                  if (i < data.data.length) {
+                                    currentWear = point.wear;
+                                    segStart = point.TIMESTAMP;
+                                  }
                                 }
                               }
-                            }
-                            return areas;
-                          })()}
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </Paper>
-                  </Grid>
-                )
-              );
-            })()}
+                              return areas;
+                            })()}
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </Paper>
+                    </Grid>
+                  )
+                );
+              })()}
 
-            {/* Cosinor Features */}
-            {data?.features && data.features.cosinor && (
-              <Grid item xs={12}>
-                <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <Typography variant="h6" gutterBottom>
-                      Cosinor Features
-                    </Typography>
-                    <SectionInfoButton section="cosinor" />
-                  </Box>
-                  <Grid
-                    container
-                    spacing={2}
-                    direction="row"
-                    wrap="nowrap"
-                  >
-                    {Object.entries(data.features.cosinor).map(
-                      ([key, value]) => (
-                        <Grid item xs key={key} zeroMinWidth>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
-                            }}
-                          >
-                            <Typography
-                              variant="subtitle2"
-                              color="text.secondary"
-                              noWrap
-                            >
-                              {key
-                                .replace(/_/g, " ")
-                                .replace(/\b\w/g, (l) =>
-                                  l.toUpperCase()
-                                )}
-                            </Typography>
-                            <SectionInfoButton metric={key} />
-                          </Box>
-                          <Typography variant="body1" noWrap>
-                            {typeof value === "number"
-                              ? key === "acrophase_time"
-                                ? (() => {
-                                    const minutes = value;
-                                    const hours = Math.floor(
-                                      minutes / 60
-                                    );
-                                    const mins = Math.round(
-                                      minutes % 60
-                                    );
-                                    return `${hours
-                                      .toString()
-                                      .padStart(2, "0")}:${mins
-                                      .toString()
-                                      .padStart(2, "0")}`;
-                                  })()
-                                : value.toFixed(4)
-                              : value}
-                            {key === "mesor" ||
-                            key === "amplitude"
-                              ? " mg"
-                              : key === "acrophase"
-                              ? " radians"
-                              : ""}
-                          </Typography>
-                        </Grid>
-                      )
-                    )}
-                  </Grid>
-                </Paper>
-              </Grid>
-            )}
-
-            {/* Non-parametric Features */}
-            {data?.features && data.features.nonparam && (
-              <Grid item xs={12}>
-                <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <Typography variant="h6" gutterBottom>
-                      Non-parametric Features
-                    </Typography>
-                    <SectionInfoButton section="nonparam" />
-                  </Box>
-                  <Grid container spacing={2}>
-                    {Object.entries(data.features.nonparam)
-                      .sort(([keyA], [keyB]) => {
-                        // Define the desired order
-                        const order = {
-                          is: 1,
-                          iv: 2,
-                          m10: 3,
-                          ra: 4,
-                        };
-                        const orderA =
-                          order[keyA.toLowerCase()] || 5;
-                        const orderB =
-                          order[keyB.toLowerCase()] || 5;
-                        return orderA - orderB;
-                      })
-                      .map(([key, value]) =>
-                        [
-                          "l5",
-                          "m10_start",
-                          "l5_start",
-                        ].includes(key.toLowerCase()) ? null : (
-                          <Grid item xs={12} key={key}>
+              {/* Cosinor Features */}
+              {data?.features && data.features.cosinor && (
+                <Grid item xs={12}>
+                  <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <Typography variant="h6" gutterBottom>
+                        Cosinor Features
+                      </Typography>
+                      <SectionInfoButton section="cosinor" />
+                    </Box>
+                    <Grid container spacing={2} direction="row" wrap="nowrap">
+                      {Object.entries(data.features.cosinor).map(
+                        ([key, value]) => (
+                          <Grid item xs key={key} zeroMinWidth>
                             <Box
                               sx={{
                                 display: "flex",
@@ -3158,226 +2738,124 @@ const SingleIndividualLabSubTab = ({
                               <Typography
                                 variant="subtitle2"
                                 color="text.secondary"
+                                noWrap
                               >
-                                {key === "RA"
-                                  ? "Relative Amplitude (RA)"
-                                  : key === "M10" ||
-                                    key === "L5"
-                                  ? "L5 & M10"
-                                  : key === "IV"
-                                  ? "Intradaily Variability (IV)"
-                                  : key === "IS"
-                                  ? "Interdaily Stability (IS)"
-                                  : key
-                                      .replace(/_/g, " ")
-                                      .replace(/\b\w/g, (l) =>
-                                        l.toUpperCase()
-                                      )}
+                                {key
+                                  .replace(/_/g, " ")
+                                  .replace(/\b\w/g, (l) => l.toUpperCase())}
                               </Typography>
                               <SectionInfoButton metric={key} />
                             </Box>
-                            {/* IS and IV as horizontal scale */}
-                            {["is", "iv"].includes(
-                              key.toLowerCase()
-                            ) && typeof value === "number" ? (
-                              <HorizontalScale
-                                value={value}
-                                min={
-                                  key.toLowerCase() === "is"
-                                    ? 0
-                                    : 0
-                                }
-                                max={
-                                  key.toLowerCase() === "is"
-                                    ? 1
-                                    : 2
-                                }
-                                color={
-                                  key.toLowerCase() === "is"
-                                    ? "#1976d2"
-                                    : "#388e3c"
-                                }
-                              />
-                            ) : key.toLowerCase() === "ra" &&
-                              Array.isArray(value) ? (
+                            <Typography variant="body1" noWrap>
+                              {typeof value === "number"
+                                ? key === "acrophase_time"
+                                  ? (() => {
+                                      const minutes = value;
+                                      const hours = Math.floor(minutes / 60);
+                                      const mins = Math.round(minutes % 60);
+                                      return `${hours
+                                        .toString()
+                                        .padStart(2, "0")}:${mins
+                                        .toString()
+                                        .padStart(2, "0")}`;
+                                    })()
+                                  : value.toFixed(4)
+                                : value}
+                              {key === "mesor" || key === "amplitude"
+                                ? " mg"
+                                : key === "acrophase"
+                                ? " radians"
+                                : ""}
+                            </Typography>
+                          </Grid>
+                        )
+                      )}
+                    </Grid>
+                  </Paper>
+                </Grid>
+              )}
+
+              {/* Non-parametric Features */}
+              {data?.features && data.features.nonparam && (
+                <Grid item xs={12}>
+                  <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <Typography variant="h6" gutterBottom>
+                        Non-parametric Features
+                      </Typography>
+                      <SectionInfoButton section="nonparam" />
+                    </Box>
+                    <Grid container spacing={2}>
+                      {Object.entries(data.features.nonparam)
+                        .sort(([keyA], [keyB]) => {
+                          // Define the desired order
+                          const order = {
+                            is: 1,
+                            iv: 2,
+                            m10: 3,
+                            ra: 4,
+                          };
+                          const orderA = order[keyA.toLowerCase()] || 5;
+                          const orderB = order[keyB.toLowerCase()] || 5;
+                          return orderA - orderB;
+                        })
+                        .map(([key, value]) =>
+                          ["l5", "m10_start", "l5_start"].includes(
+                            key.toLowerCase()
+                          ) ? null : (
+                            <Grid item xs={12} key={key}>
                               <Box
                                 sx={{
-                                  width: "100%",
-                                  height: 200,
-                                  mt: 2,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
                                 }}
                               >
-                                <ResponsiveContainer
-                                  width="100%"
-                                  height="100%"
+                                <Typography
+                                  variant="subtitle2"
+                                  color="text.secondary"
                                 >
-                                  <BarChart
-                                    data={value.map(
-                                      (v, index) => ({
-                                        day: getDateForIndex(
-                                          "RA",
-                                          index,
-                                          data
-                                        ),
-                                        RA: v,
-                                      })
-                                    )}
-                                    margin={{
-                                      top: 20,
-                                      right: 30,
-                                      left: 30,
-                                      bottom: 20,
-                                    }}
-                                  >
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="day" />
-                                    <YAxis
-                                      label={{
-                                        value: "RA",
-                                        angle: -90,
-                                        position: "insideLeft",
-                                      }}
-                                    />
-                                    <RechartsTooltip
-                                      content={({
-                                        active,
-                                        payload,
-                                        label,
-                                      }) => {
-                                        if (
-                                          active &&
-                                          payload &&
-                                          payload.length
-                                        ) {
-                                          return (
-                                            <div
-                                              style={{
-                                                backgroundColor:
-                                                  "white",
-                                                padding: "10px",
-                                                border:
-                                                  "1px solid #ccc",
-                                                borderRadius:
-                                                  "4px",
-                                              }}
-                                            >
-                                              <p
-                                                style={{
-                                                  margin:
-                                                    "0 0 5px 0",
-                                                }}
-                                              >
-                                                {label}
-                                              </p>
-                                              {payload.map(
-                                                (
-                                                  entry,
-                                                  index
-                                                ) => {
-                                                  let value =
-                                                    entry.value;
-                                                  let unit = "";
-                                                  if (
-                                                    entry.name ===
-                                                    "TST"
-                                                  ) {
-                                                    value =
-                                                      Math.round(
-                                                        value
-                                                      ).toFixed(
-                                                        0
-                                                      );
-                                                    unit =
-                                                      " minutes";
-                                                  } else if (
-                                                    entry.name ===
-                                                      "WASO" ||
-                                                    entry.name ===
-                                                      "SOL"
-                                                  ) {
-                                                    value =
-                                                      value.toFixed(
-                                                        0
-                                                      );
-                                                    unit =
-                                                      " minutes";
-                                                  } else if (
-                                                    entry.name ===
-                                                    "PTA"
-                                                  ) {
-                                                    value =
-                                                      value.toFixed(
-                                                        1
-                                                      );
-                                                    unit = "%";
-                                                  } else if (
-                                                    entry.name ===
-                                                      "M10" ||
-                                                    entry.name ===
-                                                      "L5"
-                                                  ) {
-                                                    value =
-                                                      value.toFixed(
-                                                        2
-                                                      );
-                                                    unit =
-                                                      " mg";
-                                                  } else if (
-                                                    [
-                                                      "sedentary",
-                                                      "light",
-                                                      "moderate",
-                                                      "vigorous",
-                                                    ].includes(
-                                                      entry.name
-                                                    )
-                                                  ) {
-                                                    value =
-                                                      value.toFixed(
-                                                        0
-                                                      );
-                                                    unit =
-                                                      " minutes";
-                                                  }
-                                                  return (
-                                                    <p
-                                                      key={
-                                                        index
-                                                      }
-                                                      style={{
-                                                        margin:
-                                                          "0",
-                                                        color:
-                                                          entry.color,
-                                                      }}
-                                                    >
-                                                      {`${entry.name}: ${value}${unit}`}
-                                                    </p>
-                                                  );
-                                                }
-                                              )}
-                                            </div>
-                                          );
-                                        }
-                                        return null;
-                                      }}
-                                    />
-                                    <Bar
-                                      dataKey="RA"
-                                      fill="#0088fe"
-                                      name="RA"
-                                    />
-                                  </BarChart>
-                                </ResponsiveContainer>
+                                  {key === "RA"
+                                    ? "Relative Amplitude (RA)"
+                                    : key === "M10" || key === "L5"
+                                    ? "L5 & M10"
+                                    : key === "IV"
+                                    ? "Intradaily Variability (IV)"
+                                    : key === "IS"
+                                    ? "Interdaily Stability (IS)"
+                                    : key
+                                        .replace(/_/g, " ")
+                                        .replace(/\b\w/g, (l) =>
+                                          l.toUpperCase()
+                                        )}
+                                </Typography>
+                                <SectionInfoButton metric={key} />
                               </Box>
-                            ) : key === "M10" &&
-                              data.features.nonparam.M10 &&
-                              data.features.nonparam.L5 ? (
-                              <>
+                              {/* IS and IV as horizontal scale */}
+                              {["is", "iv"].includes(key.toLowerCase()) &&
+                              typeof value === "number" ? (
+                                <HorizontalScale
+                                  value={value}
+                                  min={key.toLowerCase() === "is" ? 0 : 0}
+                                  max={key.toLowerCase() === "is" ? 1 : 2}
+                                  color={
+                                    key.toLowerCase() === "is"
+                                      ? "#1976d2"
+                                      : "#388e3c"
+                                  }
+                                />
+                              ) : key.toLowerCase() === "ra" &&
+                                Array.isArray(value) ? (
                                 <Box
                                   sx={{
                                     width: "100%",
-                                    height: 300,
+                                    height: 200,
                                     mt: 2,
                                   }}
                                 >
@@ -3386,18 +2864,10 @@ const SingleIndividualLabSubTab = ({
                                     height="100%"
                                   >
                                     <BarChart
-                                      data={data.features.nonparam.M10.map(
-                                        (m10, index) => ({
-                                          day: getDateForIndex(
-                                            "M10",
-                                            index,
-                                            data
-                                          ),
-                                          M10: m10,
-                                          L5: data.features
-                                            .nonparam.L5[index],
-                                        })
-                                      )}
+                                      data={value.map((v, index) => ({
+                                        day: getDateForIndex("RA", index, data),
+                                        RA: v,
+                                      }))}
                                       margin={{
                                         top: 20,
                                         right: 30,
@@ -3409,10 +2879,9 @@ const SingleIndividualLabSubTab = ({
                                       <XAxis dataKey="day" />
                                       <YAxis
                                         label={{
-                                          value: "ENMO (mg)",
+                                          value: "RA",
                                           angle: -90,
-                                          position:
-                                            "insideLeft",
+                                          position: "insideLeft",
                                         }}
                                       />
                                       <RechartsTooltip
@@ -3429,113 +2898,338 @@ const SingleIndividualLabSubTab = ({
                                             return (
                                               <div
                                                 style={{
-                                                  backgroundColor:
-                                                    "white",
-                                                  padding:
-                                                    "10px",
-                                                  border:
-                                                    "1px solid #ccc",
-                                                  borderRadius:
-                                                    "4px",
+                                                  backgroundColor: "white",
+                                                  padding: "10px",
+                                                  border: "1px solid #ccc",
+                                                  borderRadius: "4px",
                                                 }}
                                               >
                                                 <p
                                                   style={{
-                                                    margin:
-                                                      "0 0 5px 0",
+                                                    margin: "0 0 5px 0",
                                                   }}
                                                 >
                                                   {label}
                                                 </p>
-                                                {payload.map(
-                                                  (
-                                                    entry,
-                                                    index
-                                                  ) => {
-                                                    let value =
-                                                      entry.value;
-                                                    let unit =
-                                                      "";
-                                                    if (
-                                                      entry.name ===
-                                                      "TST"
-                                                    ) {
-                                                      value =
-                                                        Math.round(
-                                                          value
-                                                        ).toFixed(
-                                                          0
-                                                        );
-                                                      unit =
-                                                        " minutes";
-                                                    } else if (
-                                                      entry.name ===
-                                                        "WASO" ||
-                                                      entry.name ===
-                                                        "SOL"
-                                                    ) {
-                                                      value =
-                                                        value.toFixed(
-                                                          0
-                                                        );
-                                                      unit =
-                                                        " minutes";
-                                                    } else if (
-                                                      entry.name ===
-                                                      "PTA"
-                                                    ) {
-                                                      value =
-                                                        value.toFixed(
-                                                          1
-                                                        );
-                                                      unit =
-                                                        "%";
-                                                    } else if (
-                                                      entry.name ===
-                                                        "M10" ||
-                                                      entry.name ===
-                                                        "L5"
-                                                    ) {
-                                                      value =
-                                                        value.toFixed(
-                                                          2
-                                                        );
-                                                      unit =
-                                                        " mg";
-                                                    } else if (
-                                                      [
-                                                        "sedentary",
-                                                        "light",
-                                                        "moderate",
-                                                        "vigorous",
-                                                      ].includes(
-                                                        entry.name
-                                                      )
-                                                    ) {
-                                                      value =
-                                                        value.toFixed(
-                                                          0
-                                                        );
-                                                      unit =
-                                                        " minutes";
-                                                    }
-                                                    return (
-                                                      <p
-                                                        key={
-                                                          index
-                                                        }
-                                                        style={{
-                                                          margin:
-                                                            "0",
-                                                          color:
-                                                            entry.color,
-                                                        }}
-                                                      >
-                                                        {`${entry.name}: ${value}${unit}`}
-                                                      </p>
-                                                    );
+                                                {payload.map((entry, index) => {
+                                                  let value = entry.value;
+                                                  let unit = "";
+                                                  if (entry.name === "TST") {
+                                                    value =
+                                                      Math.round(value).toFixed(
+                                                        0
+                                                      );
+                                                    unit = " minutes";
+                                                  } else if (
+                                                    entry.name === "WASO" ||
+                                                    entry.name === "SOL"
+                                                  ) {
+                                                    value = value.toFixed(0);
+                                                    unit = " minutes";
+                                                  } else if (
+                                                    entry.name === "PTA"
+                                                  ) {
+                                                    value = value.toFixed(1);
+                                                    unit = "%";
+                                                  } else if (
+                                                    entry.name === "M10" ||
+                                                    entry.name === "L5"
+                                                  ) {
+                                                    value = value.toFixed(2);
+                                                    unit = " mg";
+                                                  } else if (
+                                                    [
+                                                      "sedentary",
+                                                      "light",
+                                                      "moderate",
+                                                      "vigorous",
+                                                    ].includes(entry.name)
+                                                  ) {
+                                                    value = value.toFixed(0);
+                                                    unit = " minutes";
                                                   }
-                                                )}
+                                                  return (
+                                                    <p
+                                                      key={index}
+                                                      style={{
+                                                        margin: "0",
+                                                        color: entry.color,
+                                                      }}
+                                                    >
+                                                      {`${entry.name}: ${value}${unit}`}
+                                                    </p>
+                                                  );
+                                                })}
+                                              </div>
+                                            );
+                                          }
+                                          return null;
+                                        }}
+                                      />
+                                      <Bar
+                                        dataKey="RA"
+                                        fill="#0088fe"
+                                        name="RA"
+                                      />
+                                    </BarChart>
+                                  </ResponsiveContainer>
+                                </Box>
+                              ) : key === "M10" &&
+                                data.features.nonparam.M10 &&
+                                data.features.nonparam.L5 ? (
+                                <>
+                                  <Box
+                                    sx={{
+                                      width: "100%",
+                                      height: 300,
+                                      mt: 2,
+                                    }}
+                                  >
+                                    <ResponsiveContainer
+                                      width="100%"
+                                      height="100%"
+                                    >
+                                      <BarChart
+                                        data={data.features.nonparam.M10.map(
+                                          (m10, index) => ({
+                                            day: getDateForIndex(
+                                              "M10",
+                                              index,
+                                              data
+                                            ),
+                                            M10: m10,
+                                            L5: data.features.nonparam.L5[
+                                              index
+                                            ],
+                                          })
+                                        )}
+                                        margin={{
+                                          top: 20,
+                                          right: 30,
+                                          left: 30,
+                                          bottom: 20,
+                                        }}
+                                      >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="day" />
+                                        <YAxis
+                                          label={{
+                                            value: "ENMO (mg)",
+                                            angle: -90,
+                                            position: "insideLeft",
+                                          }}
+                                        />
+                                        <RechartsTooltip
+                                          content={({
+                                            active,
+                                            payload,
+                                            label,
+                                          }) => {
+                                            if (
+                                              active &&
+                                              payload &&
+                                              payload.length
+                                            ) {
+                                              return (
+                                                <div
+                                                  style={{
+                                                    backgroundColor: "white",
+                                                    padding: "10px",
+                                                    border: "1px solid #ccc",
+                                                    borderRadius: "4px",
+                                                  }}
+                                                >
+                                                  <p
+                                                    style={{
+                                                      margin: "0 0 5px 0",
+                                                    }}
+                                                  >
+                                                    {label}
+                                                  </p>
+                                                  {payload.map(
+                                                    (entry, index) => {
+                                                      let value = entry.value;
+                                                      let unit = "";
+                                                      if (
+                                                        entry.name === "TST"
+                                                      ) {
+                                                        value =
+                                                          Math.round(
+                                                            value
+                                                          ).toFixed(0);
+                                                        unit = " minutes";
+                                                      } else if (
+                                                        entry.name === "WASO" ||
+                                                        entry.name === "SOL"
+                                                      ) {
+                                                        value =
+                                                          value.toFixed(0);
+                                                        unit = " minutes";
+                                                      } else if (
+                                                        entry.name === "PTA"
+                                                      ) {
+                                                        value =
+                                                          value.toFixed(1);
+                                                        unit = "%";
+                                                      } else if (
+                                                        entry.name === "M10" ||
+                                                        entry.name === "L5"
+                                                      ) {
+                                                        value =
+                                                          value.toFixed(2);
+                                                        unit = " mg";
+                                                      } else if (
+                                                        [
+                                                          "sedentary",
+                                                          "light",
+                                                          "moderate",
+                                                          "vigorous",
+                                                        ].includes(entry.name)
+                                                      ) {
+                                                        value =
+                                                          value.toFixed(0);
+                                                        unit = " minutes";
+                                                      }
+                                                      return (
+                                                        <p
+                                                          key={index}
+                                                          style={{
+                                                            margin: "0",
+                                                            color: entry.color,
+                                                          }}
+                                                        >
+                                                          {`${entry.name}: ${value}${unit}`}
+                                                        </p>
+                                                      );
+                                                    }
+                                                  )}
+                                                </div>
+                                              );
+                                            }
+                                            return null;
+                                          }}
+                                        />
+                                        <Legend />
+                                        <Bar
+                                          dataKey="M10"
+                                          fill="#8884d8"
+                                          name="M10"
+                                        />
+                                        <Bar
+                                          dataKey="L5"
+                                          fill="#82ca9d"
+                                          name="L5"
+                                        />
+                                      </BarChart>
+                                    </ResponsiveContainer>
+                                  </Box>
+                                </>
+                              ) : key === "TST" ||
+                                key === "WASO" ||
+                                key === "SOL" ||
+                                key === "PTA" ? (
+                                <Box
+                                  sx={{
+                                    width: "100%",
+                                    height: 300,
+                                    mt: 2,
+                                  }}
+                                >
+                                  <ResponsiveContainer
+                                    width="100%"
+                                    height="100%"
+                                  >
+                                    <BarChart
+                                      data={value.map((v, index) => ({
+                                        day: getDateForIndex(key, index, data),
+                                        [key]: v,
+                                      }))}
+                                      margin={{
+                                        top: 20,
+                                        right: 30,
+                                        left: 30,
+                                        bottom: 20,
+                                      }}
+                                    >
+                                      <CartesianGrid strokeDasharray="3 3" />
+                                      <XAxis dataKey="day" />
+                                      <YAxis
+                                        label={{
+                                          value:
+                                            key === "PTA"
+                                              ? "Percentage (%)"
+                                              : key === "NWB"
+                                              ? "Number of Bouts"
+                                              : "Minutes",
+                                          angle: -90,
+                                          position: "insideLeft",
+                                        }}
+                                      />
+                                      <RechartsTooltip
+                                        content={({
+                                          active,
+                                          payload,
+                                          label,
+                                        }) => {
+                                          if (
+                                            active &&
+                                            payload &&
+                                            payload.length
+                                          ) {
+                                            return (
+                                              <div
+                                                style={{
+                                                  backgroundColor: "white",
+                                                  padding: "10px",
+                                                  border: "1px solid #ccc",
+                                                  borderRadius: "4px",
+                                                }}
+                                              >
+                                                <p
+                                                  style={{
+                                                    margin: "0 0 5px 0",
+                                                  }}
+                                                >
+                                                  {label}
+                                                </p>
+                                                {payload.map((entry, index) => {
+                                                  let value = entry.value;
+                                                  let unit = "";
+                                                  if (entry.name === "TST") {
+                                                    value =
+                                                      Math.round(value).toFixed(
+                                                        0
+                                                      );
+                                                    unit = " minutes";
+                                                  } else if (
+                                                    entry.name === "WASO" ||
+                                                    entry.name === "SOL"
+                                                  ) {
+                                                    value = value.toFixed(0);
+                                                    unit = " minutes";
+                                                  } else if (
+                                                    entry.name === "PTA"
+                                                  ) {
+                                                    value = value.toFixed(1);
+                                                    unit = "%";
+                                                  } else if (
+                                                    entry.name === "NWB"
+                                                  ) {
+                                                    value = value.toFixed(0);
+                                                    unit = " bouts";
+                                                  }
+                                                  return (
+                                                    <p
+                                                      key={index}
+                                                      style={{
+                                                        margin: "0",
+                                                        color: entry.color,
+                                                      }}
+                                                    >
+                                                      {`${entry.name}: ${value}${unit}`}
+                                                    </p>
+                                                  );
+                                                })}
                                               </div>
                                             );
                                           }
@@ -3544,45 +3238,91 @@ const SingleIndividualLabSubTab = ({
                                       />
                                       <Legend />
                                       <Bar
-                                        dataKey="M10"
+                                        dataKey={key}
                                         fill="#8884d8"
-                                        name="M10"
-                                      />
-                                      <Bar
-                                        dataKey="L5"
-                                        fill="#82ca9d"
-                                        name="L5"
+                                        name={key}
                                       />
                                     </BarChart>
                                   </ResponsiveContainer>
                                 </Box>
-                              </>
-                            ) : key === "TST" ||
-                              key === "WASO" ||
-                              key === "SOL" ||
-                              key === "PTA" ? (
-                              <Box
-                                sx={{
-                                  width: "100%",
-                                  height: 300,
-                                  mt: 2,
-                                }}
-                              >
-                                <ResponsiveContainer
-                                  width="100%"
-                                  height="100%"
+                              ) : (
+                                <Typography variant="body1">
+                                  {Array.isArray(value)
+                                    ? value.join(", ")
+                                    : value}
+                                </Typography>
+                              )}
+                            </Grid>
+                          )
+                        )}
+                    </Grid>
+                    {/* Daily ENMO Time Series with M10 and L5 Periods */}
+                    <Box sx={{ mt: 4 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Daily ENMO Time Series with M10 and L5 Periods (incl.
+                        multiday Cosinor Fits)
+                      </Typography>
+                      <Grid container spacing={3}>
+                        {Array.from(
+                          new Set(
+                            data.data.map((item) => {
+                              const date = new Date(item.TIMESTAMP);
+                              return date.toLocaleDateString("en-CA");
+                            })
+                          )
+                        ).map((dayStr, dayIndex) => {
+                          const dayData = data.data.filter((item) => {
+                            const date = new Date(item.TIMESTAMP);
+                            return date.toLocaleDateString("en-CA") === dayStr;
+                          });
+                          if (dayData.length === 0) return null;
+                          const m10Start =
+                            data.features.nonparam.M10_start?.[dayIndex];
+                          const l5Start =
+                            data.features.nonparam.L5_start?.[dayIndex];
+                          if (!m10Start || !l5Start) return null;
+                          // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
+                          const dayDataWithNum = dayData.map((item) => {
+                            const globalIndex = data.data.findIndex(
+                              (d) => d.TIMESTAMP === item.TIMESTAMP
+                            );
+                            const globalData =
+                              globalIndex !== -1
+                                ? data.data[globalIndex]
+                                : null;
+                            return {
+                              ...item,
+                              timestampNum: new Date(item.TIMESTAMP).getTime(),
+                              cosinor_fitted: globalData
+                                ? globalData.cosinor_fitted
+                                : null,
+                            };
+                          });
+                          const dayDataWithNumSorted = [...dayDataWithNum].sort(
+                            (a, b) => a.timestampNum - b.timestampNum
+                          );
+                          // Check if m10StartDate and l5StartDate are valid
+                          const m10StartDate =
+                            m10Start && m10Start.includes("T")
+                              ? new Date(m10Start)
+                              : new Date(`${dayStr}T${m10Start}`);
+                          const l5StartDate =
+                            l5Start && l5Start.includes("T")
+                              ? new Date(l5Start)
+                              : new Date(`${dayStr}T${l5Start}`);
+                          return (
+                            <Grid item xs={12} key={dayStr}>
+                              <Paper sx={{ p: 3, mb: 3 }}>
+                                <Typography
+                                  variant="subtitle1"
+                                  gutterBottom
+                                  align="center"
                                 >
-                                  <BarChart
-                                    data={value.map(
-                                      (v, index) => ({
-                                        day: getDateForIndex(
-                                          key,
-                                          index,
-                                          data
-                                        ),
-                                        [key]: v,
-                                      })
-                                    )}
+                                  {dayStr}
+                                </Typography>
+                                <ResponsiveContainer width="100%" height={300}>
+                                  <LineChart
+                                    data={dayDataWithNumSorted}
                                     margin={{
                                       top: 20,
                                       right: 30,
@@ -3591,25 +3331,37 @@ const SingleIndividualLabSubTab = ({
                                     }}
                                   >
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="day" />
+                                    <XAxis
+                                      dataKey="timestampNum"
+                                      type="number"
+                                      domain={["dataMin", "dataMax"]}
+                                      tickFormatter={(timestampNum) => {
+                                        const date = new Date(timestampNum);
+                                        return date.toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        });
+                                      }}
+                                    />
                                     <YAxis
+                                      yAxisId="left"
                                       label={{
-                                        value:
-                                          key === "PTA"
-                                            ? "Percentage (%)"
-                                            : key === "NWB"
-                                            ? "Number of Bouts"
-                                            : "Minutes",
+                                        value: "ENMO (mg)",
                                         angle: -90,
                                         position: "insideLeft",
                                       }}
                                     />
+                                    <YAxis
+                                      yAxisId="right"
+                                      orientation="right"
+                                      label={{
+                                        value: "Cosinor Fit (mg)",
+                                        angle: 90,
+                                        position: "insideRight",
+                                      }}
+                                    />
                                     <RechartsTooltip
-                                      content={({
-                                        active,
-                                        payload,
-                                        label,
-                                      }) => {
+                                      content={({ active, payload, label }) => {
                                         if (
                                           active &&
                                           payload &&
@@ -3618,92 +3370,70 @@ const SingleIndividualLabSubTab = ({
                                           return (
                                             <div
                                               style={{
-                                                backgroundColor:
-                                                  "white",
+                                                backgroundColor: "white",
                                                 padding: "10px",
-                                                border:
-                                                  "1px solid #ccc",
-                                                borderRadius:
-                                                  "4px",
+                                                border: "1px solid #ccc",
+                                                borderRadius: "4px",
                                               }}
                                             >
                                               <p
                                                 style={{
-                                                  margin:
-                                                    "0 0 5px 0",
+                                                  margin: "0 0 5px 0",
                                                 }}
                                               >
-                                                {label}
+                                                {new Date(
+                                                  label
+                                                ).toLocaleString()}
                                               </p>
-                                              {payload.map(
-                                                (
-                                                  entry,
-                                                  index
-                                                ) => {
-                                                  let value =
-                                                    entry.value;
-                                                  let unit = "";
-                                                  if (
-                                                    entry.name ===
-                                                    "TST"
-                                                  ) {
-                                                    value =
-                                                      Math.round(
-                                                        value
-                                                      ).toFixed(
-                                                        0
-                                                      );
-                                                    unit =
-                                                      " minutes";
-                                                  } else if (
-                                                    entry.name ===
-                                                      "WASO" ||
-                                                    entry.name ===
-                                                      "SOL"
-                                                  ) {
-                                                    value =
-                                                      value.toFixed(
-                                                        0
-                                                      );
-                                                    unit =
-                                                      " minutes";
-                                                  } else if (
-                                                    entry.name ===
-                                                    "PTA"
-                                                  ) {
-                                                    value =
-                                                      value.toFixed(
-                                                        1
-                                                      );
-                                                    unit = "%";
-                                                  } else if (
-                                                    entry.name ===
-                                                    "NWB"
-                                                  ) {
-                                                    value =
-                                                      value.toFixed(
-                                                        0
-                                                      );
-                                                    unit =
-                                                      " bouts";
-                                                  }
-                                                  return (
-                                                    <p
-                                                      key={
-                                                        index
-                                                      }
-                                                      style={{
-                                                        margin:
-                                                          "0",
-                                                        color:
-                                                          entry.color,
-                                                      }}
-                                                    >
-                                                      {`${entry.name}: ${value}${unit}`}
-                                                    </p>
-                                                  );
+                                              {payload.map((entry, index) => {
+                                                let value = entry.value;
+                                                let unit = "";
+                                                if (entry.name === "TST") {
+                                                  value =
+                                                    Math.round(value).toFixed(
+                                                      0
+                                                    );
+                                                  unit = " minutes";
+                                                } else if (
+                                                  entry.name === "WASO" ||
+                                                  entry.name === "SOL"
+                                                ) {
+                                                  value = value.toFixed(0);
+                                                  unit = " minutes";
+                                                } else if (
+                                                  entry.name === "PTA"
+                                                ) {
+                                                  value = value.toFixed(1);
+                                                  unit = "%";
+                                                } else if (
+                                                  entry.name === "M10" ||
+                                                  entry.name === "L5"
+                                                ) {
+                                                  value = value.toFixed(2);
+                                                  unit = " mg";
+                                                } else if (
+                                                  [
+                                                    "sedentary",
+                                                    "light",
+                                                    "moderate",
+                                                    "vigorous",
+                                                  ].includes(entry.name)
+                                                ) {
+                                                  value = value.toFixed(0);
+                                                  unit = " minutes";
                                                 }
-                                              )}
+                                                return (
+                                                  <p
+                                                    key={index}
+                                                    style={{
+                                                      margin: "0",
+                                                      color: entry.color,
+                                                    }}
+                                                  >
+                                                    {`${entry.name}: ${value}${unit}`}
+                                                  </p>
+                                                );
+                                              })}
                                             </div>
                                           );
                                         }
@@ -3711,384 +3441,81 @@ const SingleIndividualLabSubTab = ({
                                       }}
                                     />
                                     <Legend />
-                                    <Bar
-                                      dataKey={key}
-                                      fill="#8884d8"
-                                      name={key}
+                                    <Line
+                                      type="monotone"
+                                      dataKey="ENMO"
+                                      stroke="#8884d8"
+                                      dot={false}
+                                      isAnimationActive={false}
+                                      yAxisId="left"
                                     />
-                                  </BarChart>
-                                </ResponsiveContainer>
-                              </Box>
-                            ) : (
-                              <Typography variant="body1">
-                                {Array.isArray(value)
-                                  ? value.join(", ")
-                                  : value}
-                              </Typography>
-                            )}
-                          </Grid>
-                        )
-                      )}
-                  </Grid>
-                  {/* Daily ENMO Time Series with M10 and L5 Periods */}
-                  <Box sx={{ mt: 4 }}>
-                    <Typography
-                      variant="subtitle2"
-                      gutterBottom
-                    >
-                      Daily ENMO Time Series with M10 and L5
-                      Periods (incl. multiday Cosinor Fits)
-                    </Typography>
-                    <Grid container spacing={3}>
-                      {Array.from(
-                        new Set(
-                          data.data.map((item) => {
-                            const date = new Date(
-                              item.TIMESTAMP
-                            );
-                            return date.toLocaleDateString(
-                              "en-CA"
-                            );
-                          })
-                        )
-                      ).map((dayStr, dayIndex) => {
-                        const dayData = data.data.filter(
-                          (item) => {
-                            const date = new Date(
-                              item.TIMESTAMP
-                            );
-                            return (
-                              date.toLocaleDateString(
-                                "en-CA"
-                              ) === dayStr
-                            );
-                          }
-                        );
-                        if (dayData.length === 0) return null;
-                        const m10Start =
-                          data.features.nonparam.M10_start?.[
-                            dayIndex
-                          ];
-                        const l5Start =
-                          data.features.nonparam.L5_start?.[
-                            dayIndex
-                          ];
-                        if (!m10Start || !l5Start) return null;
-                        // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
-                        const dayDataWithNum = dayData.map(
-                          (item) => {
-                            const globalIndex =
-                              data.data.findIndex(
-                                (d) =>
-                                  d.TIMESTAMP === item.TIMESTAMP
-                              );
-                            const globalData =
-                              globalIndex !== -1
-                                ? data.data[globalIndex]
-                                : null;
-                            return {
-                              ...item,
-                              timestampNum: new Date(
-                                item.TIMESTAMP
-                              ).getTime(),
-                              cosinor_fitted: globalData
-                                ? globalData.cosinor_fitted
-                                : null,
-                            };
-                          }
-                        );
-                        const dayDataWithNumSorted = [
-                          ...dayDataWithNum,
-                        ].sort(
-                          (a, b) =>
-                            a.timestampNum - b.timestampNum
-                        );
-                        // Check if m10StartDate and l5StartDate are valid
-                        const m10StartDate =
-                          m10Start && m10Start.includes("T")
-                            ? new Date(m10Start)
-                            : new Date(`${dayStr}T${m10Start}`);
-                        const l5StartDate =
-                          l5Start && l5Start.includes("T")
-                            ? new Date(l5Start)
-                            : new Date(`${dayStr}T${l5Start}`);
-                        return (
-                          <Grid item xs={12} key={dayStr}>
-                            <Paper sx={{ p: 3, mb: 3 }}>
-                              <Typography
-                                variant="subtitle1"
-                                gutterBottom
-                                align="center"
-                              >
-                                {dayStr}
-                              </Typography>
-                              <ResponsiveContainer
-                                width="100%"
-                                height={300}
-                              >
-                                <LineChart
-                                  data={dayDataWithNumSorted}
-                                  margin={{
-                                    top: 20,
-                                    right: 30,
-                                    left: 30,
-                                    bottom: 20,
-                                  }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis
-                                    dataKey="timestampNum"
-                                    type="number"
-                                    domain={[
-                                      "dataMin",
-                                      "dataMax",
-                                    ]}
-                                    tickFormatter={(
-                                      timestampNum
-                                    ) => {
-                                      const date = new Date(
-                                        timestampNum
-                                      );
-                                      return date.toLocaleTimeString(
-                                        [],
-                                        {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
+                                    <Line
+                                      type="monotone"
+                                      dataKey="cosinor_fitted"
+                                      stroke="#ff0000"
+                                      dot={false}
+                                      isAnimationActive={false}
+                                      name="Cosinor Fit"
+                                      yAxisId="left"
+                                    />
+                                    {/* M10 Period Band */}
+                                    <ReferenceArea
+                                      x1={m10StartDate.getTime()}
+                                      x2={(() => {
+                                        const x2Value = new Date(
+                                          m10StartDate.getTime() +
+                                            10 * 60 * 60 * 1000
+                                        );
+                                        if (
+                                          x2Value.getHours() === 0 &&
+                                          x2Value.getMinutes() === 0
+                                        ) {
+                                          return x2Value.getTime() - 60000;
                                         }
-                                      );
-                                    }}
-                                  />
-                                  <YAxis
-                                    yAxisId="left"
-                                    label={{
-                                      value: "ENMO (mg)",
-                                      angle: -90,
-                                      position: "insideLeft",
-                                    }}
-                                  />
-                                  <YAxis
-                                    yAxisId="right"
-                                    orientation="right"
-                                    label={{
-                                      value: "Cosinor Fit (mg)",
-                                      angle: 90,
-                                      position: "insideRight",
-                                    }}
-                                  />
-                                  <RechartsTooltip
-                                    content={({
-                                      active,
-                                      payload,
-                                      label,
-                                    }) => {
-                                      if (
-                                        active &&
-                                        payload &&
-                                        payload.length
-                                      ) {
-                                        return (
-                                          <div
-                                            style={{
-                                              backgroundColor:
-                                                "white",
-                                              padding: "10px",
-                                              border:
-                                                "1px solid #ccc",
-                                              borderRadius:
-                                                "4px",
-                                            }}
-                                          >
-                                            <p
-                                              style={{
-                                                margin:
-                                                  "0 0 5px 0",
-                                              }}
-                                            >
-                                              {new Date(
-                                                label
-                                              ).toLocaleString()}
-                                            </p>
-                                            {payload.map(
-                                              (
-                                                entry,
-                                                index
-                                              ) => {
-                                                let value =
-                                                  entry.value;
-                                                let unit = "";
-                                                if (
-                                                  entry.name ===
-                                                  "TST"
-                                                ) {
-                                                  value =
-                                                    Math.round(
-                                                      value
-                                                    ).toFixed(
-                                                      0
-                                                    );
-                                                  unit =
-                                                    " minutes";
-                                                } else if (
-                                                  entry.name ===
-                                                    "WASO" ||
-                                                  entry.name ===
-                                                    "SOL"
-                                                ) {
-                                                  value =
-                                                    value.toFixed(
-                                                      0
-                                                    );
-                                                  unit =
-                                                    " minutes";
-                                                } else if (
-                                                  entry.name ===
-                                                  "PTA"
-                                                ) {
-                                                  value =
-                                                    value.toFixed(
-                                                      1
-                                                    );
-                                                  unit = "%";
-                                                } else if (
-                                                  entry.name ===
-                                                    "M10" ||
-                                                  entry.name ===
-                                                    "L5"
-                                                ) {
-                                                  value =
-                                                    value.toFixed(
-                                                      2
-                                                    );
-                                                  unit =
-                                                    " mg";
-                                                } else if (
-                                                  [
-                                                    "sedentary",
-                                                    "light",
-                                                    "moderate",
-                                                    "vigorous",
-                                                  ].includes(
-                                                    entry.name
-                                                  )
-                                                ) {
-                                                  value =
-                                                    value.toFixed(
-                                                      0
-                                                    );
-                                                  unit =
-                                                    " minutes";
-                                                }
-                                                return (
-                                                  <p
-                                                    key={index}
-                                                    style={{
-                                                      margin:
-                                                        "0",
-                                                      color:
-                                                        entry.color,
-                                                    }}
-                                                  >
-                                                    {`${entry.name}: ${value}${unit}`}
-                                                  </p>
-                                                );
-                                              }
-                                            )}
-                                          </div>
+                                        return x2Value.getTime();
+                                      })()}
+                                      fill="#8884d8"
+                                      fillOpacity={0.1}
+                                      label="M10"
+                                      yAxisId="left"
+                                    />
+                                    {/* L5 Period Band */}
+                                    <ReferenceArea
+                                      x1={l5StartDate.getTime()}
+                                      x2={(() => {
+                                        const x2Value = new Date(
+                                          l5StartDate.getTime() +
+                                            5 * 60 * 60 * 1000
                                         );
-                                      }
-                                      return null;
-                                    }}
-                                  />
-                                  <Legend />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="ENMO"
-                                    stroke="#8884d8"
-                                    dot={false}
-                                    isAnimationActive={false}
-                                    yAxisId="left"
-                                  />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="cosinor_fitted"
-                                    stroke="#ff0000"
-                                    dot={false}
-                                    isAnimationActive={false}
-                                    name="Cosinor Fit"
-                                    yAxisId="left"
-                                  />
-                                  {/* M10 Period Band */}
-                                  <ReferenceArea
-                                    x1={m10StartDate.getTime()}
-                                    x2={(() => {
-                                      const x2Value = new Date(
-                                        m10StartDate.getTime() +
-                                          10 * 60 * 60 * 1000
-                                      );
-                                      if (
-                                        x2Value.getHours() ===
-                                          0 &&
-                                        x2Value.getMinutes() ===
-                                          0
-                                      ) {
-                                        return (
-                                          x2Value.getTime() -
-                                          60000
-                                        );
-                                      }
-                                      return x2Value.getTime();
-                                    })()}
-                                    fill="#8884d8"
-                                    fillOpacity={0.1}
-                                    label="M10"
-                                    yAxisId="left"
-                                  />
-                                  {/* L5 Period Band */}
-                                  <ReferenceArea
-                                    x1={l5StartDate.getTime()}
-                                    x2={(() => {
-                                      const x2Value = new Date(
-                                        l5StartDate.getTime() +
-                                          5 * 60 * 60 * 1000
-                                      );
-                                      if (
-                                        x2Value.getHours() ===
-                                          0 &&
-                                        x2Value.getMinutes() ===
-                                          0
-                                      ) {
-                                        return (
-                                          x2Value.getTime() -
-                                          60000
-                                        );
-                                      }
-                                      return x2Value.getTime();
-                                    })()}
-                                    fill="#82ca9d"
-                                    fillOpacity={0.1}
-                                    label="L5"
-                                    yAxisId="left"
-                                  />
-                                </LineChart>
-                              </ResponsiveContainer>
-                            </Paper>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                  </Box>
-                </Paper>
-              </Grid>
-            )}
+                                        if (
+                                          x2Value.getHours() === 0 &&
+                                          x2Value.getMinutes() === 0
+                                        ) {
+                                          return x2Value.getTime() - 60000;
+                                        }
+                                        return x2Value.getTime();
+                                      })()}
+                                      fill="#82ca9d"
+                                      fillOpacity={0.1}
+                                      label="L5"
+                                      yAxisId="left"
+                                    />
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              </Paper>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    </Box>
+                  </Paper>
+                </Grid>
+              )}
 
-            {/* Physical Activity Features */}
-            {data?.features &&
-              data.features.physical_activity && (
+              {/* Physical Activity Features */}
+              {data?.features && data.features.physical_activity && (
                 <Grid item xs={12}>
-                  <Paper
-                    variant="outlined"
-                    sx={{ p: 2, mt: 2 }}
-                  >
+                  <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
                     <Box
                       sx={{
                         display: "flex",
@@ -4104,54 +3531,42 @@ const SingleIndividualLabSubTab = ({
                     {/* Stacked Bar Chart for Activity Levels */}
                     <Box sx={{ mt: 2 }}>
                       <Box sx={{ width: "100%", height: 300 }}>
-                        <ResponsiveContainer
-                          width="100%"
-                          height="100%"
-                        >
+                        <ResponsiveContainer width="100%" height="100%">
                           <BarChart
                             data={(() => {
                               const days = Array.from(
                                 new Set(
                                   data.data.map((item) => {
-                                    const date = new Date(
-                                      item.TIMESTAMP
-                                    );
-                                    return date.toLocaleDateString(
-                                      "en-CA"
-                                    );
+                                    const date = new Date(item.TIMESTAMP);
+                                    return date.toLocaleDateString("en-CA");
                                   })
                                 )
                               );
-                              return days.map(
-                                (dayStr, dayIndex) => {
-                                  const sedentary =
-                                    data.features
-                                      .physical_activity
-                                      .sedentary?.[dayIndex] ||
-                                    0;
-                                  const light =
-                                    data.features
-                                      .physical_activity
-                                      .light?.[dayIndex] || 0;
-                                  const moderate =
-                                    data.features
-                                      .physical_activity
-                                      .moderate?.[dayIndex] ||
-                                    0;
-                                  const vigorous =
-                                    data.features
-                                      .physical_activity
-                                      .vigorous?.[dayIndex] ||
-                                    0;
-                                  return {
-                                    day: dayStr,
-                                    sedentary,
-                                    light,
-                                    moderate,
-                                    vigorous,
-                                  };
-                                }
-                              );
+                              return days.map((dayStr, dayIndex) => {
+                                const sedentary =
+                                  data.features.physical_activity.sedentary?.[
+                                    dayIndex
+                                  ] || 0;
+                                const light =
+                                  data.features.physical_activity.light?.[
+                                    dayIndex
+                                  ] || 0;
+                                const moderate =
+                                  data.features.physical_activity.moderate?.[
+                                    dayIndex
+                                  ] || 0;
+                                const vigorous =
+                                  data.features.physical_activity.vigorous?.[
+                                    dayIndex
+                                  ] || 0;
+                                return {
+                                  day: dayStr,
+                                  sedentary,
+                                  light,
+                                  moderate,
+                                  vigorous,
+                                };
+                              });
                             })()}
                             margin={{
                               top: 20,
@@ -4170,24 +3585,14 @@ const SingleIndividualLabSubTab = ({
                               }}
                             />
                             <RechartsTooltip
-                              content={({
-                                active,
-                                payload,
-                                label,
-                              }) => {
-                                if (
-                                  active &&
-                                  payload &&
-                                  payload.length
-                                ) {
+                              content={({ active, payload, label }) => {
+                                if (active && payload && payload.length) {
                                   return (
                                     <div
                                       style={{
-                                        backgroundColor:
-                                          "white",
+                                        backgroundColor: "white",
                                         padding: "10px",
-                                        border:
-                                          "1px solid #ccc",
+                                        border: "1px solid #ccc",
                                         borderRadius: "4px",
                                       }}
                                     >
@@ -4198,69 +3603,50 @@ const SingleIndividualLabSubTab = ({
                                       >
                                         {label}
                                       </p>
-                                      {payload.map(
-                                        (entry, index) => {
-                                          let value =
-                                            entry.value;
-                                          let unit = "";
-                                          if (
-                                            entry.name === "TST"
-                                          ) {
-                                            value =
-                                              Math.round(
-                                                value
-                                              ).toFixed(0);
-                                            unit = " minutes";
-                                          } else if (
-                                            entry.name ===
-                                              "WASO" ||
-                                            entry.name === "SOL"
-                                          ) {
-                                            value =
-                                              value.toFixed(0);
-                                            unit = " minutes";
-                                          } else if (
-                                            entry.name === "PTA"
-                                          ) {
-                                            value =
-                                              value.toFixed(1);
-                                            unit = "%";
-                                          } else if (
-                                            entry.name ===
-                                              "M10" ||
-                                            entry.name === "L5"
-                                          ) {
-                                            value =
-                                              value.toFixed(2);
-                                            unit = " mg";
-                                          } else if (
-                                            [
-                                              "sedentary",
-                                              "light",
-                                              "moderate",
-                                              "vigorous",
-                                            ].includes(
-                                              entry.name
-                                            )
-                                          ) {
-                                            value =
-                                              value.toFixed(0);
-                                            unit = " minutes";
-                                          }
-                                          return (
-                                            <p
-                                              key={index}
-                                              style={{
-                                                margin: "0",
-                                                color:
-                                                  entry.color,
-                                              }}
-                                            >
-                                              {`${entry.name}: ${value}${unit}`}
-                                            </p>
-                                          );
+                                      {payload.map((entry, index) => {
+                                        let value = entry.value;
+                                        let unit = "";
+                                        if (entry.name === "TST") {
+                                          value = Math.round(value).toFixed(0);
+                                          unit = " minutes";
+                                        } else if (
+                                          entry.name === "WASO" ||
+                                          entry.name === "SOL"
+                                        ) {
+                                          value = value.toFixed(0);
+                                          unit = " minutes";
+                                        } else if (entry.name === "PTA") {
+                                          value = value.toFixed(1);
+                                          unit = "%";
+                                        } else if (
+                                          entry.name === "M10" ||
+                                          entry.name === "L5"
+                                        ) {
+                                          value = value.toFixed(2);
+                                          unit = " mg";
+                                        } else if (
+                                          [
+                                            "sedentary",
+                                            "light",
+                                            "moderate",
+                                            "vigorous",
+                                          ].includes(entry.name)
+                                        ) {
+                                          value = value.toFixed(0);
+                                          unit = " minutes";
                                         }
-                                      )}
+                                        return (
+                                          <p
+                                            key={index}
+                                            style={{
+                                              margin: "0",
+                                              color: entry.color,
+                                            }}
+                                          >
+                                            {`${entry.name}: ${value}${unit}`}
+                                          </p>
+                                        );
+                                      })}
                                     </div>
                                   );
                                 }
@@ -4300,532 +3686,399 @@ const SingleIndividualLabSubTab = ({
                 </Grid>
               )}
 
-            {/* Sleep Features */}
-            {data?.features && data.features.sleep && (
-              <Grid item xs={12}>
-                <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <Typography variant="h6" gutterBottom>
-                      Sleep Features
-                    </Typography>
-                    <SectionInfoButton section="sleep" />
-                  </Box>
-                  <Grid container spacing={2}>
-                    {Object.entries(data.features.sleep)
-                      .filter(
-                        ([key]) =>
-                          key.toLowerCase() !== "sri_flag"
-                      ) // Filter out SRI_flag but keep SRI
-                      .sort(([keyA], [keyB]) => {
-                        // Define the desired order - SRI first, then others
-                        const order = {
-                          sri: 1,
-                          tst: 2,
-                          waso: 3,
-                          sol: 4,
-                          pta: 5,
-                          nwb: 6,
-                        };
-                        const orderA =
-                          order[keyA.toLowerCase()] || 7;
-                        const orderB =
-                          order[keyB.toLowerCase()] || 7;
-                        return orderA - orderB;
-                      })
-                      .map(([key, value]) => (
-                        <Grid item xs={12} key={key}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
-                            }}
-                          >
-                            <Typography
-                              variant="subtitle2"
-                              color="text.secondary"
-                            >
-                              {key === "TST"
-                                ? "Total Sleep Time (TST)"
-                                : key === "WASO"
-                                ? "Wake After Sleep Onset (WASO)"
-                                : key === "SOL"
-                                ? "Sleep Onset Latency (SOL)"
-                                : key === "PTA"
-                                ? "Percent Time Asleep (PTA)"
-                                : key === "NWB"
-                                ? "Number of Wake Bouts (NWB)"
-                                : key === "SRI"
-                                ? "Sleep Regularity Index (SRI)"
-                                : key
-                                    .replace(/_/g, " ")
-                                    .replace(/\b\w/g, (l) =>
-                                      l.toUpperCase()
-                                    )}
-                            </Typography>
-                            <SectionInfoButton metric={key} />
-                          </Box>
-                          {/* SRI as horizontal scale */}
-                          {key.toLowerCase() === "sri" &&
-                          typeof value === "number" ? (
-                            <HorizontalScale
-                              value={value}
-                              min={-100}
-                              max={100}
-                              color="#9c27b0"
-                            />
-                          ) : Array.isArray(value) ? (
-                            <Box
-                              sx={{
-                                width: "100%",
-                                height: 300,
-                                mt: 2,
-                              }}
-                            >
-                              <ResponsiveContainer
-                                width="100%"
-                                height="100%"
-                              >
-                                <BarChart
-                                  data={value.map(
-                                    (v, index) => ({
-                                      day: getDateForIndex(
-                                        key,
-                                        index,
-                                        data
-                                      ),
-                                      [key]: v,
-                                    })
-                                  )}
-                                  margin={{
-                                    top: 20,
-                                    right: 30,
-                                    left: 30,
-                                    bottom: 20,
-                                  }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis dataKey="day" />
-                                  <YAxis
-                                    label={{
-                                      value:
-                                        key === "PTA"
-                                          ? "Percentage (%)"
-                                          : key === "NWB"
-                                          ? "Number of Bouts"
-                                          : "Minutes",
-                                      angle: -90,
-                                      position: "insideLeft",
-                                    }}
-                                  />
-                                  <RechartsTooltip
-                                    content={({
-                                      active,
-                                      payload,
-                                      label,
-                                    }) => {
-                                      if (
-                                        active &&
-                                        payload &&
-                                        payload.length
-                                      ) {
-                                        return (
-                                          <div
-                                            style={{
-                                              backgroundColor:
-                                                "white",
-                                              padding: "10px",
-                                              border:
-                                                "1px solid #ccc",
-                                              borderRadius:
-                                                "4px",
-                                            }}
-                                          >
-                                            <p
-                                              style={{
-                                                margin:
-                                                  "0 0 5px 0",
-                                              }}
-                                            >
-                                              {label}
-                                            </p>
-                                            {payload.map(
-                                              (
-                                                entry,
-                                                index
-                                              ) => {
-                                                let value =
-                                                  entry.value;
-                                                let unit = "";
-                                                if (
-                                                  entry.name ===
-                                                  "TST"
-                                                ) {
-                                                  value =
-                                                    Math.round(
-                                                      value
-                                                    ).toFixed(
-                                                      0
-                                                    );
-                                                  unit =
-                                                    " minutes";
-                                                } else if (
-                                                  entry.name ===
-                                                    "WASO" ||
-                                                  entry.name ===
-                                                    "SOL"
-                                                ) {
-                                                  value =
-                                                    value.toFixed(
-                                                      0
-                                                    );
-                                                  unit =
-                                                    " minutes";
-                                                } else if (
-                                                  entry.name ===
-                                                  "PTA"
-                                                ) {
-                                                  value =
-                                                    value.toFixed(
-                                                      1
-                                                    );
-                                                  unit = "%";
-                                                } else if (
-                                                  entry.name ===
-                                                  "NWB"
-                                                ) {
-                                                  value =
-                                                    value.toFixed(
-                                                      0
-                                                    );
-                                                  unit =
-                                                    " bouts";
-                                                }
-                                                return (
-                                                  <p
-                                                    key={index}
-                                                    style={{
-                                                      margin:
-                                                        "0",
-                                                      color:
-                                                        entry.color,
-                                                    }}
-                                                  >
-                                                    {`${entry.name}: ${value}${unit}`}
-                                                  </p>
-                                                );
-                                              }
-                                            )}
-                                          </div>
-                                        );
-                                      }
-                                      return null;
-                                    }}
-                                  />
-                                  <Legend />
-                                  <Bar
-                                    dataKey={key}
-                                    fill="#8884d8"
-                                    name={key}
-                                  />
-                                </BarChart>
-                              </ResponsiveContainer>
-                            </Box>
-                          ) : (
-                            <Typography variant="body1">
-                              {typeof value === "number"
-                                ? key === "PTA"
-                                  ? `${value.toFixed(1)}%`
-                                  : key === "NWB"
-                                  ? `${value.toFixed(0)} bouts`
-                                  : `${value.toFixed(
-                                      0
-                                    )} minutes`
-                                : value}
-                            </Typography>
-                          )}
-                        </Grid>
-                      ))}
-                  </Grid>
-
-                  {/* Daily ENMO Time Series with Sleep Bands */}
-                  <Box sx={{ mt: 4 }}>
-                    <Typography
-                      variant="subtitle2"
-                      gutterBottom
-                    >
-                      Daily ENMO Time Series with Sleep Periods
-                    </Typography>
-                    {/* Custom legend for sleep periods */}
+              {/* Sleep Features */}
+              {data?.features && data.features.sleep && (
+                <Grid item xs={12}>
+                  <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
                     <Box
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        mb: 2,
-                        ml: 1,
+                        gap: 1,
                       }}
                     >
-                      <Box
-                        sx={{
-                          width: 18,
-                          height: 18,
-                          bgcolor: "#2196f3",
-                          opacity: 0.15,
-                          border: "1px solid #2196f3",
-                          mr: 1,
-                        }}
-                      />
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                      >
-                        Sleep Period
+                      <Typography variant="h6" gutterBottom>
+                        Sleep Features
                       </Typography>
+                      <SectionInfoButton section="sleep" />
                     </Box>
-                    <Grid container spacing={3}>
-                      {Array.from(
-                        new Set(
-                          data.data.map((item) => {
-                            const date = new Date(
-                              item.TIMESTAMP
-                            );
-                            return date.toLocaleDateString(
-                              "en-CA"
-                            );
-                          })
-                        )
-                      ).map((dayStr, dayIndex) => {
-                        const dayData = data.data.filter(
-                          (item) => {
-                            const date = new Date(
-                              item.TIMESTAMP
-                            );
-                            return (
-                              date.toLocaleDateString(
-                                "en-CA"
-                              ) === dayStr
-                            );
-                          }
-                        );
-                        if (dayData.length === 0) return null;
-                        // Add a 'timestampNum' property for numeric x-axis
-                        const dayDataWithNum = dayData.map(
-                          (item) => ({
-                            ...item,
-                            timestampNum: new Date(
-                              item.TIMESTAMP
-                            ).getTime(),
-                          })
-                        );
-                        const dayDataWithNumSorted = [
-                          ...dayDataWithNum,
-                        ].sort(
-                          (a, b) =>
-                            a.timestampNum - b.timestampNum
-                        );
-                        // Find sleep=1 intervals
-                        const sleepBands = [];
-                        let bandStart = null;
-                        for (
-                          let i = 0;
-                          i < dayDataWithNumSorted.length;
-                          i++
-                        ) {
-                          if (
-                            dayDataWithNumSorted[i].sleep ===
-                              1 &&
-                            bandStart === null
-                          ) {
-                            bandStart =
-                              dayDataWithNumSorted[i]
-                                .timestampNum;
-                          }
-                          if (
-                            (dayDataWithNumSorted[i].sleep !==
-                              1 ||
-                              i ===
-                                dayDataWithNumSorted.length -
-                                  1) &&
-                            bandStart !== null
-                          ) {
-                            const bandEnd =
-                              dayDataWithNumSorted[i - 1]
-                                .timestampNum;
-                            sleepBands.push({
-                              start: bandStart,
-                              end: bandEnd,
-                            });
-                            bandStart = null;
-                          }
-                        }
-                        return (
-                          <Grid item xs={12} key={dayStr}>
-                            <Paper sx={{ p: 3, mb: 3 }}>
+                    <Grid container spacing={2}>
+                      {Object.entries(data.features.sleep)
+                        .filter(([key]) => key.toLowerCase() !== "sri_flag") // Filter out SRI_flag but keep SRI
+                        .sort(([keyA], [keyB]) => {
+                          // Define the desired order - SRI first, then others
+                          const order = {
+                            sri: 1,
+                            tst: 2,
+                            waso: 3,
+                            sol: 4,
+                            pta: 5,
+                            nwb: 6,
+                          };
+                          const orderA = order[keyA.toLowerCase()] || 7;
+                          const orderB = order[keyB.toLowerCase()] || 7;
+                          return orderA - orderB;
+                        })
+                        .map(([key, value]) => (
+                          <Grid item xs={12} key={key}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
                               <Typography
-                                variant="subtitle1"
-                                gutterBottom
-                                align="center"
+                                variant="subtitle2"
+                                color="text.secondary"
                               >
-                                {dayStr}
+                                {key === "TST"
+                                  ? "Total Sleep Time (TST)"
+                                  : key === "WASO"
+                                  ? "Wake After Sleep Onset (WASO)"
+                                  : key === "SOL"
+                                  ? "Sleep Onset Latency (SOL)"
+                                  : key === "PTA"
+                                  ? "Percent Time Asleep (PTA)"
+                                  : key === "NWB"
+                                  ? "Number of Wake Bouts (NWB)"
+                                  : key === "SRI"
+                                  ? "Sleep Regularity Index (SRI)"
+                                  : key
+                                      .replace(/_/g, " ")
+                                      .replace(/\b\w/g, (l) => l.toUpperCase())}
                               </Typography>
-                              <ResponsiveContainer
-                                width="100%"
-                                height={300}
+                              <SectionInfoButton metric={key} />
+                            </Box>
+                            {/* SRI as horizontal scale */}
+                            {key.toLowerCase() === "sri" &&
+                            typeof value === "number" ? (
+                              <HorizontalScale
+                                value={value}
+                                min={-100}
+                                max={100}
+                                color="#9c27b0"
+                              />
+                            ) : Array.isArray(value) ? (
+                              <Box
+                                sx={{
+                                  width: "100%",
+                                  height: 300,
+                                  mt: 2,
+                                }}
                               >
-                                <LineChart
-                                  data={dayDataWithNumSorted}
-                                  margin={{
-                                    top: 20,
-                                    right: 30,
-                                    left: 30,
-                                    bottom: 20,
-                                  }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis
-                                    dataKey="timestampNum"
-                                    type="number"
-                                    domain={[
-                                      "dataMin",
-                                      "dataMax",
-                                    ]}
-                                    tickFormatter={(
-                                      timestampNum
-                                    ) => {
-                                      const date = new Date(
-                                        timestampNum
-                                      );
-                                      return date.toLocaleTimeString(
-                                        [],
-                                        {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                        }
-                                      );
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart
+                                    data={value.map((v, index) => ({
+                                      day: getDateForIndex(key, index, data),
+                                      [key]: v,
+                                    }))}
+                                    margin={{
+                                      top: 20,
+                                      right: 30,
+                                      left: 30,
+                                      bottom: 20,
                                     }}
-                                  />
-                                  <YAxis
-                                    yAxisId="left"
-                                    label={{
-                                      value: "ENMO (mg)",
-                                      angle: -90,
-                                      position: "insideLeft",
-                                    }}
-                                  />
-                                  <RechartsTooltip
-                                    content={({
-                                      active,
-                                      payload,
-                                      label,
-                                    }) => {
-                                      if (
-                                        active &&
-                                        payload &&
-                                        payload.length
-                                      ) {
-                                        return (
-                                          <div
-                                            style={{
-                                              backgroundColor:
-                                                "white",
-                                              padding: "10px",
-                                              border:
-                                                "1px solid #ccc",
-                                              borderRadius:
-                                                "4px",
-                                            }}
-                                          >
-                                            <p
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="day" />
+                                    <YAxis
+                                      label={{
+                                        value:
+                                          key === "PTA"
+                                            ? "Percentage (%)"
+                                            : key === "NWB"
+                                            ? "Number of Bouts"
+                                            : "Minutes",
+                                        angle: -90,
+                                        position: "insideLeft",
+                                      }}
+                                    />
+                                    <RechartsTooltip
+                                      content={({ active, payload, label }) => {
+                                        if (
+                                          active &&
+                                          payload &&
+                                          payload.length
+                                        ) {
+                                          return (
+                                            <div
                                               style={{
-                                                margin:
-                                                  "0 0 5px 0",
+                                                backgroundColor: "white",
+                                                padding: "10px",
+                                                border: "1px solid #ccc",
+                                                borderRadius: "4px",
                                               }}
                                             >
-                                              {new Date(
-                                                label
-                                              ).toLocaleString()}
-                                            </p>
-                                            {payload.map(
-                                              (
-                                                entry,
-                                                index
-                                              ) => {
-                                                let value =
-                                                  entry.value;
+                                              <p
+                                                style={{
+                                                  margin: "0 0 5px 0",
+                                                }}
+                                              >
+                                                {label}
+                                              </p>
+                                              {payload.map((entry, index) => {
+                                                let value = entry.value;
                                                 let unit = "";
-                                                if (
-                                                  entry.name ===
-                                                  "TST"
-                                                ) {
+                                                if (entry.name === "TST") {
                                                   value =
-                                                    Math.round(
-                                                      value
-                                                    ).toFixed(
+                                                    Math.round(value).toFixed(
                                                       0
                                                     );
-                                                  unit =
-                                                    " minutes";
+                                                  unit = " minutes";
                                                 } else if (
-                                                  entry.name ===
-                                                    "WASO" ||
-                                                  entry.name ===
-                                                    "SOL"
+                                                  entry.name === "WASO" ||
+                                                  entry.name === "SOL"
                                                 ) {
+                                                  value = value.toFixed(0);
+                                                  unit = " minutes";
+                                                } else if (
+                                                  entry.name === "PTA"
+                                                ) {
+                                                  value = value.toFixed(1);
+                                                  unit = "%";
+                                                } else if (
+                                                  entry.name === "NWB"
+                                                ) {
+                                                  value = value.toFixed(0);
+                                                  unit = " bouts";
+                                                }
+                                                return (
+                                                  <p
+                                                    key={index}
+                                                    style={{
+                                                      margin: "0",
+                                                      color: entry.color,
+                                                    }}
+                                                  >
+                                                    {`${entry.name}: ${value}${unit}`}
+                                                  </p>
+                                                );
+                                              })}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      }}
+                                    />
+                                    <Legend />
+                                    <Bar
+                                      dataKey={key}
+                                      fill="#8884d8"
+                                      name={key}
+                                    />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </Box>
+                            ) : (
+                              <Typography variant="body1">
+                                {typeof value === "number"
+                                  ? key === "PTA"
+                                    ? `${value.toFixed(1)}%`
+                                    : key === "NWB"
+                                    ? `${value.toFixed(0)} bouts`
+                                    : `${value.toFixed(0)} minutes`
+                                  : value}
+                              </Typography>
+                            )}
+                          </Grid>
+                        ))}
+                    </Grid>
+
+                    {/* Daily ENMO Time Series with Sleep Bands */}
+                    <Box sx={{ mt: 4 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Daily ENMO Time Series with Sleep Periods
+                      </Typography>
+                      {/* Custom legend for sleep periods */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          mb: 2,
+                          ml: 1,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 18,
+                            height: 18,
+                            bgcolor: "#2196f3",
+                            opacity: 0.15,
+                            border: "1px solid #2196f3",
+                            mr: 1,
+                          }}
+                        />
+                        <Typography variant="body2" color="text.secondary">
+                          Sleep Period
+                        </Typography>
+                      </Box>
+                      <Grid container spacing={3}>
+                        {Array.from(
+                          new Set(
+                            data.data.map((item) => {
+                              const date = new Date(item.TIMESTAMP);
+                              return date.toLocaleDateString("en-CA");
+                            })
+                          )
+                        ).map((dayStr, dayIndex) => {
+                          const dayData = data.data.filter((item) => {
+                            const date = new Date(item.TIMESTAMP);
+                            return date.toLocaleDateString("en-CA") === dayStr;
+                          });
+                          if (dayData.length === 0) return null;
+                          // Add a 'timestampNum' property for numeric x-axis
+                          const dayDataWithNum = dayData.map((item) => ({
+                            ...item,
+                            timestampNum: new Date(item.TIMESTAMP).getTime(),
+                          }));
+                          const dayDataWithNumSorted = [...dayDataWithNum].sort(
+                            (a, b) => a.timestampNum - b.timestampNum
+                          );
+                          // Find sleep=1 intervals
+                          const sleepBands = [];
+                          let bandStart = null;
+                          for (
+                            let i = 0;
+                            i < dayDataWithNumSorted.length;
+                            i++
+                          ) {
+                            if (
+                              dayDataWithNumSorted[i].sleep === 1 &&
+                              bandStart === null
+                            ) {
+                              bandStart = dayDataWithNumSorted[i].timestampNum;
+                            }
+                            if (
+                              (dayDataWithNumSorted[i].sleep !== 1 ||
+                                i === dayDataWithNumSorted.length - 1) &&
+                              bandStart !== null
+                            ) {
+                              const bandEnd =
+                                dayDataWithNumSorted[i - 1].timestampNum;
+                              sleepBands.push({
+                                start: bandStart,
+                                end: bandEnd,
+                              });
+                              bandStart = null;
+                            }
+                          }
+                          return (
+                            <Grid item xs={12} key={dayStr}>
+                              <Paper sx={{ p: 3, mb: 3 }}>
+                                <Typography
+                                  variant="subtitle1"
+                                  gutterBottom
+                                  align="center"
+                                >
+                                  {dayStr}
+                                </Typography>
+                                <ResponsiveContainer width="100%" height={300}>
+                                  <LineChart
+                                    data={dayDataWithNumSorted}
+                                    margin={{
+                                      top: 20,
+                                      right: 30,
+                                      left: 30,
+                                      bottom: 20,
+                                    }}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis
+                                      dataKey="timestampNum"
+                                      type="number"
+                                      domain={["dataMin", "dataMax"]}
+                                      tickFormatter={(timestampNum) => {
+                                        const date = new Date(timestampNum);
+                                        return date.toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        });
+                                      }}
+                                    />
+                                    <YAxis
+                                      yAxisId="left"
+                                      label={{
+                                        value: "ENMO (mg)",
+                                        angle: -90,
+                                        position: "insideLeft",
+                                      }}
+                                    />
+                                    <RechartsTooltip
+                                      content={({ active, payload, label }) => {
+                                        if (
+                                          active &&
+                                          payload &&
+                                          payload.length
+                                        ) {
+                                          return (
+                                            <div
+                                              style={{
+                                                backgroundColor: "white",
+                                                padding: "10px",
+                                                border: "1px solid #ccc",
+                                                borderRadius: "4px",
+                                              }}
+                                            >
+                                              <p
+                                                style={{
+                                                  margin: "0 0 5px 0",
+                                                }}
+                                              >
+                                                {new Date(
+                                                  label
+                                                ).toLocaleString()}
+                                              </p>
+                                              {payload.map((entry, index) => {
+                                                let value = entry.value;
+                                                let unit = "";
+                                                if (entry.name === "TST") {
                                                   value =
-                                                    value.toFixed(
+                                                    Math.round(value).toFixed(
                                                       0
                                                     );
-                                                  unit =
-                                                    " minutes";
+                                                  unit = " minutes";
                                                 } else if (
-                                                  entry.name ===
-                                                  "PTA"
+                                                  entry.name === "WASO" ||
+                                                  entry.name === "SOL"
                                                 ) {
-                                                  value =
-                                                    value.toFixed(
-                                                      1
-                                                    );
+                                                  value = value.toFixed(0);
+                                                  unit = " minutes";
+                                                } else if (
+                                                  entry.name === "PTA"
+                                                ) {
+                                                  value = value.toFixed(1);
                                                   unit = "%";
                                                 }
                                                 return (
                                                   <p
                                                     key={index}
                                                     style={{
-                                                      margin:
-                                                        "0",
-                                                      color:
-                                                        entry.color,
+                                                      margin: "0",
+                                                      color: entry.color,
                                                     }}
                                                   >
                                                     {`${entry.name}: ${value}${unit}`}
                                                   </p>
                                                 );
-                                              }
-                                            )}
-                                          </div>
-                                        );
-                                      }
-                                      return null;
-                                    }}
-                                  />
-                                  <Legend />
-                                  <Line
-                                    type="monotone"
-                                    dataKey="ENMO"
-                                    stroke="#8884d8"
-                                    dot={false}
-                                    isAnimationActive={false}
-                                    yAxisId="left"
-                                  />
-                                  {/* Blue bands for sleep=1 */}
-                                  {sleepBands.map(
-                                    (band, idx) => (
+                                              })}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      }}
+                                    />
+                                    <Legend />
+                                    <Line
+                                      type="monotone"
+                                      dataKey="ENMO"
+                                      stroke="#8884d8"
+                                      dot={false}
+                                      isAnimationActive={false}
+                                      yAxisId="left"
+                                    />
+                                    {/* Blue bands for sleep=1 */}
+                                    {sleepBands.map((band, idx) => (
                                       <ReferenceArea
                                         key={`sleep-band-${idx}`}
                                         x1={band.start}
@@ -4834,25 +4087,24 @@ const SingleIndividualLabSubTab = ({
                                         fillOpacity={0.15}
                                         yAxisId="left"
                                       />
-                                    )
-                                  )}
-                                </LineChart>
-                              </ResponsiveContainer>
-                            </Paper>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                  </Box>
-                </Paper>
-              </Grid>
-            )}
-          </>
-        )}
-      </>
-    )}
-  </>
+                                    ))}
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              </Paper>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    </Box>
+                  </Paper>
+                </Grid>
+              )}
+            </>
+          )}
+        </>
+      )}
+    </>
   );
 };
 
-export default SingleIndividualLabSubTab; 
+export default SingleIndividualLabSubTab;
