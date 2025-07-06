@@ -1747,8 +1747,8 @@ const MultiIndividualTab = () => {
                           return (
                             <Alert severity="success" sx={{ py: 0.5 }}>
                               <Typography variant="body2">
-                                ✅ All {validation.totalCount} files have age
-                                and gender set
+                                All {validation.totalCount} files have age and
+                                gender set
                               </Typography>
                             </Alert>
                           );

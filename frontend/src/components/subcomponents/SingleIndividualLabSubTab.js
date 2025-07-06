@@ -780,6 +780,11 @@ const SingleIndividualLabSubTab = ({
           >
             Data Upload
           </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Select your data source and format, then upload your accelerometer
+            data file. The system will guide you through the configuration
+            process.
+          </Typography>
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={4}>
               <FormControl fullWidth>
@@ -801,6 +806,9 @@ const SingleIndividualLabSubTab = ({
                   </MenuItem>
                   <MenuItem value="other">Other</MenuItem>
                 </Select>
+                <FormHelperText>
+                  Choose the device type that generated your data
+                </FormHelperText>
               </FormControl>
             </Grid>
             <Grid item xs={4}>
@@ -819,6 +827,9 @@ const SingleIndividualLabSubTab = ({
                   <MenuItem value="binary">Binary (Zipped)</MenuItem>
                   <MenuItem value="csv">CSV</MenuItem>
                 </Select>
+                <FormHelperText>
+                  Select the format of your data file
+                </FormHelperText>
               </FormControl>
             </Grid>
             <Grid item xs={4}>
@@ -842,6 +853,9 @@ const SingleIndividualLabSubTab = ({
                     </>
                   )}
                 </Select>
+                <FormHelperText>
+                  Choose the type of movement data
+                </FormHelperText>
               </FormControl>
             </Grid>
           </Grid>
@@ -849,6 +863,26 @@ const SingleIndividualLabSubTab = ({
           {((dataSource && fileType && dataType) ||
             (dataSource === "other" && fileType === "csv" && dataType)) && (
             <>
+              {/* Helpful information box */}
+              <Box
+                sx={{
+                  mt: 2,
+                  mb: 3,
+                  p: 2,
+                  bgcolor: "info.light",
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: "info.main",
+                }}
+              >
+                <Typography variant="body2" sx={{ color: "info.contrastText" }}>
+                  <strong>Ready to upload!</strong> Your data format has been
+                  configured. You can now drag and drop your file or click the
+                  upload button below. The system will automatically process
+                  your data according to the selected format.
+                </Typography>
+              </Box>
+
               {/* Data Format Requirements for binary */}
               {fileType === "binary" && dataSource === "samsung_galaxy" && (
                 <Box
@@ -1333,7 +1367,8 @@ const SingleIndividualLabSubTab = ({
                     paragraph
                     sx={{ textAlign: "left", width: "100%" }}
                   >
-                    Please configure the data format settings for your binary file.
+                    Please configure the data format settings for your binary
+                    file.
                   </Typography>
                 </>
               )}
@@ -1497,9 +1532,6 @@ const SingleIndividualLabSubTab = ({
                         <Grid item xs={12} md={6}>
                           {dataType === "accelerometer" ? (
                             <Box>
-                              <Typography variant="subtitle2" gutterBottom>
-                                Accelerometer Columns (X, Y, Z)
-                              </Typography>
                               <Grid container spacing={2}>
                                 {["x", "y", "z"].map((axis) => (
                                   <Grid item xs={12} sm={4} key={axis}>
@@ -1617,35 +1649,39 @@ const SingleIndividualLabSubTab = ({
                 )}
 
                 {/* Binary File Configuration Complete Button - Only for binary files */}
-                {timestampFormat && dataUnit && fileType === "binary" && !columnSelectionComplete && (
-                  <Box sx={{ mt: 3, textAlign: "center" }}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={handleColumnSelection}
-                      sx={{ px: 4, py: 1.5 }}
-                    >
-                      Complete Configuration
-                    </Button>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Click to confirm your data format settings
-                    </Typography>
-                  </Box>
-                )}
+                {timestampFormat &&
+                  dataUnit &&
+                  fileType === "binary" &&
+                  !columnSelectionComplete && (
+                    <Box sx={{ mt: 3, textAlign: "center" }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleColumnSelection}
+                        sx={{ px: 4, py: 1.5 }}
+                      >
+                        Complete Configuration
+                      </Button>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 1 }}
+                      >
+                        Click to confirm your data format settings
+                      </Typography>
+                    </Box>
+                  )}
 
                 {/* Processing Parameters - Only show after configuration is complete */}
-                {((
-                  data?.file_id &&
+                {(data?.file_id &&
                   dataSource === "samsung_galaxy" &&
                   fileType &&
-                  dataType
-                ) || (
-                  data?.file_id &&
+                  dataType) ||
+                (data?.file_id &&
                   dataSource === "other" &&
                   timestampFormat &&
                   dataUnit &&
-                  columnSelectionComplete
-                )) ? (
+                  columnSelectionComplete) ? (
                   <Box sx={{ mt: 3 }}>
                     <Typography variant="subtitle1" gutterBottom>
                       Parameter Selection
@@ -2113,59 +2149,56 @@ const SingleIndividualLabSubTab = ({
                 ) : null}
 
                 {/* Process and Reset Buttons - Only show when parameters are shown */}
-                {((
-                  data?.file_id &&
+                {((data?.file_id &&
                   dataSource === "samsung_galaxy" &&
                   fileType &&
-                  dataType
-                ) || (
-                  data?.file_id &&
-                  dataSource === "other" &&
-                  timestampFormat &&
-                  dataUnit &&
-                  columnSelectionComplete
-                )) && (
-                    <Grid item xs={12}>
-                      <Box
-                        sx={{
-                          mt: 3,
-                          display: "flex",
-                          gap: 2,
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
+                  dataType) ||
+                  (data?.file_id &&
+                    dataSource === "other" &&
+                    timestampFormat &&
+                    dataUnit &&
+                    columnSelectionComplete)) && (
+                  <Grid item xs={12}>
+                    <Box
+                      sx={{
+                        mt: 3,
+                        display: "flex",
+                        gap: 2,
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleProcessData}
+                        disabled={processing}
+                        startIcon={
+                          processing ? (
+                            <CircularProgress size={20} />
+                          ) : (
+                            <PlayArrowIcon />
+                          )
+                        }
+                        sx={{ px: 4, py: 1.5 }}
                       >
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={handleProcessData}
-                          disabled={processing}
-                          startIcon={
-                            processing ? (
-                              <CircularProgress size={20} />
-                            ) : (
-                              <PlayArrowIcon />
-                            )
-                          }
-                          sx={{ px: 4, py: 1.5 }}
-                        >
-                          {processing
-                            ? `Processing... (${formatTime(processingTime)})`
-                            : "Process Data"}
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="secondary"
-                          onClick={handleReset}
-                          disabled={processing}
-                          startIcon={<RefreshIcon />}
-                          sx={{ px: 4, py: 1.5 }}
-                        >
-                          Reset All
-                        </Button>
-                      </Box>
-                    </Grid>
-                  )}
+                        {processing
+                          ? `Processing... (${formatTime(processingTime)})`
+                          : "Process Data"}
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="secondary"
+                        onClick={handleReset}
+                        disabled={processing}
+                        startIcon={<RefreshIcon />}
+                        sx={{ px: 4, py: 1.5 }}
+                      >
+                        Reset All
+                      </Button>
+                    </Box>
+                  </Grid>
+                )}
               </Grid>
             </Grid>
           )}
@@ -2319,6 +2352,15 @@ const SingleIndividualLabSubTab = ({
                   <Typography variant="h6" gutterBottom>
                     Cosinor Age Prediction
                   </Typography>
+                  <Alert severity="info" sx={{ mb: 3 }}>
+                    <Typography variant="body2">
+                      <strong>Manual Input Required:</strong> To predict your
+                      biological age, you need to manually enter your
+                      chronological age and select your gender below. The
+                      prediction is based on your activity patterns and
+                      circadian rhythms compared to population data.
+                    </Typography>
+                  </Alert>
 
                   {/* Age and Gender Input */}
                   <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -2330,7 +2372,7 @@ const SingleIndividualLabSubTab = ({
                         value={chronologicalAge}
                         onChange={(e) => setChronologicalAge(e.target.value)}
                         inputProps={{ min: 0, max: 120 }}
-                        helperText="Enter your chronological age"
+                        helperText="Required: Enter your chronological age for biological age prediction"
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
@@ -2346,7 +2388,8 @@ const SingleIndividualLabSubTab = ({
                           <MenuItem value="invariant">Invariant</MenuItem>
                         </Select>
                         <FormHelperText>
-                          Select your gender for age prediction
+                          Required: Select your gender for accurate biological
+                          age prediction
                         </FormHelperText>
                       </FormControl>
                     </Grid>

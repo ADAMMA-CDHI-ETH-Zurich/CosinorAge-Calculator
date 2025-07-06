@@ -1,5 +1,24 @@
 // Descriptions for each section
 export const metricDescriptions = {
+  // Section descriptions
+  cosinor: {
+    title: "Cosinor Analysis",
+    description: "Cosinor analysis is a mathematical method used to analyze circadian rhythms (24-hour biological cycles). It fits a cosine curve to your activity data to identify patterns in your daily activity cycles. This analysis provides three key parameters: Mesor (average activity level), Amplitude (strength of the rhythm), and Acrophase (timing of peak activity). These metrics help researchers understand how well your body follows natural 24-hour cycles and can indicate overall health and sleep quality.",
+  },
+  nonparam: {
+    title: "Non-parametric Features",
+    description: "Non-parametric features provide alternative ways to analyze circadian rhythms without assuming specific mathematical models. These metrics include Interdaily Stability (consistency between days), Intradaily Variability (fragmentation within days), and Relative Amplitude (difference between active and rest periods). These features are particularly useful for detecting irregular patterns and assessing the robustness of your daily activity rhythms.",
+  },
+  physical_activity: {
+    title: "Physical Activity Analysis",
+    description: "Physical activity analysis categorizes your movement into different intensity levels based on metabolic equivalents (METs). This classification helps researchers understand your activity patterns and can provide insights into your overall fitness level, energy expenditure, and lifestyle habits. The analysis separates activity into sedentary, light, moderate, and vigorous categories, each with different health implications.",
+  },
+  sleep: {
+    title: "Sleep Analysis",
+    description: "Sleep analysis examines your sleep patterns and quality using accelerometer data. This includes metrics like total sleep time, sleep onset latency (time to fall asleep), wake after sleep onset (nighttime awakenings), and sleep efficiency. These measurements help assess sleep quality and can identify potential sleep disorders or lifestyle factors affecting your rest.",
+  },
+  
+  // Individual metric descriptions
   // Cosinor
   mesor: {
     title: "Mesor",

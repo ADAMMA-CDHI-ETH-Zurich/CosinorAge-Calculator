@@ -1,32 +1,67 @@
 import React from "react";
-import { Box, Typography, Paper, Grid } from "@mui/material";
+import { Box, Typography, Paper, Grid, Divider, Chip } from "@mui/material";
+import ScienceIcon from "@mui/icons-material/Science";
+import SchoolIcon from "@mui/icons-material/School";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 
 const AboutTab = () => {
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
         <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom>
-            About CosinorLab
-          </Typography>
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            A Project by ADAMMA
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+            <ScienceIcon sx={{ fontSize: 40, color: "primary.main", mr: 2 }} />
+            <Box>
+              <Typography variant="h4" gutterBottom>
+                About CosinorLab
+              </Typography>
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                Pioneering Cosinorage & Comprehensive Accelerometer Analysis at
+                ADAMMA, ETH Zurich
+              </Typography>
+            </Box>
+          </Box>
 
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="body1" paragraph>
-              CosinorLab is a research initiative developed at ADAMMA (Core for
-              AI & Digital Biomarker Research) at ETH Zurich. Our mission is to
-              advance health monitoring by pioneering innovative analysis of
-              accelerometer data — including the prediction of biological age.
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="body1"
+              paragraph
+              sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
+            >
+              CosinorLab is a research platform developed at ADAMMA (Core for AI
+              & Digital Biomarker Research) at ETH Zurich. Our mission is to
+              advance health monitoring by pioneering{" "}
+              <strong>Cosinorage</strong> - a novel aging biomarker calculated
+              from accelerometer data, while also providing comprehensive
+              analysis of sleep, physical activity, and circadian rhythms.
             </Typography>
-            <Typography variant="body1" paragraph>
+            <Typography
+              variant="body1"
+              paragraph
+              sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
+            >
+              <strong>Cosinorage</strong> provides researchers and healthcare
+              professionals with a non-invasive, objective measure of biological
+              aging based on daily activity patterns. This innovative biomarker
+              works alongside our other analysis tools to provide a complete
+              picture of health and activity patterns.
+            </Typography>
+            <Typography
+              variant="body1"
+              paragraph
+              sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
+            >
               This project was developed by Dr. Jinjoo Shim (Harvard University,
               formerly at ETH Zurich) and Jacob Leo Oskar Hunecke (ETH Zurich)
               as part of ADAMMA's commitment to creating open-source tools for
-              health innovation.
+              health innovation and advancing the field of digital biomarkers.
             </Typography>
-            <Typography variant="body1" paragraph>
+            <Typography
+              variant="body1"
+              paragraph
+              sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
+            >
               Learn more about ADAMMA at:
             </Typography>
             <Box
@@ -64,65 +99,123 @@ const AboutTab = () => {
             </Box>
           </Box>
 
-          {/* Team Members Section - removed, kept only the one at the end */}
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="h5" gutterBottom>
-              Our Mission
-            </Typography>
-            <Typography variant="body1" paragraph>
+          <Divider sx={{ my: 4 }} />
+
+          {/* Our Mission Section */}
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+              <PsychologyIcon
+                sx={{ fontSize: 32, color: "primary.main", mr: 2 }}
+              />
+              <Typography variant="h5" gutterBottom>
+                Our Mission
+              </Typography>
+            </Box>
+            <Typography
+              variant="body1"
+              paragraph
+              sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
+            >
               At CosinorLab, we're dedicated to advancing the field of digital
-              health through:
+              health through innovative research and accessible tools. Our main
+              feature is <strong>Cosinorage</strong> - a novel aging biomarker,
+              while we also provide comprehensive analysis of sleep, physical
+              activity, and circadian rhythms to bridge the gap between complex
+              research methodologies and practical health applications.
             </Typography>
-            <ul>
-              <li>
-                <Typography variant="body1">
-                  <strong>Advanced Analysis:</strong> Providing sophisticated
-                  tools for analyzing accelerometer data
-                </Typography>
-              </li>
-              <li>
-                <Typography variant="body1">
-                  <strong>Open Source:</strong> Making our tools freely
-                  available to the research community
-                </Typography>
-              </li>
-              <li>
-                <Typography variant="body1">
-                  <strong>User-Friendly Interface:</strong> Making complex
-                  analysis accessible to researchers and healthcare
-                  professionals
-                </Typography>
-              </li>
-            </ul>
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+              <Grid item xs={12} md={4}>
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: "background.paper",
+                    borderRadius: 2,
+                    height: "100%",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{ color: "primary.main" }}
+                  >
+                    Novel Aging Biomarker
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Pioneering <strong>Cosinorage</strong> - a breakthrough
+                    aging biomarker calculated from accelerometer data through
+                    sophisticated cosinor analysis of circadian rhythms.
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: "background.paper",
+                    borderRadius: 2,
+                    height: "100%",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{ color: "primary.main" }}
+                  >
+                    Open Source
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Making our <strong>Cosinorage</strong> aging biomarker tools
+                    freely available to the research community to accelerate
+                    innovation in digital health and aging research.
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: "background.paper",
+                    borderRadius: 2,
+                    height: "100%",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{ color: "primary.main" }}
+                  >
+                    User-Friendly Interface
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Making complex aging biomarker analysis accessible to
+                    researchers and healthcare professionals through intuitive
+                    design and interactive visualizations.
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
           </Box>
 
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="h5" gutterBottom>
-              Key Features
-            </Typography>
-            <ul>
-              <li>
-                <Typography variant="body1">
-                  Biological age prediction based on activity patterns
-                </Typography>
-              </li>
-              <li>
-                <Typography variant="body1">
-                  Advanced cosinor analysis for circadian rhythm assessment
-                </Typography>
-              </li>
-              <li>
-                <Typography variant="body1">
-                  Interactive visualization of activity patterns
-                </Typography>
-              </li>
-            </ul>
-          </Box>
+          <Divider sx={{ my: 4 }} />
 
-          {/* Team Members Section - moved to end */}
+          <Divider sx={{ my: 4 }} />
+
+          {/* Team Members Section */}
           <Box sx={{ mt: 4 }}>
-            <Typography variant="h5" gutterBottom>
-              Meet the Team
+            <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+              <SchoolIcon sx={{ fontSize: 32, color: "primary.main", mr: 2 }} />
+              <Typography variant="h5" gutterBottom>
+                Meet the Team
+              </Typography>
+            </Box>
+            <Typography
+              variant="body1"
+              paragraph
+              sx={{ fontSize: "1.1rem", lineHeight: 1.6, mb: 3 }}
+            >
+              Our interdisciplinary team combines expertise in digital health,
+              machine learning, and biomedical engineering to create innovative
+              solutions for health monitoring and research.
             </Typography>
             <Grid container spacing={4} sx={{ mt: 2 }}>
               <Grid item xs={12} md={6}>
@@ -137,6 +230,12 @@ const AboutTab = () => {
                     borderRadius: 2,
                     boxShadow: 1,
                     height: 360,
+                    transition:
+                      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow: 2,
+                    },
                   }}
                 >
                   <img
@@ -263,6 +362,12 @@ const AboutTab = () => {
                     borderRadius: 2,
                     boxShadow: 1,
                     height: 360,
+                    transition:
+                      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow: 2,
+                    },
                   }}
                 >
                   <img
@@ -414,6 +519,12 @@ const AboutTab = () => {
                     borderRadius: 2,
                     boxShadow: 1,
                     height: 360,
+                    transition:
+                      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow: 2,
+                    },
                   }}
                 >
                   <img
@@ -565,6 +676,12 @@ const AboutTab = () => {
                     borderRadius: 2,
                     boxShadow: 1,
                     height: 360,
+                    transition:
+                      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow: 2,
+                    },
                   }}
                 >
                   <img
