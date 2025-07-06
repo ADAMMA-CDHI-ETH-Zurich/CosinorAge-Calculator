@@ -1003,7 +1003,7 @@ const MultiIndividualTab = () => {
                   <Grid container spacing={3}>
                     {/* Preprocessing Parameters */}
                     <Grid item xs={12} md={6}>
-                      <Typography variant="subtitle2" gutterBottom>
+                      <Typography variant="subtitle1" gutterBottom>
                         Preprocessing Parameters
                       </Typography>
                       <Grid container spacing={2}>
@@ -1015,11 +1015,15 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.autocalib_sd_criter}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('autocalib_sd_criter', value);
                               }
                             }}
-                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -1030,12 +1034,30 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.autocalib_sphere_crit}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('autocalib_sphere_crit', value);
                               }
                             }}
-                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>Filter Type</InputLabel>
+                            <Select
+                              value={bulkPreprocessParams.filter_type}
+                              label="Filter Type"
+                              onChange={(e) => handleBulkPreprocessParamChange('filter_type', e.target.value)}
+                            >
+                              <MenuItem value="lowpass">Lowpass</MenuItem>
+                              <MenuItem value="highpass">Highpass</MenuItem>
+                              <MenuItem value="bandpass">Bandpass</MenuItem>
+                            </Select>
+                          </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                           <TextField
@@ -1045,34 +1067,133 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.filter_cutoff}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('filter_cutoff', value);
                               }
                             }}
-                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
                           <TextField
                             fullWidth
-                            label="Required Daily Coverage"
+                            label="Wear SD Criterion"
+                            type="text"
+                            value={bulkPreprocessParams.wear_sd_crit}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkPreprocessParamChange('wear_sd_crit', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Wear Range Criterion"
+                            type="text"
+                            value={bulkPreprocessParams.wear_range_crit}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkPreprocessParamChange('wear_range_crit', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Wear Window Length"
+                            type="text"
+                            value={bulkPreprocessParams.wear_window_length}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkPreprocessParamChange('wear_window_length', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            fullWidth
+                            label="Wear Window Skip"
+                            type="text"
+                            value={bulkPreprocessParams.wear_window_skip}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
+                              if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                handleBulkPreprocessParamChange('wear_window_skip', value);
+                              }
+                            }}
+                            inputProps={{ 
+                              inputMode: "numeric",
+                              lang: "en-US"
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={12}>
+                          <Typography gutterBottom>
+                            Required Daily Coverage
+                          </Typography>
+                          <Slider
+                            value={typeof bulkPreprocessParams.required_daily_coverage === 'number' ? bulkPreprocessParams.required_daily_coverage : 0.5}
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            onChange={(e, newValue) => handleBulkPreprocessParamChange('required_daily_coverage', newValue)}
+                            valueLabelDisplay="auto"
+                          />
+                          <TextField
+                            fullWidth
+                            label="Required Daily Coverage (0-1)"
                             type="text"
                             value={bulkPreprocessParams.required_daily_coverage}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('required_daily_coverage', value);
                               }
                             }}
-                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                            inputProps={{
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
+                            sx={{ mt: 2 }}
                           />
+                          <Typography variant="caption" color="text.secondary">
+                            Minimum fraction of valid data required per day (0 = 0%, 1 = 100%). Default: 0.5
+                          </Typography>
                         </Grid>
                       </Grid>
                     </Grid>
 
                     {/* Feature Parameters */}
                     <Grid item xs={12} md={6}>
-                      <Typography variant="subtitle2" gutterBottom>
+                      <Typography variant="subtitle1" gutterBottom>
                         Feature Parameters
                       </Typography>
                       <Grid container spacing={2}>
@@ -1089,7 +1210,7 @@ const MultiIndividualTab = () => {
                             />
                           </FormControl>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={12}>
                           <TextField
                             fullWidth
                             label="Sleep CK SF"
@@ -1097,56 +1218,72 @@ const MultiIndividualTab = () => {
                             value={bulkFeatureParams.sleep_ck_sf}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkFeatureParamChange('sleep_ck_sf', value);
                               }
                             }}
-                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={12} sm={4}>
                           <TextField
                             fullWidth
-                            label="PA Cutpoint SL"
+                            label="PA Cutpoint Sedentary-Light"
                             type="text"
                             value={bulkFeatureParams.pa_cutpoint_sl}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkFeatureParamChange('pa_cutpoint_sl', value);
                               }
                             }}
-                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={12} sm={4}>
                           <TextField
                             fullWidth
-                            label="PA Cutpoint LM"
+                            label="PA Cutpoint Light-Moderate"
                             type="text"
                             value={bulkFeatureParams.pa_cutpoint_lm}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkFeatureParamChange('pa_cutpoint_lm', value);
                               }
                             }}
-                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={12} sm={4}>
                           <TextField
                             fullWidth
-                            label="PA Cutpoint MV"
+                            label="PA Cutpoint Moderate-Vigorous"
                             type="text"
                             value={bulkFeatureParams.pa_cutpoint_mv}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
+                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkFeatureParamChange('pa_cutpoint_mv', value);
                               }
                             }}
-                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                            inputProps={{ 
+                              inputMode: "decimal",
+                              lang: "en-US"
+                            }}
                           />
                         </Grid>
                       </Grid>
@@ -3924,7 +4061,7 @@ pip install -e .`}
                               onDragOver={handleDrag}
                               onDrop={handleDrop}
                               sx={{
-                                width: '300%',
+                                width: '100%',
                                 maxWidth: '100%',
                                 mx: 'auto',
                                 border: '2px dashed',
@@ -4093,140 +4230,11 @@ pip install -e .`}
                             {/* CSV Column Selection - Only for CSV files */}
                             {showColumnSelection && fileType === 'csv' && (
                               <>
-                                {/* Data Format Settings Header */}
+                                {/* Data Configuration Header */}
                                 <Grid item xs={12}>
-                                  <Typography variant="subtitle2" gutterBottom sx={{ mt: 2, color: 'primary.main' }}>
-                                    Data Format Settings
+                                  <Typography variant="subtitle1" gutterBottom>
+                                    Data Configuration
                                   </Typography>
-                                </Grid>
-                                
-                                {/* Time Column Selection */}
-                                <Grid item xs={12} md={6}>
-                                  <FormControl fullWidth>
-                                    <InputLabel>Timestamp Column</InputLabel>
-                                    <Select
-                                      value={selectedTimeColumn || ''}
-                                      onChange={(e) => setSelectedTimeColumn(e.target.value)}
-                                      label="Timestamp Column"
-                                      MenuProps={{
-                                        PaperProps: {
-                                          style: {
-                                            maxHeight: 300,
-                                            zIndex: 9999
-                                          }
-                                        },
-                                        container: document.body
-                                      }}
-                                    >
-                                      {csvColumns.map((column) => (
-                                        <MenuItem key={column} value={column}>
-                                          {column}
-                                        </MenuItem>
-                                      ))}
-                                    </Select>
-                                    <FormHelperText>
-                                      Select the column containing timestamp data
-                                    </FormHelperText>
-                                  </FormControl>
-                                </Grid>
-
-                                {/* Data Columns Selection */}
-                                <Grid item xs={12} md={6}>
-                                  {dataType === 'accelerometer' ? (
-                                    <Box>
-                                      <Typography variant="subtitle2" gutterBottom>
-                                        Accelerometer Columns (X, Y, Z)
-                                      </Typography>
-                                      {['x', 'y', 'z'].map((axis) => (
-                                        <FormControl key={axis} fullWidth sx={{ mb: 2 }}>
-                                          <InputLabel>{axis.toUpperCase()} Column</InputLabel>
-                                          <Select
-                                            value={selectedDataColumns.find(col => col.toLowerCase().includes(axis)) || ''}
-                                            onChange={(e) => {
-                                              const newColumns = selectedDataColumns.filter(col => !col.toLowerCase().includes(axis));
-                                              if (e.target.value) {
-                                                newColumns.push(e.target.value);
-                                              }
-                                              setSelectedDataColumns(newColumns);
-                                            }}
-                                            label={`${axis.toUpperCase()} Column`}
-                                            MenuProps={{
-                                              PaperProps: {
-                                                style: {
-                                                  maxHeight: 300,
-                                                  zIndex: 9999
-                                                }
-                                              },
-                                              container: document.body
-                                            }}
-                                          >
-                                            <MenuItem value="">
-                                              <em>None</em>
-                                            </MenuItem>
-                                            {csvColumns.map((column) => (
-                                              <MenuItem key={column} value={column}>
-                                                {column}
-                                              </MenuItem>
-                                            ))}
-                                          </Select>
-                                        </FormControl>
-                                      ))}
-                                    </Box>
-                                  ) : dataType === 'enmo' ? (
-                                    <FormControl fullWidth>
-                                      <InputLabel>ENMO Column</InputLabel>
-                                      <Select
-                                        value={selectedDataColumns[0] || ''}
-                                        onChange={(e) => setSelectedDataColumns([e.target.value])}
-                                        label="ENMO Column"
-                                        MenuProps={{
-                                          PaperProps: {
-                                            style: {
-                                              maxHeight: 300,
-                                              zIndex: 9999
-                                            }
-                                          },
-                                          container: document.body
-                                        }}
-                                      >
-                                        {csvColumns.map((column) => (
-                                          <MenuItem key={column} value={column}>
-                                            {column}
-                                          </MenuItem>
-                                        ))}
-                                      </Select>
-                                      <FormHelperText>
-                                        Select the column containing ENMO data
-                                      </FormHelperText>
-                                    </FormControl>
-                                  ) : dataType === 'alternative_count' ? (
-                                    <FormControl fullWidth>
-                                      <InputLabel>Counts Column</InputLabel>
-                                      <Select
-                                        value={selectedDataColumns[0] || ''}
-                                        onChange={(e) => setSelectedDataColumns([e.target.value])}
-                                        label="Counts Column"
-                                        MenuProps={{
-                                          PaperProps: {
-                                            style: {
-                                              maxHeight: 300,
-                                              zIndex: 9999
-                                            }
-                                          },
-                                          container: document.body
-                                        }}
-                                      >
-                                        {csvColumns.map((column) => (
-                                          <MenuItem key={column} value={column}>
-                                            {column}
-                                          </MenuItem>
-                                        ))}
-                                      </Select>
-                                      <FormHelperText>
-                                        Select the column containing activity counts
-                                      </FormHelperText>
-                                    </FormControl>
-                                  ) : null}
                                 </Grid>
                                 
                                 {/* Timestamp Format Selection */}
@@ -4347,6 +4355,147 @@ pip install -e .`}
                                     </FormHelperText>
                                   </FormControl>
                                 </Grid>
+
+                                {/* Column Selection - Only show after Data Configuration is complete */}
+                                {timestampFormat && dataUnit && (
+                                  <>
+                                    {/* Column Selection Header */}
+                                    <Grid item xs={12}>
+                                      <Typography variant="subtitle1" gutterBottom>
+                                        Column Selection
+                                      </Typography>
+                                    </Grid>
+                                    
+                                    {/* Time Column Selection */}
+                                    <Grid item xs={12} md={6}>
+                                      <FormControl fullWidth>
+                                        <InputLabel>Timestamp Column</InputLabel>
+                                        <Select
+                                          value={selectedTimeColumn || ''}
+                                          onChange={(e) => setSelectedTimeColumn(e.target.value)}
+                                          label="Timestamp Column"
+                                          MenuProps={{
+                                            PaperProps: {
+                                              style: {
+                                                maxHeight: 300,
+                                                zIndex: 9999
+                                              }
+                                            },
+                                            container: document.body
+                                          }}
+                                        >
+                                          {csvColumns.map((column) => (
+                                            <MenuItem key={column} value={column}>
+                                              {column}
+                                            </MenuItem>
+                                          ))}
+                                        </Select>
+                                        <FormHelperText>
+                                          Select the column containing timestamp data
+                                        </FormHelperText>
+                                      </FormControl>
+                                    </Grid>
+
+                                    {/* Data Columns Selection */}
+                                    <Grid item xs={12} md={6}>
+                                      {dataType === 'accelerometer' ? (
+                                        <Box>
+                                          <Typography variant="subtitle2" gutterBottom>
+                                            Accelerometer Columns (X, Y, Z)
+                                          </Typography>
+                                          {['x', 'y', 'z'].map((axis) => (
+                                            <FormControl key={axis} fullWidth sx={{ mb: 2 }}>
+                                              <InputLabel>{axis.toUpperCase()} Column</InputLabel>
+                                              <Select
+                                                value={selectedDataColumns.find(col => col.toLowerCase().includes(axis)) || ''}
+                                                onChange={(e) => {
+                                                  const newColumns = selectedDataColumns.filter(col => !col.toLowerCase().includes(axis));
+                                                  if (e.target.value) {
+                                                    newColumns.push(e.target.value);
+                                                  }
+                                                  setSelectedDataColumns(newColumns);
+                                                }}
+                                                label={`${axis.toUpperCase()} Column`}
+                                                MenuProps={{
+                                                  PaperProps: {
+                                                    style: {
+                                                      maxHeight: 300,
+                                                      zIndex: 9999
+                                                    }
+                                                  },
+                                                  container: document.body
+                                                }}
+                                              >
+                                                <MenuItem value="">
+                                                  <em>None</em>
+                                                </MenuItem>
+                                                {csvColumns.map((column) => (
+                                                  <MenuItem key={column} value={column}>
+                                                    {column}
+                                                  </MenuItem>
+                                                ))}
+                                              </Select>
+                                            </FormControl>
+                                          ))}
+                                        </Box>
+                                      ) : dataType === 'enmo' ? (
+                                        <FormControl fullWidth>
+                                          <InputLabel>ENMO Column</InputLabel>
+                                          <Select
+                                            value={selectedDataColumns[0] || ''}
+                                            onChange={(e) => setSelectedDataColumns([e.target.value])}
+                                            label="ENMO Column"
+                                            MenuProps={{
+                                              PaperProps: {
+                                                style: {
+                                                  maxHeight: 300,
+                                                  zIndex: 9999
+                                                }
+                                              },
+                                              container: document.body
+                                            }}
+                                          >
+                                            {csvColumns.map((column) => (
+                                              <MenuItem key={column} value={column}>
+                                                {column}
+                                              </MenuItem>
+                                            ))}
+                                          </Select>
+                                          <FormHelperText>
+                                            Select the column containing ENMO data
+                                          </FormHelperText>
+                                        </FormControl>
+                                      ) : dataType === 'alternative_count' ? (
+                                        <FormControl fullWidth>
+                                          <InputLabel>Counts Column</InputLabel>
+                                          <Select
+                                            value={selectedDataColumns[0] || ''}
+                                            onChange={(e) => setSelectedDataColumns([e.target.value])}
+                                            label="Counts Column"
+                                            MenuProps={{
+                                              PaperProps: {
+                                                style: {
+                                                  maxHeight: 300,
+                                                  zIndex: 9999
+                                                }
+                                              },
+                                              container: document.body
+                                            }}
+                                          >
+                                            {csvColumns.map((column) => (
+                                              <MenuItem key={column} value={column}>
+                                                {column}
+                                              </MenuItem>
+                                            ))}
+                                          </Select>
+                                          <FormHelperText>
+                                            Select the column containing activity counts
+                                          </FormHelperText>
+                                        </FormControl>
+                                      ) : null}
+                                    </Grid>
+                                  </>
+                                )}
                               </>
                             )}
 
