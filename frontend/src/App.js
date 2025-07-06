@@ -1015,15 +1015,11 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.autocalib_sd_criter}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('autocalib_sd_criter', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -1034,15 +1030,11 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.autocalib_sphere_crit}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('autocalib_sphere_crit', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -1067,15 +1059,11 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.filter_cutoff}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('filter_cutoff', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -1086,15 +1074,11 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.wear_sd_crit}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('wear_sd_crit', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -1105,15 +1089,11 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.wear_range_crit}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('wear_range_crit', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -1124,15 +1104,11 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.wear_window_length}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('wear_window_length', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -1143,15 +1119,11 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.wear_window_skip}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('wear_window_skip', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "numeric",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "numeric", lang: "en-US" }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={12}>
@@ -1173,15 +1145,11 @@ const MultiIndividualTab = () => {
                             value={bulkPreprocessParams.required_daily_coverage}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkPreprocessParamChange('required_daily_coverage', value);
                               }
                             }}
-                            inputProps={{
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                             sx={{ mt: 2 }}
                           />
                           <Typography variant="caption" color="text.secondary">
@@ -1218,15 +1186,11 @@ const MultiIndividualTab = () => {
                             value={bulkFeatureParams.sleep_ck_sf}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkFeatureParamChange('sleep_ck_sf', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={4}>
@@ -1237,15 +1201,11 @@ const MultiIndividualTab = () => {
                             value={bulkFeatureParams.pa_cutpoint_sl}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkFeatureParamChange('pa_cutpoint_sl', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={4}>
@@ -1256,15 +1216,11 @@ const MultiIndividualTab = () => {
                             value={bulkFeatureParams.pa_cutpoint_lm}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkFeatureParamChange('pa_cutpoint_lm', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                           />
                         </Grid>
                         <Grid item xs={12} sm={4}>
@@ -1275,15 +1231,11 @@ const MultiIndividualTab = () => {
                             value={bulkFeatureParams.pa_cutpoint_mv}
                             onChange={(e) => {
                               let value = e.target.value.replace(/,/g, '.');
-                              // Allow any positive numeric value with arbitrary precision
                               if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
                                 handleBulkFeatureParamChange('pa_cutpoint_mv', value);
                               }
                             }}
-                            inputProps={{ 
-                              inputMode: "decimal",
-                              lang: "en-US"
-                            }}
+                            inputProps={{ inputMode: "decimal", lang: "en-US" }}
                           />
                         </Grid>
                       </Grid>
@@ -1856,6 +1808,12 @@ const MultiIndividualTab = () => {
                   const allFeatures = {};
                   const rejectedFeatures = {};
                   
+                  // Safety check for bulkData
+                  if (!bulkData || !bulkData.individual_results || !Array.isArray(bulkData.individual_results)) {
+                    console.warn('No valid bulk data available for feature extraction');
+                    return null;
+                  }
+                  
                   // Helper function to flatten nested objects and extract numeric values
                   const flattenAndExtractNumbers = (obj, prefix = '') => {
                     const result = [];
@@ -1937,14 +1895,50 @@ const MultiIndividualTab = () => {
 
                 // Create histogram and density curve data for each feature
                 const createHistogramAndDensityData = (values, featureName) => {
-                  if (values.length === 0) return { histogram: [], density: [] };
+                  // Add comprehensive null checks
+                  if (!values || !Array.isArray(values) || values.length === 0) {
+                    console.warn(`createHistogramAndDensityData: Invalid values for feature ${featureName}`, values);
+                    return { histogram: [], density: [], combined: [] };
+                  }
                   
-                  const min = Math.min(...values);
-                  const max = Math.max(...values);
+                  // Filter out invalid values
+                  const validValues = values.filter(v => typeof v === 'number' && !isNaN(v) && isFinite(v));
+                  
+                  if (validValues.length === 0) {
+                    console.warn(`createHistogramAndDensityData: No valid numeric values for feature ${featureName}`);
+                    return { histogram: [], density: [], combined: [] };
+                  }
+                  
+                  const min = Math.min(...validValues);
+                  const max = Math.max(...validValues);
                   const range = max - min;
                   
+                  // Handle case where all values are the same (range = 0)
+                  if (range === 0) {
+                    console.warn(`createHistogramAndDensityData: All values are identical for feature ${featureName}, creating single bin`);
+                    const singleValue = validValues[0];
+                    return {
+                      histogram: [{
+                        range: `${singleValue.toFixed(3)}-${singleValue.toFixed(3)}`,
+                        count: validValues.length,
+                        feature: featureName
+                      }],
+                      density: [{
+                        x: singleValue,
+                        density: 1.0,
+                        feature: featureName
+                      }],
+                      combined: [{
+                        range: `${singleValue.toFixed(3)}-${singleValue.toFixed(3)}`,
+                        count: validValues.length,
+                        density: 1.0,
+                        feature: featureName
+                      }]
+                    };
+                  }
+                  
                   // Create histogram data with equal-width buckets
-                  const binCount = Math.min(20, Math.max(5, Math.floor(Math.sqrt(values.length))));
+                  const binCount = Math.min(20, Math.max(5, Math.floor(Math.sqrt(validValues.length))));
                   const binSize = range / binCount;
                   
                   // Initialize bins with equal-width ranges
@@ -1961,20 +1955,28 @@ const MultiIndividualTab = () => {
                   }
                   
                   // Assign values to bins
-                  values.forEach(value => {
+                  validValues.forEach(value => {
                     const binIndex = Math.min(Math.floor((value - min) / binSize), binCount - 1);
-                    bins[binIndex].count++;
+                    if (bins[binIndex]) {
+                      bins[binIndex].count++;
+                    }
                   });
                   
-                  const histogramData = bins.map(bin => ({
-                    range: bin.range,
-                    count: bin.count,
-                    feature: featureName
-                  }));
+                  const histogramData = bins.map(bin => {
+                    if (!bin) {
+                      console.warn('Encountered undefined bin in histogram data');
+                      return null;
+                    }
+                    return {
+                      range: bin.range,
+                      count: bin.count || 0,
+                      feature: featureName
+                    };
+                  }).filter(bin => bin !== null);
                   
                   // Create density curve data using kernel density estimation
                   const numPoints = 100;
-                  const bandwidth = range / (Math.pow(values.length, 0.2)); // Silverman's rule of thumb
+                  const bandwidth = range / (Math.pow(validValues.length, 0.2)); // Silverman's rule of thumb
                   
                   const densityData = [];
                   for (let i = 0; i <= numPoints; i++) {
@@ -1982,28 +1984,35 @@ const MultiIndividualTab = () => {
                     let density = 0;
                     
                     // Calculate kernel density estimate
-                    values.forEach(value => {
+                    validValues.forEach(value => {
                       const u = (x - value) / bandwidth;
                       // Gaussian kernel
                       density += Math.exp(-0.5 * u * u) / (bandwidth * Math.sqrt(2 * Math.PI));
                     });
                     
-                    density = density / values.length;
+                    density = density / validValues.length;
                     
                     // Debug for acrophase
                     if (featureName.toLowerCase().includes('acrophase') && i < 10) {
                       console.log(`Acrophase density at x=${x}: ${density}`);
                     }
                     
-                    densityData.push({
-                      x: x,
-                      density: density,
-                      feature: featureName
-                    });
+                    if (typeof density === 'number' && !isNaN(density) && isFinite(density)) {
+                      densityData.push({
+                        x: x,
+                        density: density,
+                        feature: featureName
+                      });
+                    }
                   }
                   
                   // Create combined data for overlay
                   const combinedData = histogramData.map(histItem => {
+                    if (!histItem || !histItem.range) {
+                      console.warn('Encountered invalid histogram item in combined data mapping');
+                      return null;
+                    }
+                    
                     // Fix parsing for negative ranges like "-6.075--5.073"
                     let rangeParts;
                     if (histItem.range.startsWith('-') && histItem.range.includes('--')) {
@@ -2014,7 +2023,21 @@ const MultiIndividualTab = () => {
                       rangeParts = histItem.range.split('-');
                     }
                     
-                    const midPoint = (parseFloat(rangeParts[0]) + parseFloat(rangeParts[1])) / 2;
+                    // Safety check for range parsing
+                    if (!rangeParts || rangeParts.length !== 2) {
+                      console.warn(`Invalid range format: ${histItem.range}`);
+                      return null;
+                    }
+                    
+                    const start = parseFloat(rangeParts[0]);
+                    const end = parseFloat(rangeParts[1]);
+                    
+                    if (isNaN(start) || isNaN(end)) {
+                      console.warn(`Invalid numeric values in range: ${histItem.range}`);
+                      return null;
+                    }
+                    
+                    const midPoint = (start + end) / 2;
                     
                     // Find the closest density point to this histogram bin midpoint
                     let closestDensity = 0;
@@ -2040,7 +2063,7 @@ const MultiIndividualTab = () => {
                       ...histItem,
                       density: closestDensity
                     };
-                  });
+                  }).filter(item => item !== null);
                   
                   return { histogram: histogramData, density: densityData, combined: combinedData };
                 };
@@ -2050,7 +2073,7 @@ const MultiIndividualTab = () => {
                   bulkData.summary_dataframe.map(row => row.feature) : [];
                 
                 // Get all available features
-                const availableFeatures = Object.keys(allFeatures);
+                const availableFeatures = allFeatures ? Object.keys(allFeatures) : [];
                 
                 // Helper function to find matching feature without prefix
                 const findMatchingFeature = (summaryFeature) => {
@@ -2101,6 +2124,12 @@ const MultiIndividualTab = () => {
                   finalFeatureOrder = availableFeatures;
                 }
                 
+                // Final safety check
+                if (!finalFeatureOrder || finalFeatureOrder.length === 0) {
+                  console.warn('No features available for display');
+                  return <Typography>No features available for display</Typography>;
+                }
+                
                 console.log('Final feature order:', finalFeatureOrder);
                 console.log('Features with data:', availableFeatures);
                 console.log('Features in summary:', summaryFeatureOrder);
@@ -2111,9 +2140,16 @@ const MultiIndividualTab = () => {
                     <Grid container spacing={3}>
                     {finalFeatureOrder.map((featureName) => {
                     const values = allFeatures[featureName];
+                    
+                    // Add null checks to prevent errors
+                    if (!values || !Array.isArray(values) || values.length === 0) {
+                      console.warn(`No valid data for feature: ${featureName}`);
+                      return null;
+                    }
+                    
                     const { histogram: histogramData, density: densityData, combined: combinedData } = createHistogramAndDensityData(values, featureName);
                     
-                    if (histogramData.length === 0) return null;
+                    if (!histogramData || histogramData.length === 0) return null;
                     
                     return (
                       <Grid item xs={12} md={6} key={featureName}>
@@ -2122,7 +2158,7 @@ const MultiIndividualTab = () => {
                             {cleanFeatureName(featureName)}
                           </Typography>
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            n = {values.length} | Mean = {(values.reduce((a, b) => a + b, 0) / values.length).toFixed(4)} | Std = {Math.sqrt(values.reduce((sq, n) => sq + Math.pow(n - values.reduce((a, b) => a + b, 0) / values.length, 2), 0) / values.length).toFixed(4)}
+                            n = {values.length} | Mean = {values.length > 0 ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(4) : 'N/A'} | Std = {values.length > 0 ? Math.sqrt(values.reduce((sq, n) => sq + Math.pow(n - values.reduce((a, b) => a + b, 0) / values.length, 2), 0) / values.length).toFixed(4) : 'N/A'}
                           </Typography>
                           <Box sx={{ width: '100%', height: 200 }}>
                             <ResponsiveContainer width="100%" height="100%">
@@ -3835,7 +3871,9 @@ pip install -e .`}
                           display: 'flex',
                           flexDirection: 'column',
                           gap: 2,
-                          alignItems: 'center',
+                          alignItems: 'stretch', // changed from 'center' to 'stretch'
+                          width: '100%', // ensure full width
+                          maxWidth: 'none', // remove any maxWidth restriction
                           border: dragActive ? '2px dashed #2196f3' : 'none',
                           background: dragActive ? 'rgba(33,150,243,0.05)' : undefined,
                           position: 'relative',
@@ -4226,146 +4264,118 @@ pip install -e .`}
                           )}
 
                           {/* Unified Grid for Column Selection and Processing Parameters */}
-                          <Grid container spacing={3}>
+                          <Grid item xs={12}>
                             {/* CSV Column Selection - Only for CSV files */}
                             {showColumnSelection && fileType === 'csv' && (
                               <>
-                                {/* Data Configuration Header */}
-                                <Grid item xs={12}>
+                                {/* Data Configuration */}
+                                <Box sx={{ mt: 3 }}>
                                   <Typography variant="subtitle1" gutterBottom>
                                     Data Configuration
                                   </Typography>
-                                </Grid>
-                                
-                                {/* Timestamp Format Selection */}
-                                <Grid item xs={12} md={6}>
-                                  <FormControl fullWidth>
-                                    <InputLabel>Timestamp Format</InputLabel>
-                                    <Select
-                                      value={timestampFormat || ''}
-                                      onChange={(e) => {
-                                        console.log('=== Timestamp Format Selection Debug ===');
-                                        console.log('Previous timestampFormat:', timestampFormat);
-                                        console.log('New timestampFormat value:', e.target.value);
-                                        setTimestampFormat(e.target.value);
-                                      }}
-                                      label="Timestamp Format"
-                                      MenuProps={{
-                                        PaperProps: {
-                                          style: {
-                                            maxHeight: 300,
-                                            zIndex: 9999
-                                          }
-                                        },
-                                        container: document.body
-                                      }}
-                                    >
-                                      <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
-                                      <MenuItem value="unix-s">Unix - seconds</MenuItem>
-                                      <MenuItem value="datetime">Datetime</MenuItem>
-                                    </Select>
-                                    <FormHelperText>
-                                      Select the format of your timestamp column
-                                    </FormHelperText>
-                                  </FormControl>
-                                </Grid>
-
-                                {/* Data Unit Selection */}
-                                <Grid item xs={12} md={6}>
-                                  <FormControl fullWidth>
-                                    <InputLabel>Data Unit</InputLabel>
-                                    
-                                    {/* Accelerometer Data Unit */}
-                                    {(dataType === 'accelerometer') && (
-                                      <Select
-                                        value={dataUnit || ''}
-                                        onChange={(e) => {
-                                          console.log('=== Data Unit Selection Debug ===');
-                                          console.log('Previous dataUnit:', dataUnit);
-                                          console.log('New dataUnit value:', e.target.value);
-                                          console.log('Setting dataUnit to:', e.target.value);
-                                          setDataUnit(e.target.value);
-                                        }}
-                                        label="Data Unit"
-                                        displayEmpty
-                                      >
-                                        <MenuItem value="g">g</MenuItem>
-                                        <MenuItem value="mg">mg</MenuItem>
-                                        <MenuItem value="m/s^2">m/s²</MenuItem>
-                                      </Select>
-                                    )}
-                                    
-                                    {/* ENMO Data Unit */}
-                                    {(dataType === 'enmo') && (
-                                      <Select
-                                        value={dataUnit || ''}
-                                        onChange={(e) => {
-                                          console.log('=== Data Unit Selection Debug ===');
-                                          console.log('Previous dataUnit:', dataUnit);
-                                          console.log('New dataUnit value:', e.target.value);
-                                          console.log('Setting dataUnit to:', e.target.value);
-                                          setDataUnit(e.target.value);
-                                        }}
-                                        label="Data Unit"
-                                        displayEmpty
-                                      >
-                                        <MenuItem value="g">g</MenuItem>
-                                        <MenuItem value="mg">mg</MenuItem>
-                                      </Select>
-                                    )}
-                                    
-                                    {/* Alternative Count Data Unit */}
-                                    {dataType === 'alternative_count' && (
-                                      <Select
-                                        value={dataUnit || ''}
-                                        onChange={(e) => {
-                                          console.log('=== Data Unit Selection Debug ===');
-                                          console.log('Previous dataUnit:', dataUnit);
-                                          console.log('New dataUnit value:', e.target.value);
-                                          console.log('Setting dataUnit to:', e.target.value);
-                                          setDataUnit(e.target.value);
-                                        }}
-                                        label="Data Unit"
-                                        displayEmpty
-                                      >
-                                        <MenuItem value="">No unit required</MenuItem>
-                                      </Select>
-                                    )}
-                                    
-                                    {/* Default Data Unit */}
-                                    {!['accelerometer', 'enmo', 'alternative_count'].includes(dataType) && (
-                                      <Select
-                                        value={dataUnit || ''}
-                                        onChange={(e) => {
-                                          console.log('=== Data Unit Selection Debug ===');
-                                          console.log('Previous dataUnit:', dataUnit);
-                                          console.log('New dataUnit value:', e.target.value);
-                                          console.log('Setting dataUnit to:', e.target.value);
-                                          setDataUnit(e.target.value);
-                                        }}
-                                        label="Data Unit"
-                                        displayEmpty
-                                      >
-                                        <MenuItem value="">No unit required</MenuItem>
-                                      </Select>
-                                    )}
-                                    
-                                    <FormHelperText>
-                                      Select the unit of your data values
-                                    </FormHelperText>
-                                  </FormControl>
-                                </Grid>
-
-                                {/* Column Selection - Only show after Data Configuration is complete */}
-                                {timestampFormat && dataUnit && (
-                                  <>
-                                    {/* Column Selection Header */}
-                                    <Grid item xs={12}>
-                                      <Typography variant="subtitle1" gutterBottom>
-                                        Column Selection
-                                      </Typography>
+                                  <Grid container spacing={2}>
+                                    {/* Timestamp Format Selection */}
+                                    <Grid item xs={12} md={6}>
+                                      <FormControl fullWidth>
+                                        <InputLabel>Timestamp Format</InputLabel>
+                                        <Select
+                                          value={timestampFormat || ''}
+                                          onChange={(e) => {
+                                            setTimestampFormat(e.target.value);
+                                          }}
+                                          label="Timestamp Format"
+                                          MenuProps={{
+                                            PaperProps: { style: { maxHeight: 300, zIndex: 9999 } },
+                                            container: document.body
+                                          }}
+                                        >
+                                          <MenuItem value="unix-ms">Unix - milliseconds</MenuItem>
+                                          <MenuItem value="unix-s">Unix - seconds</MenuItem>
+                                          <MenuItem value="datetime">Datetime</MenuItem>
+                                        </Select>
+                                        <FormHelperText>
+                                          Select the format of your timestamp column
+                                        </FormHelperText>
+                                      </FormControl>
                                     </Grid>
-                                    
+                                    {/* Data Unit Selection */}
+                                    <Grid item xs={12} md={6}>
+                                      <FormControl fullWidth>
+                                        <InputLabel>Data Unit</InputLabel>
+                                        {/* Accelerometer Data Unit */}
+                                        {(dataType === 'accelerometer') && (
+                                          <Select
+                                            value={dataUnit || ''}
+                                            onChange={(e) => {
+                                              setDataUnit(e.target.value);
+                                            }}
+                                            label="Data Unit"
+                                            displayEmpty
+                                          >
+                                            <MenuItem value="g">g</MenuItem>
+                                            <MenuItem value="mg">mg</MenuItem>
+                                            <MenuItem value="m/s^2">m/s²</MenuItem>
+                                          </Select>
+                                        )}
+                                        {/* ENMO Data Unit */}
+                                        {(dataType === 'enmo') && (
+                                          <Select
+                                            value={dataUnit || ''}
+                                            onChange={(e) => {
+                                              setDataUnit(e.target.value);
+                                            }}
+                                            label="Data Unit"
+                                            displayEmpty
+                                          >
+                                            <MenuItem value="g">g</MenuItem>
+                                            <MenuItem value="mg">mg</MenuItem>
+                                          </Select>
+                                        )}
+                                        {/* Alternative Count Data Unit */}
+                                        {dataType === 'alternative_count' && (
+                                          <Select
+                                            value={dataUnit || ''}
+                                            onChange={(e) => {
+                                              setDataUnit(e.target.value);
+                                            }}
+                                            label="Data Unit"
+                                            displayEmpty
+                                          >
+                                            <MenuItem value="">No unit required</MenuItem>
+                                          </Select>
+                                        )}
+                                        {/* Default Data Unit */}
+                                        {!['accelerometer', 'enmo', 'alternative_count'].includes(dataType) && (
+                                          <Select
+                                            value={dataUnit || ''}
+                                            onChange={(e) => {
+                                              setDataUnit(e.target.value);
+                                            }}
+                                            label="Data Unit"
+                                            displayEmpty
+                                          >
+                                            <MenuItem value="">No unit required</MenuItem>
+                                          </Select>
+                                        )}
+                                        <FormHelperText>
+                                          Select the unit of your data values
+                                        </FormHelperText>
+                                      </FormControl>
+                                    </Grid>
+                                  </Grid>
+                                </Box>
+                              </>
+                            )}
+
+                            {/* Column Selection - Only show after Data Configuration is complete */}
+                            {timestampFormat && dataUnit && (
+                              <>
+                                {/* Column Selection */}
+                                <Box sx={{ mt: 3 }}>
+                                  <Typography variant="subtitle1" gutterBottom>
+                                    Column Selection
+                                  </Typography>
+                                  <Grid container spacing={2}>
                                     {/* Time Column Selection */}
                                     <Grid item xs={12} md={6}>
                                       <FormControl fullWidth>
@@ -4375,12 +4385,7 @@ pip install -e .`}
                                           onChange={(e) => setSelectedTimeColumn(e.target.value)}
                                           label="Timestamp Column"
                                           MenuProps={{
-                                            PaperProps: {
-                                              style: {
-                                                maxHeight: 300,
-                                                zIndex: 9999
-                                              }
-                                            },
+                                            PaperProps: { style: { maxHeight: 300, zIndex: 9999 } },
                                             container: document.body
                                           }}
                                         >
@@ -4395,7 +4400,6 @@ pip install -e .`}
                                         </FormHelperText>
                                       </FormControl>
                                     </Grid>
-
                                     {/* Data Columns Selection */}
                                     <Grid item xs={12} md={6}>
                                       {dataType === 'accelerometer' ? (
@@ -4403,40 +4407,39 @@ pip install -e .`}
                                           <Typography variant="subtitle2" gutterBottom>
                                             Accelerometer Columns (X, Y, Z)
                                           </Typography>
-                                          {['x', 'y', 'z'].map((axis) => (
-                                            <FormControl key={axis} fullWidth sx={{ mb: 2 }}>
-                                              <InputLabel>{axis.toUpperCase()} Column</InputLabel>
-                                              <Select
-                                                value={selectedDataColumns.find(col => col.toLowerCase().includes(axis)) || ''}
-                                                onChange={(e) => {
-                                                  const newColumns = selectedDataColumns.filter(col => !col.toLowerCase().includes(axis));
-                                                  if (e.target.value) {
-                                                    newColumns.push(e.target.value);
-                                                  }
-                                                  setSelectedDataColumns(newColumns);
-                                                }}
-                                                label={`${axis.toUpperCase()} Column`}
-                                                MenuProps={{
-                                                  PaperProps: {
-                                                    style: {
-                                                      maxHeight: 300,
-                                                      zIndex: 9999
-                                                    }
-                                                  },
-                                                  container: document.body
-                                                }}
-                                              >
-                                                <MenuItem value="">
-                                                  <em>None</em>
-                                                </MenuItem>
-                                                {csvColumns.map((column) => (
-                                                  <MenuItem key={column} value={column}>
-                                                    {column}
-                                                  </MenuItem>
-                                                ))}
-                                              </Select>
-                                            </FormControl>
-                                          ))}
+                                          <Grid container spacing={2}>
+                                            {['x', 'y', 'z'].map((axis) => (
+                                              <Grid item xs={12} sm={4} key={axis}>
+                                                <FormControl fullWidth>
+                                                  <InputLabel>{axis.toUpperCase()} Column</InputLabel>
+                                                  <Select
+                                                    value={selectedDataColumns.find(col => col.toLowerCase().includes(axis)) || ''}
+                                                    onChange={(e) => {
+                                                      const newColumns = selectedDataColumns.filter(col => !col.toLowerCase().includes(axis));
+                                                      if (e.target.value) {
+                                                        newColumns.push(e.target.value);
+                                                      }
+                                                      setSelectedDataColumns(newColumns);
+                                                    }}
+                                                    label={`${axis.toUpperCase()} Column`}
+                                                    MenuProps={{
+                                                      PaperProps: { style: { maxHeight: 300, zIndex: 9999 } },
+                                                      container: document.body
+                                                    }}
+                                                  >
+                                                    <MenuItem value="">
+                                                      <em>None</em>
+                                                    </MenuItem>
+                                                    {csvColumns.map((column) => (
+                                                      <MenuItem key={column} value={column}>
+                                                        {column}
+                                                      </MenuItem>
+                                                    ))}
+                                                  </Select>
+                                                </FormControl>
+                                              </Grid>
+                                            ))}
+                                          </Grid>
                                         </Box>
                                       ) : dataType === 'enmo' ? (
                                         <FormControl fullWidth>
@@ -4446,12 +4449,7 @@ pip install -e .`}
                                             onChange={(e) => setSelectedDataColumns([e.target.value])}
                                             label="ENMO Column"
                                             MenuProps={{
-                                              PaperProps: {
-                                                style: {
-                                                  maxHeight: 300,
-                                                  zIndex: 9999
-                                                }
-                                              },
+                                              PaperProps: { style: { maxHeight: 300, zIndex: 9999 } },
                                               container: document.body
                                             }}
                                           >
@@ -4473,12 +4471,7 @@ pip install -e .`}
                                             onChange={(e) => setSelectedDataColumns([e.target.value])}
                                             label="Counts Column"
                                             MenuProps={{
-                                              PaperProps: {
-                                                style: {
-                                                  maxHeight: 300,
-                                                  zIndex: 9999
-                                                }
-                                              },
+                                              PaperProps: { style: { maxHeight: 300, zIndex: 9999 } },
                                               container: document.body
                                             }}
                                           >
@@ -4494,307 +4487,267 @@ pip install -e .`}
                                         </FormControl>
                                       ) : null}
                                     </Grid>
-                                  </>
-                                )}
+                                  </Grid>
+                                </Box>
                               </>
                             )}
 
                                                         {/* Processing Parameters - Only show after timestamp format and data unit are selected */}
                             {data?.file_id && timestampFormat && dataUnit && (
-                              <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom>
-                                  Processing Parameters
+                              <Box sx={{ mt: 3 }}>
+                                <Typography variant="subtitle1" gutterBottom>
+                                  Parameter Selection
                                 </Typography>
-                                <Grid container spacing={3}>
-                                  {/* Preprocessing Parameters */}
-                                  <Grid item xs={12} md={6}>
-                                    <Typography variant="subtitle1" gutterBottom>
-                                      Preprocessing Parameters
+                                <Accordion>
+                                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                      Advanced Settings
                                     </Typography>
-                                    <Grid container spacing={2}>
-                                      <Grid item xs={12} sm={6}>
-                                        <TextField
-                                          fullWidth
-                                          label="Auto-calibration SD Criterion"
-                                          type="text"
-                                          value={preprocessParams.autocalib_sd_criter}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handlePreprocessParamChange('autocalib_sd_criter', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={12} sm={6}>
-                                        <TextField
-                                          fullWidth
-                                          label="Auto-calibration Sphere Criterion"
-                                          type="text"
-                                          value={preprocessParams.autocalib_sphere_crit}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handlePreprocessParamChange('autocalib_sphere_crit', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={12} sm={6}>
-                                        <FormControl fullWidth>
-                                          <InputLabel>Filter Type</InputLabel>
-                                          <Select
-                                            value={preprocessParams.filter_type}
-                                            label="Filter Type"
-                                            onChange={(e) => handlePreprocessParamChange('filter_type', e.target.value)}
-                                          >
-                                            <MenuItem value="lowpass">Lowpass</MenuItem>
-                                            <MenuItem value="highpass">Highpass</MenuItem>
-                                            <MenuItem value="bandpass">Bandpass</MenuItem>
-                                          </Select>
-                                        </FormControl>
-                                      </Grid>
-                                      <Grid item xs={12} sm={6}>
-                                        <TextField
-                                          fullWidth
-                                          label="Filter Cutoff"
-                                          type="text"
-                                          value={preprocessParams.filter_cutoff}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handlePreprocessParamChange('filter_cutoff', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={12} sm={6}>
-                                        <TextField
-                                          fullWidth
-                                          label="Wear SD Criterion"
-                                          type="text"
-                                          value={preprocessParams.wear_sd_crit}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handlePreprocessParamChange('wear_sd_crit', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={12} sm={6}>
-                                        <TextField
-                                          fullWidth
-                                          label="Wear Range Criterion"
-                                          type="text"
-                                          value={preprocessParams.wear_range_crit}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handlePreprocessParamChange('wear_range_crit', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={12} sm={6}>
-                                        <TextField
-                                          fullWidth
-                                          label="Wear Window Length"
-                                          type="text"
-                                          value={preprocessParams.wear_window_length}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handlePreprocessParamChange('wear_window_length', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={12} sm={6}>
-                                        <TextField
-                                          fullWidth
-                                          label="Wear Window Skip"
-                                          type="text"
-                                          value={preprocessParams.wear_window_skip}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handlePreprocessParamChange('wear_window_skip', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "numeric",
-                                            lang: "en-US"
-                                          }}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={12} sm={12}>
-                                        <Typography gutterBottom>
-                                          Required Daily Coverage
+                                  </AccordionSummary>
+                                  <AccordionDetails>
+                                    <Grid container spacing={3}>
+                                      {/* Preprocessing Parameters */}
+                                      <Grid item xs={12} md={6}>
+                                        <Typography variant="subtitle1" gutterBottom>
+                                          Preprocessing Parameters
                                         </Typography>
-                                        <Slider
-                                          value={typeof preprocessParams.required_daily_coverage === 'number' ? preprocessParams.required_daily_coverage : 0.5}
-                                          min={0}
-                                          max={1}
-                                          step={0.01}
-                                          onChange={(e, newValue) => handlePreprocessParamChange('required_daily_coverage', newValue)}
-                                          valueLabelDisplay="auto"
-                                        />
-                                        <TextField
-                                          fullWidth
-                                          label="Required Daily Coverage (0-1)"
-                                          type="text"
-                                          value={preprocessParams.required_daily_coverage}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handlePreprocessParamChange('required_daily_coverage', value);
-                                            }
-                                          }}
-                                          inputProps={{
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                          sx={{ mt: 2 }}
-                                        />
-                                        <Typography variant="caption" color="text.secondary">
-                                          Minimum fraction of valid data required per day (0 = 0%, 1 = 100%). Default: 0.5
-                                        </Typography>
+                                        <Grid container spacing={2}>
+                                          <Grid item xs={12} sm={6}>
+                                            <TextField
+                                              fullWidth
+                                              label="Auto-calibration SD Criterion"
+                                              type="text"
+                                              value={preprocessParams.autocalib_sd_criter}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handlePreprocessParamChange('autocalib_sd_criter', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} sm={6}>
+                                            <TextField
+                                              fullWidth
+                                              label="Auto-calibration Sphere Criterion"
+                                              type="text"
+                                              value={preprocessParams.autocalib_sphere_crit}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handlePreprocessParamChange('autocalib_sphere_crit', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} sm={6}>
+                                            <FormControl fullWidth>
+                                              <InputLabel>Filter Type</InputLabel>
+                                              <Select
+                                                value={preprocessParams.filter_type}
+                                                label="Filter Type"
+                                                onChange={(e) => handlePreprocessParamChange('filter_type', e.target.value)}
+                                              >
+                                                <MenuItem value="lowpass">Lowpass</MenuItem>
+                                                <MenuItem value="highpass">Highpass</MenuItem>
+                                                <MenuItem value="bandpass">Bandpass</MenuItem>
+                                              </Select>
+                                            </FormControl>
+                                          </Grid>
+                                          <Grid item xs={12} sm={6}>
+                                            <TextField
+                                              fullWidth
+                                              label="Filter Cutoff"
+                                              type="text"
+                                              value={preprocessParams.filter_cutoff}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handlePreprocessParamChange('filter_cutoff', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} sm={6}>
+                                            <TextField
+                                              fullWidth
+                                              label="Wear SD Criterion"
+                                              type="text"
+                                              value={preprocessParams.wear_sd_crit}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handlePreprocessParamChange('wear_sd_crit', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} sm={6}>
+                                            <TextField
+                                              fullWidth
+                                              label="Wear Range Criterion"
+                                              type="text"
+                                              value={preprocessParams.wear_range_crit}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handlePreprocessParamChange('wear_range_crit', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} sm={6}>
+                                            <TextField
+                                              fullWidth
+                                              label="Wear Window Length"
+                                              type="text"
+                                              value={preprocessParams.wear_window_length}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handlePreprocessParamChange('wear_window_length', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} sm={6}>
+                                            <TextField
+                                              fullWidth
+                                              label="Wear Window Skip"
+                                              type="text"
+                                              value={preprocessParams.wear_window_skip}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handlePreprocessParamChange('wear_window_skip', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "numeric", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} sm={12}>
+                                            <Typography gutterBottom>
+                                              Required Daily Coverage
+                                            </Typography>
+                                            <Slider
+                                              value={typeof preprocessParams.required_daily_coverage === 'number' ? preprocessParams.required_daily_coverage : 0.5}
+                                              min={0}
+                                              max={1}
+                                              step={0.01}
+                                              onChange={(e, newValue) => handlePreprocessParamChange('required_daily_coverage', newValue)}
+                                              valueLabelDisplay="auto"
+                                            />
+                                            <TextField
+                                              fullWidth
+                                              label="Required Daily Coverage (0-1)"
+                                              type="text"
+                                              value={preprocessParams.required_daily_coverage}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handlePreprocessParamChange('required_daily_coverage', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                              sx={{ mt: 2 }}
+                                            />
+                                            <Typography variant="caption" color="text.secondary">
+                                              Minimum fraction of valid data required per day (0 = 0%, 1 = 100%). Default: 0.5
+                                            </Typography>
+                                          </Grid>
+                                        </Grid>
                                       </Grid>
-                                    </Grid>
-                                  </Grid>
-
-                                  {/* Feature Parameters */}
-                                  <Grid item xs={12} md={6}>
-                                    <Typography variant="subtitle1" gutterBottom>
-                                      Feature Parameters
-                                    </Typography>
-                                    <Grid container spacing={2}>
-                                      <Grid item xs={12}>
-                                        <FormControl fullWidth>
-                                          <FormControlLabel
-                                            control={
-                                              <Switch
-                                                checked={featureParams.sleep_rescore}
-                                                onChange={(e) => handleFeatureParamChange('sleep_rescore', e.target.checked)}
+                                      {/* Feature Parameters */}
+                                      <Grid item xs={12} md={6}>
+                                        <Typography variant="subtitle1" gutterBottom>
+                                          Feature Parameters
+                                        </Typography>
+                                        <Grid container spacing={2}>
+                                          <Grid item xs={12}>
+                                            <FormControl fullWidth>
+                                              <FormControlLabel
+                                                control={
+                                                  <Switch
+                                                    checked={featureParams.sleep_rescore}
+                                                    onChange={(e) => handleFeatureParamChange('sleep_rescore', e.target.checked)}
+                                                  />
+                                                }
+                                                label="Sleep Rescore"
                                               />
-                                            }
-                                            label="Sleep Rescore"
-                                          />
-                                        </FormControl>
-                                      </Grid>
-                                      <Grid item xs={12}>
-                                        <TextField
-                                          fullWidth
-                                          label="Sleep CK SF"
-                                          type="text"
-                                          value={featureParams.sleep_ck_sf}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handleFeatureParamChange('sleep_ck_sf', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={12} sm={4}>
-                                        <TextField
-                                          fullWidth
-                                          label="PA Cutpoint Sedentary-Light"
-                                          type="text"
-                                          value={featureParams.pa_cutpoint_sl}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handleFeatureParamChange('pa_cutpoint_sl', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={12} sm={4}>
-                                        <TextField
-                                          fullWidth
-                                          label="PA Cutpoint Light-Moderate"
-                                          type="text"
-                                          value={featureParams.pa_cutpoint_lm}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handleFeatureParamChange('pa_cutpoint_lm', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                        />
-                                      </Grid>
-                                      <Grid item xs={12} sm={4}>
-                                        <TextField
-                                          fullWidth
-                                          label="PA Cutpoint Moderate-Vigorous"
-                                          type="text"
-                                          value={featureParams.pa_cutpoint_mv}
-                                          onChange={(e) => {
-                                            let value = e.target.value.replace(/,/g, '.');
-                                            // Allow any positive numeric value with arbitrary precision
-                                            if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
-                                              handleFeatureParamChange('pa_cutpoint_mv', value);
-                                            }
-                                          }}
-                                          inputProps={{ 
-                                            inputMode: "decimal",
-                                            lang: "en-US"
-                                          }}
-                                        />
+                                            </FormControl>
+                                          </Grid>
+                                          <Grid item xs={12}>
+                                            <TextField
+                                              fullWidth
+                                              label="Sleep CK SF"
+                                              type="text"
+                                              value={featureParams.sleep_ck_sf}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handleFeatureParamChange('sleep_ck_sf', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} sm={4}>
+                                            <TextField
+                                              fullWidth
+                                              label="PA Cutpoint Sedentary-Light"
+                                              type="text"
+                                              value={featureParams.pa_cutpoint_sl}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handleFeatureParamChange('pa_cutpoint_sl', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} sm={4}>
+                                            <TextField
+                                              fullWidth
+                                              label="PA Cutpoint Light-Moderate"
+                                              type="text"
+                                              value={featureParams.pa_cutpoint_lm}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handleFeatureParamChange('pa_cutpoint_lm', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} sm={4}>
+                                            <TextField
+                                              fullWidth
+                                              label="PA Cutpoint Moderate-Vigorous"
+                                              type="text"
+                                              value={featureParams.pa_cutpoint_mv}
+                                              onChange={(e) => {
+                                                let value = e.target.value.replace(/,/g, '.');
+                                                if (/^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(value) || value === "" || value === ".") {
+                                                  handleFeatureParamChange('pa_cutpoint_mv', value);
+                                                }
+                                              }}
+                                              inputProps={{ inputMode: "decimal", lang: "en-US" }}
+                                            />
+                                          </Grid>
+                                        </Grid>
                                       </Grid>
                                     </Grid>
-                                  </Grid>
-                                </Grid>
-                              </Grid>
+                                  </AccordionDetails>
+                                </Accordion>
+                              </Box>
                             )}
 
                             {/* Process and Reset Buttons - Only show when parameters are shown */}

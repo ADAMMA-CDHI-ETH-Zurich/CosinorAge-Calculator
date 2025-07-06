@@ -502,6 +502,29 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
         df = df.rename(columns={'index': 'TIMESTAMP'})
         
         df_json = df.to_dict(orient='records')
+        
+        # Extract ENMO timeseries data (similar to bulk processing)
+        enmo_timeseries = []
+        try:
+            # Resample to hourly data for better performance
+            df['TIMESTAMP'] = pd.to_datetime(df['TIMESTAMP'])
+            df.set_index('TIMESTAMP', inplace=True)
+            
+            # Resample to hourly and take the mean
+            hourly_df = df.resample('1H').mean()
+            
+            # Create data structure with timestamp and ENMO values
+            for timestamp, row in hourly_df.iterrows():
+                if pd.notna(row['ENMO']):
+                    enmo_timeseries.append({
+                        'timestamp': timestamp.isoformat(),
+                        'enmo': float(row['ENMO'])
+                    })
+            
+            logger.info(f"Extracted {len(enmo_timeseries)} hourly ENMO values (from {len(df)} original points)")
+        except Exception as e:
+            logger.warning(f"Error extracting ENMO timeseries data: {e}")
+            enmo_timeseries = []
 
         cosinor_features = features['cosinor']
         non_parametric_features = features['nonparam']
@@ -553,7 +576,8 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
                 "raw_data_type": metadata.get('raw_data_type'),
                 "raw_data_unit": metadata.get('raw_data_unit'),
                 "raw_n_datapoints": metadata.get('raw_n_datapoints')
-            }
+            },
+            "enmo_timeseries": enmo_timeseries
         }
 
     except Exception as e:
@@ -1242,6 +1266,8 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                 wf = WearableFeatures(handler, features_args=request.features_args)
                 df = wf.get_ml_data()
                 df = df.reset_index()
+                if 'timestamp' not in df.columns and 'index' in df.columns:
+                    df = df.rename(columns={'index': 'timestamp'})
                 df = df.rename(columns={'timestamp': 'TIMESTAMP', 'enmo': 'ENMO'})
                 
                 # Resample to hourly data for better performance
