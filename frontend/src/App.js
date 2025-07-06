@@ -410,9 +410,9 @@ function App() {
     if (data?.file_id) {
       if (
         (dataSource === "other" && fileType === "csv") ||
-        (dataSource === "samsung_galaxy_csv" &&
-          dataType === "alternative_count") ||
-        (dataSource === "other" && fileType !== "csv")
+        (dataSource === "samsung_galaxy" && fileType === "csv" && dataType === "alternative_count") ||
+        (dataSource === "other" && fileType !== "csv") ||
+        (dataSource === "samsung_galaxy" && fileType === "binary")
       ) {
         fetchColumnNames(data.file_id);
       }
@@ -428,9 +428,8 @@ function App() {
     // For all cases where data_type needs to be computed from dataType + dataUnit, ensure column selection is complete
     if (
       (dataSource === "other" && !columnSelectionComplete) ||
-      (dataSource === "samsung_galaxy_csv" &&
-        dataType === "alternative_count" &&
-        !columnSelectionComplete)
+      (dataSource === "samsung_galaxy" && fileType === "csv" && dataType === "alternative_count" && !columnSelectionComplete) ||
+      (dataSource === "samsung_galaxy" && fileType === "binary" && !columnSelectionComplete)
     ) {
       setError("Please complete column selection before processing data");
       return;

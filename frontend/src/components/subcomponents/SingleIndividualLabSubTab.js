@@ -1221,7 +1221,7 @@ const SingleIndividualLabSubTab = ({
           )}
           {data?.file_id && (
             <Grid item xs={12}>
-              {/* CSV Column Configuration Section */}
+              {/* CSV Column Configuration Section - Only for CSV files */}
               {showColumnSelection && fileType === "csv" && (
                 <>
                   <Typography
@@ -1325,10 +1325,23 @@ const SingleIndividualLabSubTab = ({
                 </>
               )}
 
+              {/* Binary File Configuration Section - Only for binary files */}
+              {showColumnSelection && fileType === "binary" && (
+                <>
+                  <Typography
+                    variant="body1"
+                    paragraph
+                    sx={{ textAlign: "left", width: "100%" }}
+                  >
+                    Please configure the data format settings for your binary file.
+                  </Typography>
+                </>
+              )}
+
               {/* Unified Grid for Column Selection and Processing Parameters */}
               <Grid item xs={12}>
-                {/* CSV Column Selection - Only for CSV files */}
-                {showColumnSelection && fileType === "csv" && (
+                {/* Data Configuration - For CSV files and binary files that need configuration */}
+                {showColumnSelection && (
                   <>
                     {/* Data Configuration */}
                     <Box sx={{ mt: 3 }}>
@@ -1440,8 +1453,8 @@ const SingleIndividualLabSubTab = ({
                   </>
                 )}
 
-                {/* Column Selection - Only show after Data Configuration is complete */}
-                {timestampFormat && dataUnit && (
+                {/* Column Selection - Only show after Data Configuration is complete and only for CSV files */}
+                {timestampFormat && dataUnit && fileType === "csv" && (
                   <>
                     {/* Column Selection */}
                     <Box sx={{ mt: 3 }}>
@@ -1603,8 +1616,36 @@ const SingleIndividualLabSubTab = ({
                   </>
                 )}
 
-                {/* Processing Parameters - Only show after timestamp format and data unit are selected */}
-                {data?.file_id && timestampFormat && dataUnit && (
+                {/* Binary File Configuration Complete Button - Only for binary files */}
+                {timestampFormat && dataUnit && fileType === "binary" && !columnSelectionComplete && (
+                  <Box sx={{ mt: 3, textAlign: "center" }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleColumnSelection}
+                      sx={{ px: 4, py: 1.5 }}
+                    >
+                      Complete Configuration
+                    </Button>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      Click to confirm your data format settings
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Processing Parameters - Only show after configuration is complete */}
+                {((
+                  data?.file_id &&
+                  dataSource === "samsung_galaxy" &&
+                  fileType &&
+                  dataType
+                ) || (
+                  data?.file_id &&
+                  dataSource === "other" &&
+                  timestampFormat &&
+                  dataUnit &&
+                  columnSelectionComplete
+                )) ? (
                   <Box sx={{ mt: 3 }}>
                     <Typography variant="subtitle1" gutterBottom>
                       Parameter Selection
@@ -2069,12 +2110,21 @@ const SingleIndividualLabSubTab = ({
                       </AccordionDetails>
                     </Accordion>
                   </Box>
-                )}
+                ) : null}
 
                 {/* Process and Reset Buttons - Only show when parameters are shown */}
-                {data?.file_id &&
+                {((
+                  data?.file_id &&
+                  dataSource === "samsung_galaxy" &&
+                  fileType &&
+                  dataType
+                ) || (
+                  data?.file_id &&
+                  dataSource === "other" &&
                   timestampFormat &&
-                  (dataType === "alternative_count" || dataUnit) && (
+                  dataUnit &&
+                  columnSelectionComplete
+                )) && (
                     <Grid item xs={12}>
                       <Box
                         sx={{
