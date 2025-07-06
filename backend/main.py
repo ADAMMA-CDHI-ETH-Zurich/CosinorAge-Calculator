@@ -24,11 +24,13 @@ import uvicorn
 
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Create a permanent directory for extracted files
-EXTRACTED_FILES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extracted_files")
+EXTRACTED_FILES_DIR = os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), "extracted_files")
 os.makedirs(EXTRACTED_FILES_DIR, exist_ok=True)
 
 app = FastAPI()
@@ -36,7 +38,8 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost", "http://localhost:80"],
+    allow_origins=["http://localhost:3000",
+                   "http://localhost", "http://localhost:80"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,6 +52,7 @@ setup_docs_routes(app)
 uploaded_data = {}
 temp_dirs = {}  # Store temporary directories
 
+
 @app.on_event("startup")
 async def startup_event():
     """
@@ -57,7 +61,7 @@ async def startup_event():
     # Clear in-memory state
     uploaded_data.clear()
     temp_dirs.clear()
-    
+
     # Clean up extracted files directory (handle volume mount)
     if os.path.exists(EXTRACTED_FILES_DIR):
         try:
@@ -69,13 +73,15 @@ async def startup_event():
                 else:
                     os.remove(item_path)
         except Exception as e:
-            logger.warning(f"Could not clear extracted_files directory: {str(e)}")
+            logger.warning(
+                f"Could not clear extracted_files directory: {str(e)}")
             # Ensure the directory exists
             os.makedirs(EXTRACTED_FILES_DIR, exist_ok=True)
     else:
         os.makedirs(EXTRACTED_FILES_DIR, exist_ok=True)
-    
+
     logger.info("Server started - all state cleared")
+
 
 def create_directory_tree(path: str) -> Dict[str, Any]:
     """Create a tree structure of the directory contents."""
@@ -84,7 +90,7 @@ def create_directory_tree(path: str) -> Dict[str, Any]:
         'type': 'directory',
         'children': []
     }
-    
+
     try:
         for item in os.listdir(path):
             item_path = os.path.join(path, item)
@@ -97,8 +103,9 @@ def create_directory_tree(path: str) -> Dict[str, Any]:
                 })
     except Exception as e:
         logger.error(f"Error creating directory tree: {str(e)}")
-    
+
     return result
+
 
 @app.get("/columns/{file_id}")
 async def get_csv_columns(file_id: str) -> Dict[str, Any]:
@@ -108,16 +115,18 @@ async def get_csv_columns(file_id: str) -> Dict[str, Any]:
     try:
         if file_id not in uploaded_data:
             raise HTTPException(status_code=404, detail="File not found")
-        
+
         file_info = uploaded_data[file_id]
         file_path = file_info.get("file_path")
-        
+
         if not file_path or not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="File not found on disk")
-        
+            raise HTTPException(
+                status_code=404, detail="File not found on disk")
+
         # Read the CSV file to get column names
         try:
-            df = pd.read_csv(file_path, nrows=1)  # Only read first row to get headers
+            # Only read first row to get headers
+            df = pd.read_csv(file_path, nrows=1)
             columns = df.columns.tolist()
             return {
                 "columns": columns,
@@ -126,13 +135,15 @@ async def get_csv_columns(file_id: str) -> Dict[str, Any]:
             }
         except Exception as e:
             logger.error(f"Error reading CSV file: {str(e)}")
-            raise HTTPException(status_code=400, detail=f"Error reading CSV file: {str(e)}")
-            
+            raise HTTPException(
+                status_code=400, detail=f"Error reading CSV file: {str(e)}")
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error getting columns: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/preview/{file_id}")
 async def get_csv_preview(file_id: str) -> Dict[str, Any]:
@@ -142,13 +153,14 @@ async def get_csv_preview(file_id: str) -> Dict[str, Any]:
     try:
         if file_id not in uploaded_data:
             raise HTTPException(status_code=404, detail="File not found")
-        
+
         file_info = uploaded_data[file_id]
         file_path = file_info.get("file_path")
-        
+
         if not file_path or not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="File not found on disk")
-        
+            raise HTTPException(
+                status_code=404, detail="File not found on disk")
+
         # Read the CSV file to get preview data
         try:
             df = pd.read_csv(file_path, nrows=2)  # Read first 2 rows
@@ -158,13 +170,15 @@ async def get_csv_preview(file_id: str) -> Dict[str, Any]:
             }
         except Exception as e:
             logger.error(f"Error reading CSV file for preview: {str(e)}")
-            raise HTTPException(status_code=400, detail=f"Error reading CSV file for preview: {str(e)}")
-            
+            raise HTTPException(
+                status_code=400, detail=f"Error reading CSV file for preview: {str(e)}")
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error getting preview: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/upload")
 async def upload_file(
@@ -186,38 +200,43 @@ async def upload_file(
         logger.info(f"Data source: {data_source}")
         logger.info(f"Data type: {data_type}")
         logger.info(f"Data unit: {data_unit}")
-        logger.info(f"File size: {file.size if hasattr(file, 'size') else 'Unknown'}")
-        
+        logger.info(
+            f"File size: {file.size if hasattr(file, 'size') else 'Unknown'}")
+
         # Create a temporary directory to store the uploaded files
-        temp_dir = tempfile.mkdtemp()  # Create a temporary directory that won't be automatically deleted
-        temp_dirs[str(len(uploaded_data))] = temp_dir  # Store the temp directory path
-        
+        # Create a temporary directory that won't be automatically deleted
+        temp_dir = tempfile.mkdtemp()
+        # Store the temp directory path
+        temp_dirs[str(len(uploaded_data))] = temp_dir
+
         # Save the uploaded file
         file_path = os.path.join(temp_dir, file.filename)
         logger.info(f"Saving file to temporary directory: {file_path}")
-        
+
         with open(file_path, "wb") as buffer:
             contents = await file.read()
             buffer.write(contents)
-            logger.info(f"File saved successfully. File size on disk: {len(contents)} bytes")
-        
+            logger.info(
+                f"File saved successfully. File size on disk: {len(contents)} bytes")
+
         file_id = str(len(uploaded_data))
-        
+
         # Handle based on data source
         if data_source == "samsung_galaxy_binary":
             if not file.filename.endswith('.zip'):
-                raise HTTPException(status_code=400, detail="Only ZIP files are supported for binary data")
-                
+                raise HTTPException(
+                    status_code=400, detail="Only ZIP files are supported for binary data")
+
             logger.info("File is a ZIP file, extracting...")
             extract_dir = os.path.join(temp_dir, "extracted")
             os.makedirs(extract_dir, exist_ok=True)
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
                 zip_ref.extractall(extract_dir)
             logger.info(f"Extracted ZIP file to: {extract_dir}")
-            
+
             # Create directory tree
             directory_tree = create_directory_tree(extract_dir)
-            
+
             # Store the extracted directory path
             uploaded_data[file_id] = {
                 "filename": file.filename,
@@ -225,7 +244,7 @@ async def upload_file(
                 "temp_dir": temp_dir,
                 "data_source": "samsung_galaxy_binary"
             }
-            
+
             return {
                 "file_id": file_id,
                 "filename": file.filename,
@@ -233,8 +252,9 @@ async def upload_file(
             }
         elif data_source == "samsung_galaxy_csv":
             if not file.filename.endswith('.csv'):
-                raise HTTPException(status_code=400, detail="Only CSV files are supported for CSV data")
-                
+                raise HTTPException(
+                    status_code=400, detail="Only CSV files are supported for CSV data")
+
             logger.info("File is a CSV file, storing path...")
             file_info = {
                 "filename": file.filename,
@@ -242,14 +262,14 @@ async def upload_file(
                 "temp_dir": temp_dir,
                 "data_source": "samsung_galaxy_csv"
             }
-            
+
             # Store data_type if provided (for alternative_counts)
             if data_type:
                 file_info["data_type"] = data_type
                 logger.info(f"Storing data_type: {data_type}")
-            
+
             uploaded_data[file_id] = file_info
-            
+
             return {
                 "file_id": file_id,
                 "filename": file.filename
@@ -272,10 +292,11 @@ async def upload_file(
             }
         else:
             raise HTTPException(status_code=400, detail="Invalid data source")
-                
+
     except Exception as e:
         logger.error(f"Error processing file: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/extract/{file_id}")
 async def extract_files(file_id: str) -> Dict[str, Any]:
@@ -287,7 +308,7 @@ async def extract_files(file_id: str) -> Dict[str, Any]:
             raise HTTPException(status_code=404, detail="File not found")
 
         file_data = uploaded_data[file_id]
-        
+
         # Skip extraction for CSV files and other data sources
         if file_data.get("data_source") in ["samsung_galaxy_csv", "other"]:
             return {"message": "No extraction needed for CSV files"}
@@ -297,7 +318,8 @@ async def extract_files(file_id: str) -> Dict[str, Any]:
 
         # Create a permanent directory for extracted files
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        extracted_dir = os.path.join("extracted_files", f"extracted_{timestamp}")
+        extracted_dir = os.path.join(
+            "extracted_files", f"extracted_{timestamp}")
         os.makedirs(extracted_dir, exist_ok=True)
 
         # Extract the ZIP file
@@ -305,25 +327,28 @@ async def extract_files(file_id: str) -> Dict[str, Any]:
             zip_ref.extractall(extracted_dir)
 
         # Find the actual data directory (skip __MACOSX)
-        child_dirs = [d for d in os.listdir(extracted_dir) 
-                     if os.path.isdir(os.path.join(extracted_dir, d)) 
-                     and not d.startswith('__MACOSX')]
-        
+        child_dirs = [d for d in os.listdir(extracted_dir)
+                      if os.path.isdir(os.path.join(extracted_dir, d))
+                      and not d.startswith('__MACOSX')]
+
         if not child_dirs:
-            raise HTTPException(status_code=400, detail="No valid data directory found in ZIP file")
-        
+            raise HTTPException(
+                status_code=400, detail="No valid data directory found in ZIP file")
+
         child_dir = os.path.join(extracted_dir, child_dirs[0])
-        
+
         # Update the uploaded_data with the permanent directory
         uploaded_data[file_id]["permanent_dir"] = extracted_dir
         uploaded_data[file_id]["child_dir"] = child_dir
 
-        logger.info(f"Files extracted successfully. Child directory for processing: {child_dir}")
+        logger.info(
+            f"Files extracted successfully. Child directory for processing: {child_dir}")
         return {"message": "Files extracted successfully", "child_dir": child_dir}
 
     except Exception as e:
         logger.error(f"Error extracting files: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 class ProcessRequest(BaseModel):
     preprocess_args: dict = {
@@ -345,6 +370,7 @@ class ProcessRequest(BaseModel):
         'pa_cutpoint_mv': 70,
     }
 
+
 @app.post("/process/{file_id}")
 async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
     """
@@ -355,14 +381,14 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
         logger.info(f"File ID: {file_id}")
         logger.info(f"Preprocessing arguments: {request.preprocess_args}")
         logger.info(f"Features arguments: {request.features_args}")
-        
+
         if file_id not in uploaded_data:
             logger.error(f"File ID {file_id} not found in uploaded_data")
             raise HTTPException(status_code=404, detail="File not found")
-        
+
         file_data = uploaded_data[file_id]
         logger.info(f"File data found: {file_data}")
-        
+
         # Choose the appropriate data handler based on data source
         if file_data.get("data_source") == "samsung_galaxy_csv":
             # Check if column selections are available (for alternative_counts)
@@ -370,9 +396,10 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
                 # Use selected columns for alternative_counts
                 time_column = file_data["time_column"]
                 data_columns = file_data["data_columns"]
-                logger.info(f"Using GalaxyCSVDataHandler for CSV file: {file_data['file_path']} with selected columns: time_column={time_column}, data_columns={data_columns}")
+                logger.info(
+                    f"Using GalaxyCSVDataHandler for CSV file: {file_data['file_path']} with selected columns: time_column={time_column}, data_columns={data_columns}")
                 handler = GalaxyDataHandler(
-                    galaxy_file_path=file_data["file_path"], 
+                    galaxy_file_path=file_data["file_path"],
                     preprocess_args=request.preprocess_args,
                     verbose=False,
                     data_format='csv',
@@ -382,9 +409,10 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
                 )
             else:
                 # Use hardcoded parameters for default ENMO
-                logger.info(f"Using GalaxyCSVDataHandler for CSV file: {file_data['file_path']} with hardcoded parameters for Samsung Galaxy CSV")
+                logger.info(
+                    f"Using GalaxyCSVDataHandler for CSV file: {file_data['file_path']} with hardcoded parameters for Samsung Galaxy CSV")
                 handler = GalaxyDataHandler(
-                    galaxy_file_path=file_data["file_path"], 
+                    galaxy_file_path=file_data["file_path"],
                     preprocess_args=request.preprocess_args,
                     verbose=False,
                     data_format='csv',
@@ -395,8 +423,9 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
         elif file_data.get("data_source") == "other":
             # Validate that data_type is available for processing
             if not file_data.get("data_type"):
-                raise HTTPException(status_code=400, detail="data_type is required for processing 'other' data source. Please complete column selection first.")
-            
+                raise HTTPException(
+                    status_code=400, detail="data_type is required for processing 'other' data source. Please complete column selection first.")
+
             # Set parameters based on data type and selected columns
             # The frontend sends the combined data_type (e.g., "accelerometer-g")
             # If data_type already contains a hyphen, use it as is
@@ -404,35 +433,43 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
             if file_data["data_type"] and '-' in file_data["data_type"]:
                 data_type = file_data["data_type"]
             elif file_data["data_type"] and file_data.get("data_unit"):
-                data_type = file_data["data_type"] + '-' + file_data["data_unit"]
+                data_type = file_data["data_type"] + \
+                    '-' + file_data["data_unit"]
             else:
                 data_type = file_data["data_type"] or "unknown"
-            
+
             time_column = file_data["time_column"]
             data_columns = file_data["data_columns"]
             time_format = file_data["time_format"]
-            
+
             # Log the parameters being used
-            logger.info(f"Using GenericDataHandler for CSV file: {file_data['file_path']}")
+            logger.info(
+                f"Using GenericDataHandler for CSV file: {file_data['file_path']}")
             logger.info(f"Data type: {data_type}")
             logger.info(f"Time format: {time_format}")
             logger.info(f"Time column: {time_column}")
             logger.info(f"Data columns: {data_columns}")
-            
+
             # Validate column selections based on data type
             if data_type == "accelerometer":
                 if len(data_columns) != 3:
-                    raise HTTPException(status_code=400, detail=f"Accelerometer data requires exactly 3 columns (X, Y, Z), but {len(data_columns)} were selected")
-                logger.info(f"Processing accelerometer data with columns: {data_columns}")
+                    raise HTTPException(
+                        status_code=400, detail=f"Accelerometer data requires exactly 3 columns (X, Y, Z), but {len(data_columns)} were selected")
+                logger.info(
+                    f"Processing accelerometer data with columns: {data_columns}")
             elif data_type == "enmo":
                 if len(data_columns) != 1:
-                    raise HTTPException(status_code=400, detail=f"ENMO data requires exactly 1 column, but {len(data_columns)} were selected")
-                logger.info(f"Processing ENMO data with column: {data_columns[0]}")
+                    raise HTTPException(
+                        status_code=400, detail=f"ENMO data requires exactly 1 column, but {len(data_columns)} were selected")
+                logger.info(
+                    f"Processing ENMO data with column: {data_columns[0]}")
             elif data_type == "alternative_counts":
                 if len(data_columns) != 1:
-                    raise HTTPException(status_code=400, detail=f"Alternative counts data requires exactly 1 column, but {len(data_columns)} were selected")
-                logger.info(f"Processing alternative counts data with column: {data_columns[0]}")
-            
+                    raise HTTPException(
+                        status_code=400, detail=f"Alternative counts data requires exactly 1 column, but {len(data_columns)} were selected")
+                logger.info(
+                    f"Processing alternative counts data with column: {data_columns[0]}")
+
             handler = GenericDataHandler(
                 file_path=file_data["file_path"],
                 data_format="csv",
@@ -445,24 +482,26 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
             )
         else:
             if "child_dir" not in file_data:
-                raise HTTPException(status_code=400, detail="No child directory found")
-            
+                raise HTTPException(
+                    status_code=400, detail="No child directory found")
+
             # Ensure the path ends with a forward slash
             child_dir = file_data["child_dir"]
             if not child_dir.endswith('/'):
                 child_dir = child_dir + '/'
-            
+
             logger.info(f"Using GalaxyDataHandler with directory: {child_dir}")
             handler = GalaxyDataHandler(
-                galaxy_file_path=child_dir, 
+                galaxy_file_path=child_dir,
                 preprocess_args=request.preprocess_args,
                 verbose=False,
                 data_format='binary',
                 data_type='accelerometer',
                 time_column='unix_timestamp_in_ms',
-                data_columns=['acceleration_x', 'acceleration_y', 'acceleration_z']
+                data_columns=['acceleration_x',
+                              'acceleration_y', 'acceleration_z']
             )
-        
+
         # Accept any valid numeric value for all preprocess_args
         default_preprocess = {
             'required_daily_coverage': 0.5,
@@ -481,15 +520,16 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
             try:
                 request.preprocess_args[k] = float(v)
             except (ValueError, TypeError):
-                logger.warning(f"Invalid value for {k}: {v}, setting to default {default_preprocess.get(k)}")
+                logger.warning(
+                    f"Invalid value for {k}: {v}, setting to default {default_preprocess.get(k)}")
                 request.preprocess_args[k] = default_preprocess.get(k)
-        
+
         logger.info(f"Using preprocessing args: {request.preprocess_args}")
         logger.info(f"Using features args: {request.features_args}")
-        
+
         # Get metadata
         metadata = handler.get_meta_data()
-        
+
         # Extract features using WearableFeatures with provided parameters
         wf = WearableFeatures(handler, features_args=request.features_args)
         features = wf.get_features()
@@ -497,22 +537,22 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
         df = df.reset_index()
         df = df.rename(columns={'timestamp': 'TIMESTAMP', 'enmo': 'ENMO'})
         logger.info(f"ML data: {df.head()}")
-        
+
         # Keep all columns as they are, just ensure TIMESTAMP is the index name
         df = df.rename(columns={'index': 'TIMESTAMP'})
-        
+
         df_json = df.to_dict(orient='records')
-        
+
         # Extract ENMO timeseries data (similar to bulk processing)
         enmo_timeseries = []
         try:
             # Resample to hourly data for better performance
             df['TIMESTAMP'] = pd.to_datetime(df['TIMESTAMP'])
             df.set_index('TIMESTAMP', inplace=True)
-            
+
             # Resample to hourly and take the mean
             hourly_df = df.resample('1H').mean()
-            
+
             # Create data structure with timestamp and ENMO values
             for timestamp, row in hourly_df.iterrows():
                 if pd.notna(row['ENMO']):
@@ -520,8 +560,9 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
                         'timestamp': timestamp.isoformat(),
                         'enmo': float(row['ENMO'])
                     })
-            
-            logger.info(f"Extracted {len(enmo_timeseries)} hourly ENMO values (from {len(df)} original points)")
+
+            logger.info(
+                f"Extracted {len(enmo_timeseries)} hourly ENMO values (from {len(df)} original points)")
         except Exception as e:
             logger.warning(f"Error extracting ENMO timeseries data: {e}")
             enmo_timeseries = []
@@ -535,11 +576,15 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
         logger.info(f"=== PROCESSING RESULTS ===")
         logger.info(f"Data points processed: {len(df_json)}")
         logger.info(f"Metadata: {metadata}")
-        logger.info(f"Cosinor features keys: {list(cosinor_features.keys()) if cosinor_features else 'None'}")
-        logger.info(f"Non-parametric features keys: {list(non_parametric_features.keys()) if non_parametric_features else 'None'}")
-        logger.info(f"Physical activity features keys: {list(physical_activity_features.keys()) if physical_activity_features else 'None'}")
-        logger.info(f"Sleep features keys: {list(sleep_features.keys()) if sleep_features else 'None'}")
-        
+        logger.info(
+            f"Cosinor features keys: {list(cosinor_features.keys()) if cosinor_features else 'None'}")
+        logger.info(
+            f"Non-parametric features keys: {list(non_parametric_features.keys()) if non_parametric_features else 'None'}")
+        logger.info(
+            f"Physical activity features keys: {list(physical_activity_features.keys()) if physical_activity_features else 'None'}")
+        logger.info(
+            f"Sleep features keys: {list(sleep_features.keys()) if sleep_features else 'None'}")
+
         # Store all the processed data in uploaded_data
         uploaded_data[file_id].update({
             'handler': handler,
@@ -559,7 +604,7 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
                 'raw_n_datapoints': metadata.get('raw_n_datapoints')
             }
         })
-        
+
         return {
             "message": "Data processed successfully",
             "data": df_json,
@@ -584,12 +629,14 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
         logger.error(f"Error processing data: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/health")
 async def health_check():
     """
     Health check endpoint
     """
     return {"status": "healthy"}
+
 
 @app.on_event("shutdown")
 async def cleanup():
@@ -600,17 +647,18 @@ async def cleanup():
     for temp_dir in temp_dirs.values():
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
-    
+
     # Clean up extracted files directory
     if os.path.exists(EXTRACTED_FILES_DIR):
         shutil.rmtree(EXTRACTED_FILES_DIR)
         os.makedirs(EXTRACTED_FILES_DIR, exist_ok=True)
-    
+
     # Clear in-memory state
     uploaded_data.clear()
     temp_dirs.clear()
-    
+
     logger.info("Application state cleaned up successfully")
+
 
 class ColumnSelectionRequest(BaseModel):
     time_column: str
@@ -619,9 +667,11 @@ class ColumnSelectionRequest(BaseModel):
     data_unit: Optional[str] = None
     time_format: Optional[str] = None
 
+
 class AgePredictionRequest(BaseModel):
     chronological_age: float
     gender: str
+
 
 @app.post("/update_columns/{file_id}")
 async def update_column_selections(file_id: str, request: ColumnSelectionRequest):
@@ -631,13 +681,13 @@ async def update_column_selections(file_id: str, request: ColumnSelectionRequest
     try:
         if file_id not in uploaded_data:
             raise HTTPException(status_code=404, detail="File not found")
-        
+
         file_info = uploaded_data[file_id]
-        
+
         # Update the column selections
         file_info["time_column"] = request.time_column
         file_info["data_columns"] = request.data_columns
-        
+
         # Update additional fields if provided
         if request.data_type is not None:
             file_info["data_type"] = request.data_type
@@ -645,9 +695,10 @@ async def update_column_selections(file_id: str, request: ColumnSelectionRequest
             file_info["data_unit"] = request.data_unit
         if request.time_format is not None:
             file_info["time_format"] = request.time_format
-        
-        logger.info(f"Updated column selections for file {file_id}: time_column={request.time_column}, data_columns={request.data_columns}, data_type={request.data_type}, data_unit={request.data_unit}, time_format={request.time_format}")
-        
+
+        logger.info(
+            f"Updated column selections for file {file_id}: time_column={request.time_column}, data_columns={request.data_columns}, data_type={request.data_type}, data_unit={request.data_unit}, time_format={request.time_format}")
+
         return {
             "message": "Column selections updated successfully",
             "time_column": request.time_column,
@@ -656,12 +707,14 @@ async def update_column_selections(file_id: str, request: ColumnSelectionRequest
             "data_unit": request.data_unit,
             "time_format": request.time_format
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error updating column selections: {str(e)}", exc_info=True)
+        logger.error(
+            f"Error updating column selections: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/predict_age/{file_id}")
 async def predict_age(file_id: str, request: AgePredictionRequest):
@@ -673,17 +726,19 @@ async def predict_age(file_id: str, request: AgePredictionRequest):
         logger.info(f"File ID: {file_id}")
         logger.info(f"Chronological age: {request.chronological_age}")
         logger.info(f"Gender: {request.gender}")
-        
+
         # Get the processed data
         if file_id not in uploaded_data:
             logger.error(f"File ID {file_id} not found in uploaded_data")
-            raise HTTPException(status_code=404, detail="File not found or not processed")
-        
+            raise HTTPException(
+                status_code=404, detail="File not found or not processed")
+
         data = uploaded_data[file_id]
         if 'handler' not in data:
             logger.error(f"Data handler not available for file ID {file_id}")
-            raise HTTPException(status_code=400, detail="Data handler not available")
-        
+            raise HTTPException(
+                status_code=400, detail="Data handler not available")
+
         # Log the data we're working with
         logger.info(f"Handler type: {type(data['handler'])}")
         logger.info(f"Available data keys: {list(data.keys())}")
@@ -691,16 +746,17 @@ async def predict_age(file_id: str, request: AgePredictionRequest):
             logger.info(f"Available features: {list(data['features'].keys())}")
             if 'cosinor' in data['features']:
                 logger.info(f"Cosinor features: {data['features']['cosinor']}")
-        
+
         # Create record in the correct format
         record = [{
-            'handler': data['handler'],  # Use the stored GalaxyDataHandler object
+            # Use the stored GalaxyDataHandler object
+            'handler': data['handler'],
             'age': request.chronological_age,
             'gender': request.gender
         }]
-        
+
         logging.info(f"Created record: {record}")
-        
+
         # Create CosinorAge object and predict
         try:
             cosinor_age = CosinorAge(record)
@@ -708,22 +764,24 @@ async def predict_age(file_id: str, request: AgePredictionRequest):
         except Exception as e:
             logging.error(f"Error creating CosinorAge object: {str(e)}")
             raise
-        
+
         try:
             predictions = cosinor_age.get_predictions()
             logging.info(f"Got predictions: {predictions}")
         except Exception as e:
             logging.error(f"Error getting predictions: {str(e)}")
             raise
-        
+
         if not predictions or not isinstance(predictions, list) or len(predictions) == 0:
-            raise HTTPException(status_code=500, detail="Failed to get prediction from CosinorAge")
-        
+            raise HTTPException(
+                status_code=500, detail="Failed to get prediction from CosinorAge")
+
         # Get the first prediction result
         prediction = predictions[0]
         if 'cosinorage' not in prediction:
-            raise HTTPException(status_code=500, detail="Prediction result missing cosinor age")
-        
+            raise HTTPException(
+                status_code=500, detail="Prediction result missing cosinor age")
+
         return {
             "predicted_age": prediction['cosinorage'],
             "chronological_age": request.chronological_age,
@@ -734,13 +792,15 @@ async def predict_age(file_id: str, request: AgePredictionRequest):
                 "acrophase": prediction.get('phi1')
             }
         }
-        
+
     except ValueError as e:
         logging.error(f"ValueError in predict_age: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logging.error(f"Error predicting age: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error predicting age: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error predicting age: {str(e)}")
+
 
 @app.post("/clear_state/{file_id}")
 async def clear_state(file_id: str):
@@ -750,27 +810,28 @@ async def clear_state(file_id: str):
     try:
         if file_id in uploaded_data:
             file_data = uploaded_data[file_id]
-            
+
             # Clean up temporary directory
             if "temp_dir" in file_data and os.path.exists(file_data["temp_dir"]):
                 shutil.rmtree(file_data["temp_dir"])
-            
+
             # Clean up permanent directory
             if "permanent_dir" in file_data and os.path.exists(file_data["permanent_dir"]):
                 shutil.rmtree(file_data["permanent_dir"])
-            
+
             # Remove from memory
             del uploaded_data[file_id]
             if file_id in temp_dirs:
                 del temp_dirs[file_id]
-            
+
             return {"message": f"State cleared for file {file_id}"}
         else:
             raise HTTPException(status_code=404, detail="File not found")
-            
+
     except Exception as e:
         logger.error(f"Error clearing state: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/clear_all_state")
 async def clear_all_state():
@@ -779,7 +840,7 @@ async def clear_all_state():
     """
     try:
         logger.info("=== CLEARING ALL STATE ===")
-        
+
         # Clean up all temporary directories
         for temp_dir in temp_dirs.values():
             if os.path.exists(temp_dir):
@@ -787,17 +848,20 @@ async def clear_all_state():
                     shutil.rmtree(temp_dir)
                     logger.info(f"Cleared temporary directory: {temp_dir}")
                 except Exception as e:
-                    logger.warning(f"Failed to clear temporary directory {temp_dir}: {str(e)}")
-        
+                    logger.warning(
+                        f"Failed to clear temporary directory {temp_dir}: {str(e)}")
+
         # Clean up all permanent directories from uploaded_data
         for file_data in uploaded_data.values():
             if "permanent_dir" in file_data and os.path.exists(file_data["permanent_dir"]):
                 try:
                     shutil.rmtree(file_data["permanent_dir"])
-                    logger.info(f"Cleared permanent directory: {file_data['permanent_dir']}")
+                    logger.info(
+                        f"Cleared permanent directory: {file_data['permanent_dir']}")
                 except Exception as e:
-                    logger.warning(f"Failed to clear permanent directory {file_data['permanent_dir']}: {str(e)}")
-        
+                    logger.warning(
+                        f"Failed to clear permanent directory {file_data['permanent_dir']}: {str(e)}")
+
         # Clear extracted_files directory completely
         if os.path.exists(EXTRACTED_FILES_DIR):
             try:
@@ -807,22 +871,26 @@ async def clear_all_state():
                         shutil.rmtree(item_path)
                     else:
                         os.remove(item_path)
-                logger.info(f"Cleared all contents from extracted_files directory: {EXTRACTED_FILES_DIR}")
+                logger.info(
+                    f"Cleared all contents from extracted_files directory: {EXTRACTED_FILES_DIR}")
             except Exception as e:
-                logger.warning(f"Failed to clear extracted_files directory: {str(e)}")
-        
+                logger.warning(
+                    f"Failed to clear extracted_files directory: {str(e)}")
+
         # Clear in-memory state
         uploaded_data.clear()
         temp_dirs.clear()
-        
+
         logger.info("All state cleared successfully")
         return {"message": "All uploaded data and directories cleared successfully"}
-        
+
     except Exception as e:
         logger.error(f"Error clearing all state: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 # Documentation API endpoints
+
+
 @app.get("/docs/content/{page_path:path}")
 async def get_docs_content(page_path: str = ""):
     """
@@ -833,6 +901,7 @@ async def get_docs_content(page_path: str = ""):
     except Exception as e:
         logger.error(f"Error fetching docs content: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/docs/sitemap")
 async def get_docs_sitemap():
@@ -845,23 +914,27 @@ async def get_docs_sitemap():
         logger.error(f"Error fetching docs sitemap: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/docs/search")
 async def search_docs(query: str):
     """Search documentation content."""
     return {"results": []}
 
+
 @app.get("/download/sample")
 async def download_sample_data():
     """Download sample data file."""
-    sample_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "sample", "sample_data2.csv")
+    sample_file_path = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), "data", "sample", "sample_data2.csv")
     if not os.path.exists(sample_file_path):
         raise HTTPException(status_code=404, detail="Sample file not found")
-    
+
     return FileResponse(
         path=sample_file_path,
         filename="sample_data2.csv",
         media_type="text/csv"
     )
+
 
 class BulkProcessRequest(BaseModel):
     files: List[Dict[str, Any]]  # List of file configurations
@@ -884,6 +957,7 @@ class BulkProcessRequest(BaseModel):
         'pa_cutpoint_mv': 70,
     }
 
+
 @app.get("/get_columns/{file_id}")
 async def get_columns(file_id: str) -> List[str]:
     """
@@ -892,13 +966,14 @@ async def get_columns(file_id: str) -> List[str]:
     try:
         if file_id not in uploaded_data:
             raise HTTPException(status_code=404, detail="File not found")
-        
+
         file_data = uploaded_data[file_id]
         file_path = file_data.get("file_path")
-        
+
         if not file_path or not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="File not found on disk")
-        
+            raise HTTPException(
+                status_code=404, detail="File not found on disk")
+
         # Read the first few lines to get column names
         import pandas as pd
         try:
@@ -906,11 +981,13 @@ async def get_columns(file_id: str) -> List[str]:
             return df.columns.tolist()
         except Exception as e:
             logger.error(f"Error reading CSV file: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error reading CSV file: {str(e)}")
-            
+            raise HTTPException(
+                status_code=500, detail=f"Error reading CSV file: {str(e)}")
+
     except Exception as e:
         logger.error(f"Error getting columns: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/bulk_upload")
 async def bulk_upload_files(files: List[UploadFile] = File(...)) -> Dict[str, Any]:
@@ -920,25 +997,25 @@ async def bulk_upload_files(files: List[UploadFile] = File(...)) -> Dict[str, An
     try:
         logger.info(f"=== BULK FILE UPLOAD REQUEST ===")
         logger.info(f"Number of files: {len(files)}")
-        
+
         uploaded_files = []
-        
+
         for i, file in enumerate(files):
             logger.info(f"Processing file {i+1}: {file.filename}")
-            
+
             # Create a temporary directory for each file
             temp_dir = tempfile.mkdtemp()
             temp_dirs[str(len(uploaded_data))] = temp_dir
-            
+
             # Save the uploaded file
             file_path = os.path.join(temp_dir, file.filename)
-            
+
             with open(file_path, "wb") as buffer:
                 contents = await file.read()
                 buffer.write(contents)
-            
+
             file_id = str(len(uploaded_data))
-            
+
             # Store file info
             uploaded_data[file_id] = {
                 "filename": file.filename,
@@ -946,20 +1023,21 @@ async def bulk_upload_files(files: List[UploadFile] = File(...)) -> Dict[str, An
                 "temp_dir": temp_dir,
                 "data_source": "bulk_csv"
             }
-            
+
             uploaded_files.append({
                 "file_id": file_id,
                 "filename": file.filename
             })
-        
+
         return {
             "message": f"Successfully uploaded {len(files)} files",
             "files": uploaded_files
         }
-        
+
     except Exception as e:
         logger.error(f"Error processing bulk upload: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/validate_bulk_columns")
 async def validate_bulk_columns(file_ids: List[str]) -> Dict[str, Any]:
@@ -969,33 +1047,38 @@ async def validate_bulk_columns(file_ids: List[str]) -> Dict[str, Any]:
     try:
         logger.info(f"=== VALIDATING BULK COLUMNS ===")
         logger.info(f"Number of files to validate: {len(file_ids)}")
-        
+
         if len(file_ids) < 2:
             return {
                 "valid": True,
                 "message": "Only one file uploaded, no validation needed",
                 "columns": None
             }
-        
+
         # Get column names for each file
         file_columns = {}
         for file_id in file_ids:
             if file_id not in uploaded_data:
                 logger.error(f"File {file_id} not found in uploaded_data")
-                raise HTTPException(status_code=404, detail=f"File {file_id} not found")
-            
+                raise HTTPException(
+                    status_code=404, detail=f"File {file_id} not found")
+
             file_data = uploaded_data[file_id]
             file_path = file_data["file_path"]
-            
+
             # Check if file still exists on disk
             if not os.path.exists(file_path):
-                logger.error(f"File {file_id} path no longer exists: {file_path}")
-                raise HTTPException(status_code=404, detail=f"File {file_id} no longer exists on disk")
-            
-            logger.info(f"Reading columns from file {file_id}: {file_data['filename']} at path: {file_path}")
-            
+                logger.error(
+                    f"File {file_id} path no longer exists: {file_path}")
+                raise HTTPException(
+                    status_code=404, detail=f"File {file_id} no longer exists on disk")
+
+            logger.info(
+                f"Reading columns from file {file_id}: {file_data['filename']} at path: {file_path}")
+
             try:
-                df = pd.read_csv(file_path, nrows=1)  # Only read first row to get headers
+                # Only read first row to get headers
+                df = pd.read_csv(file_path, nrows=1)
                 columns = df.columns.tolist()
                 logger.info(f"Columns for file {file_id}: {columns}")
                 file_columns[file_id] = {
@@ -1003,22 +1086,27 @@ async def validate_bulk_columns(file_ids: List[str]) -> Dict[str, Any]:
                     "columns": columns
                 }
             except Exception as e:
-                logger.error(f"Error reading CSV file {file_data['filename']}: {str(e)}")
-                raise HTTPException(status_code=400, detail=f"Error reading CSV file {file_data['filename']}: {str(e)}")
-        
+                logger.error(
+                    f"Error reading CSV file {file_data['filename']}: {str(e)}")
+                raise HTTPException(
+                    status_code=400, detail=f"Error reading CSV file {file_data['filename']}: {str(e)}")
+
         # Check if all files have the same columns
         first_file_id = file_ids[0]
         first_columns = set(file_columns[first_file_id]["columns"])
-        logger.info(f"Reference columns from file {first_file_id}: {list(first_columns)}")
-        
+        logger.info(
+            f"Reference columns from file {first_file_id}: {list(first_columns)}")
+
         mismatched_files = []
         for file_id in file_ids[1:]:
             current_columns = set(file_columns[file_id]["columns"])
-            logger.info(f"Comparing file {file_id} columns: {list(current_columns)}")
+            logger.info(
+                f"Comparing file {file_id} columns: {list(current_columns)}")
             if current_columns != first_columns:
                 missing_columns = first_columns - current_columns
                 extra_columns = current_columns - first_columns
-                logger.warning(f"File {file_id} has mismatched columns. Missing: {list(missing_columns)}, Extra: {list(extra_columns)}")
+                logger.warning(
+                    f"File {file_id} has mismatched columns. Missing: {list(missing_columns)}, Extra: {list(extra_columns)}")
                 mismatched_files.append({
                     "file_id": file_id,
                     "filename": file_columns[file_id]["filename"],
@@ -1027,7 +1115,7 @@ async def validate_bulk_columns(file_ids: List[str]) -> Dict[str, Any]:
                 })
             else:
                 logger.info(f"File {file_id} columns match reference")
-        
+
         if mismatched_files:
             return {
                 "valid": False,
@@ -1042,12 +1130,13 @@ async def validate_bulk_columns(file_ids: List[str]) -> Dict[str, Any]:
                 "message": "All files have the same column structure",
                 "columns": list(first_columns)
             }
-            
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error validating bulk columns: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/bulk_process")
 async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
@@ -1059,59 +1148,65 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
         logger.info(f"Number of files to process: {len(request.files)}")
         logger.info(f"Preprocessing arguments: {request.preprocess_args}")
         logger.info(f"Features arguments: {request.features_args}")
-        
+
         # Validate that all files have the same column structure
         file_ids = [file_config["file_id"] for file_config in request.files]
         logger.info(f"Files to validate: {file_ids}")
-        logger.info(f"Available files in uploaded_data: {list(uploaded_data.keys())}")
-        
+        logger.info(
+            f"Available files in uploaded_data: {list(uploaded_data.keys())}")
+
         # Check if all files exist
         for file_id in file_ids:
             if file_id not in uploaded_data:
-                logger.error(f"File {file_id} not found in uploaded_data during bulk process")
-                raise HTTPException(status_code=404, detail=f"File {file_id} not found. Files may have been cleared from server memory.")
-        
+                logger.error(
+                    f"File {file_id} not found in uploaded_data during bulk process")
+                raise HTTPException(
+                    status_code=404, detail=f"File {file_id} not found. Files may have been cleared from server memory.")
+
         validation_result = await validate_bulk_columns(file_ids)
-        
+
         if not validation_result["valid"]:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Column validation failed: {validation_result['message']}. Files must have identical column structures."
             )
-        
+
         handlers = []
         failed_files = []
-        
+
         for file_config in request.files:
             file_id = file_config["file_id"]
-            
+
             if file_id not in uploaded_data:
                 failed_files.append({
                     "file_id": file_id,
                     "filename": "Unknown",
                     "error": f"File {file_id} not found in uploaded data"
                 })
-                logger.warning(f"File {file_id} not found in uploaded_data, skipping")
+                logger.warning(
+                    f"File {file_id} not found in uploaded_data, skipping")
                 continue
-            
+
             file_data = uploaded_data[file_id]
-            
+
             # Create data type string
             if file_config["data_type"] and '-' in file_config["data_type"]:
                 data_type = file_config["data_type"]
             elif file_config["data_type"] and file_config.get("data_unit"):
-                data_type = file_config["data_type"] + '-' + file_config["data_unit"]
+                data_type = file_config["data_type"] + \
+                    '-' + file_config["data_unit"]
             else:
                 data_type = file_config["data_type"] or "unknown"
-            
+
             # Set default values for column names if not provided
             time_column = file_config.get("time_column")
             data_columns = file_config.get("data_columns", [])
-            
+
             # If time_column is not provided, try to infer it
             if not time_column:
                 # Try common time column names
-                common_time_columns = ['timestamp', 'time', 'datetime', 'date', 't']
+                common_time_columns = ['timestamp',
+                                       'time', 'datetime', 'date', 't']
                 available_columns = validation_result.get("columns", [])
                 for col in common_time_columns:
                     if col in available_columns:
@@ -1120,8 +1215,9 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                 if not time_column and available_columns:
                     # Use the first column as fallback
                     time_column = available_columns[0]
-                    logger.warning(f"No time column specified for file {file_id}, using first column: {time_column}")
-            
+                    logger.warning(
+                        f"No time column specified for file {file_id}, using first column: {time_column}")
+
             # Ensure time_column is not None
             if not time_column:
                 failed_files.append({
@@ -1129,9 +1225,10 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                     "filename": file_data.get("filename", "Unknown"),
                     "error": f"Could not determine time column for file {file_id}. Please specify a time column."
                 })
-                logger.warning(f"Could not determine time column for file {file_id}, skipping")
+                logger.warning(
+                    f"Could not determine time column for file {file_id}, skipping")
                 continue
-            
+
             # If data_columns is not provided, try to infer them based on data type
             if not data_columns:
                 available_columns = validation_result.get("columns", [])
@@ -1145,8 +1242,10 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                                 break
                     if len(accel_columns) == 3:
                         data_columns = accel_columns
-                    elif len(available_columns) >= 4:  # Assuming first 3 non-time columns are X, Y, Z
-                        data_columns = [col for col in available_columns if col != time_column][:3]
+                    # Assuming first 3 non-time columns are X, Y, Z
+                    elif len(available_columns) >= 4:
+                        data_columns = [
+                            col for col in available_columns if col != time_column][:3]
                 elif data_type.startswith("enmo"):
                     # For ENMO data, look for ENMO column
                     for col in available_columns:
@@ -1154,20 +1253,25 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                             data_columns = [col]
                             break
                     if not data_columns and len(available_columns) >= 2:
-                        data_columns = [col for col in available_columns if col != time_column][:1]
+                        data_columns = [
+                            col for col in available_columns if col != time_column][:1]
                 else:
                     # For other data types, use all non-time columns
-                    data_columns = [col for col in available_columns if col != time_column]
-                
+                    data_columns = [
+                        col for col in available_columns if col != time_column]
+
                 if not data_columns:
-                    logger.warning(f"No data columns found for file {file_id}, using all columns except time column")
-                    data_columns = [col for col in available_columns if col != time_column]
-            
+                    logger.warning(
+                        f"No data columns found for file {file_id}, using all columns except time column")
+                    data_columns = [
+                        col for col in available_columns if col != time_column]
+
             # Set default timestamp format if not provided
             timestamp_format = file_config.get("timestamp_format", "datetime")
-            
-            logger.info(f"Using inferred columns for file {file_id}: time_column={time_column}, data_columns={data_columns}, timestamp_format={timestamp_format}")
-            
+
+            logger.info(
+                f"Using inferred columns for file {file_id}: time_column={time_column}, data_columns={data_columns}, timestamp_format={timestamp_format}")
+
             try:
                 # Create GenericDataHandler for each file
                 handler = GenericDataHandler(
@@ -1181,20 +1285,23 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                     verbose=True
                 )
                 handlers.append(handler)
-                logger.info(f"Successfully created handler for file {file_id}: {file_data.get('filename', 'Unknown')}")
+                logger.info(
+                    f"Successfully created handler for file {file_id}: {file_data.get('filename', 'Unknown')}")
             except Exception as e:
                 error_msg = str(e)
-                logger.warning(f"Error creating GenericDataHandler for file {file_id}: {error_msg}")
+                logger.warning(
+                    f"Error creating GenericDataHandler for file {file_id}: {error_msg}")
                 failed_files.append({
                     "file_id": file_id,
                     "filename": file_data.get("filename", "Unknown"),
                     "error": error_msg
                 })
                 continue
-        
+
         # Check if we have any valid handlers to process
         if not handlers:
-            logger.warning("No valid handlers created, all files failed processing")
+            logger.warning(
+                "No valid handlers created, all files failed processing")
             return {
                 "message": "No files could be processed successfully",
                 "successful_files": 0,
@@ -1205,9 +1312,10 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                 "summary_dataframe": [],
                 "correlation_matrix": {}
             }
-        
-        logger.info(f"Successfully created {len(handlers)} handlers out of {len(request.files)} files. {len(failed_files)} files failed.")
-        
+
+        logger.info(
+            f"Successfully created {len(handlers)} handlers out of {len(request.files)} files. {len(failed_files)} files failed.")
+
         # Accept any valid numeric value for all preprocess_args
         default_preprocess = {
             'required_daily_coverage': 0.5,
@@ -1226,57 +1334,60 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
             try:
                 request.preprocess_args[k] = float(v)
             except (ValueError, TypeError):
-                logger.warning(f"Invalid value for {k}: {v}, setting to default {default_preprocess.get(k)}")
+                logger.warning(
+                    f"Invalid value for {k}: {v}, setting to default {default_preprocess.get(k)}")
                 request.preprocess_args[k] = default_preprocess.get(k)
-        
+
         logger.info(f"Using preprocessing args: {request.preprocess_args}")
         logger.info(f"Using features args: {request.features_args}")
-        
+
         # Update handlers with validated parameters
         for handler in handlers:
             handler.preprocess_args = request.preprocess_args
-        
+
         # Use BulkWearableFeatures to process all handlers
         bulk_features = BulkWearableFeatures(
-            handlers=handlers, 
+            handlers=handlers,
             features_args=request.features_args,
         )
-        
+
         # Get distribution statistics
         distribution_stats = bulk_features.get_distribution_stats()
-        
+
         # Get individual features
         individual_features = bulk_features.get_individual_features()
-        
+
         # Get failed handlers
         failed_handlers = bulk_features.get_failed_handlers()
-        
+
         # Get summary dataframe
         summary_df = bulk_features.get_summary_dataframe()
-        
+
         # Get correlation matrix
         correlation_matrix = bulk_features.get_feature_correlation_matrix()
-        
+
         # Extract ENMO data from each handler before processing
         # This is similar to how single individual processing works
         handler_enmo_data = []
         for i, handler in enumerate(handlers):
             try:
                 # Create a WearableFeatures instance for this handler to get the processed data
-                wf = WearableFeatures(handler, features_args=request.features_args)
+                wf = WearableFeatures(
+                    handler, features_args=request.features_args)
                 df = wf.get_ml_data()
                 df = df.reset_index()
                 if 'timestamp' not in df.columns and 'index' in df.columns:
                     df = df.rename(columns={'index': 'timestamp'})
-                df = df.rename(columns={'timestamp': 'TIMESTAMP', 'enmo': 'ENMO'})
-                
+                df = df.rename(
+                    columns={'timestamp': 'TIMESTAMP', 'enmo': 'ENMO'})
+
                 # Resample to hourly data for better performance
                 df['TIMESTAMP'] = pd.to_datetime(df['TIMESTAMP'])
                 df.set_index('TIMESTAMP', inplace=True)
-                
+
                 # Resample to hourly and take the mean
                 hourly_df = df.resample('1H').mean()
-                
+
                 # Create data structure with timestamp and ENMO values
                 enmo_data = []
                 for timestamp, row in hourly_df.iterrows():
@@ -1285,16 +1396,19 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                             'timestamp': timestamp.isoformat(),
                             'enmo': float(row['ENMO'])
                         })
-                
+
                 handler_enmo_data.append(enmo_data)
-                
-                logger.info(f"Handler {i}: extracted {len(enmo_data)} hourly ENMO values (from {len(df)} original points)")
+
+                logger.info(
+                    f"Handler {i}: extracted {len(enmo_data)} hourly ENMO values (from {len(df)} original points)")
             except Exception as e:
-                logger.warning(f"Error extracting ENMO data from handler {i}: {e}")
+                logger.warning(
+                    f"Error extracting ENMO data from handler {i}: {e}")
                 handler_enmo_data.append([])
-        
-        logger.info(f"Extracted ENMO data from {len(handler_enmo_data)} handlers")
-        
+
+        logger.info(
+            f"Extracted ENMO data from {len(handler_enmo_data)} handlers")
+
         # Clean the data to handle NaN and infinity values for JSON serialization
         def clean_for_json(obj):
             if isinstance(obj, dict):
@@ -1309,7 +1423,7 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                 return obj
             else:
                 return str(obj)
-        
+
         def safe_isinf(value):
             """Safely check if a value is infinite, handling non-numeric types"""
             try:
@@ -1318,24 +1432,25 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                 return False
             except:
                 return False
-        
+
         # Clean the distribution stats
         cleaned_distribution_stats = clean_for_json(distribution_stats)
-        
+
         # Clean the individual results
         cleaned_individual_results = []
         for i, features in enumerate(individual_features):
             if features is not None:
                 # Use the pre-extracted ENMO data
-                enmo_data = handler_enmo_data[i] if i < len(handler_enmo_data) else None
-                
+                enmo_data = handler_enmo_data[i] if i < len(
+                    handler_enmo_data) else None
+
                 cleaned_individual_results.append({
                     "file_id": request.files[i]["file_id"],
                     "filename": uploaded_data[request.files[i]["file_id"]]["filename"],
                     "features": clean_for_json(features),
                     "enmo_timeseries": enmo_data
                 })
-        
+
         # Clean the summary dataframe
         cleaned_summary_df = []
         if not summary_df.empty:
@@ -1347,7 +1462,7 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                     else:
                         cleaned_row[col] = value
                 cleaned_summary_df.append(cleaned_row)
-        
+
         # Clean the correlation matrix
         cleaned_correlation_matrix = {}
         if not correlation_matrix.empty:
@@ -1359,7 +1474,7 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                         cleaned_correlation_matrix[col][idx] = None
                     else:
                         cleaned_correlation_matrix[col][idx] = value
-        
+
         return {
             "message": f"Successfully processed {len(handlers)} files out of {len(request.files)} total files",
             "successful_files": len(handlers),
@@ -1371,10 +1486,11 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
             "summary_dataframe": cleaned_summary_df,
             "correlation_matrix": cleaned_correlation_matrix
         }
-        
+
     except Exception as e:
         logger.error(f"Error processing bulk data: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error processing bulk data: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error processing bulk data: {str(e)}")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
