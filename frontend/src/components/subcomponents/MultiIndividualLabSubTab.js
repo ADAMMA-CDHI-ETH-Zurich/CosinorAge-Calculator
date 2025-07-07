@@ -523,7 +523,7 @@ const MultiIndividualTab = () => {
 
         if (!validation.isValid) {
           throw new Error(
-            `Cosinorage is enabled but age and gender are not properly set for ${validation.missingCount} file(s). Please set valid age and gender for all files or disable cosinorage.`
+            `Cosinorage is enabled but age and gender are not properly set for ${validation.missingCount} file(s). Please set valid age and gender for all files or disable CosinorAge.`
           );
         }
       }
@@ -1682,7 +1682,7 @@ const MultiIndividualTab = () => {
                 bulkColumnSelectionComplete)) && (
               <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle1" gutterBottom>
-                  Cosinorage Age Prediction
+                  CosinorAge Prediction
                 </Typography>
 
                 {/* Enable/Disable Switch and Settings Button */}
