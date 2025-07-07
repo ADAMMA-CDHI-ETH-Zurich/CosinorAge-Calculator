@@ -48,7 +48,7 @@ const HomeTab = ({ setCurrentTab }) => {
                 sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
               >
                 CosinorLab is a research platform that introduces{" "}
-                <strong>Cosinorage</strong> - a novel aging biomarker calculated
+                <strong>CosinorAge</strong> - a novel aging biomarker calculated
                 from accelerometer data. While CosinorAge is our main feature,
                 we also provide comprehensive analysis of sleep patterns,
                 physical activity levels, and circadian rhythms through
@@ -59,7 +59,7 @@ const HomeTab = ({ setCurrentTab }) => {
                 paragraph
                 sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
               >
-                <strong>Cosinorage</strong> provides researchers and healthcare
+                <strong>CosinorAge</strong> provides researchers and healthcare
                 professionals with a non-invasive, objective measure of
                 biological aging based on daily activity patterns. This
                 innovative biomarker works alongside our other analysis tools to
@@ -103,14 +103,14 @@ const HomeTab = ({ setCurrentTab }) => {
                   </Box>
                   <CardContent sx={{ pt: 6, textAlign: "center" }}>
                     <Typography variant="h5" gutterBottom>
-                      Cosinorage: Novel Aging Biomarker
+                      CosinorAge: Novel Aging Biomarker
                     </Typography>
                     <Typography
                       variant="body1"
                       color="text.secondary"
                       paragraph
                     >
-                      Our <strong>Cosinorage</strong> algorithm analyzes
+                      Our <strong>CosinorAge</strong> algorithm analyzes
                       circadian rhythm patterns from accelerometer data to
                       predict biological age - a novel approach to aging
                       assessment.
@@ -299,7 +299,7 @@ const HomeTab = ({ setCurrentTab }) => {
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
                   Upload, process, and analyze your accelerometer data to
-                  calculate Cosinorage aging biomarkers
+                  calculate CosinorAge aging biomarkers
                 </Typography>
               </Box>
             </Box>
@@ -316,7 +316,7 @@ const HomeTab = ({ setCurrentTab }) => {
                 <ul style={{ paddingLeft: "1.5rem", marginBottom: "1rem" }}>
                   <li style={{ marginBottom: "0.5rem" }}>
                     <Typography variant="body1">
-                      <strong>Calculate Cosinorage:</strong> Generate novel
+                      <strong>Calculate CosinorAge:</strong> Generate novel
                       aging biomarkers from accelerometer data
                     </Typography>
                   </li>
@@ -351,7 +351,7 @@ const HomeTab = ({ setCurrentTab }) => {
                 <ul style={{ paddingLeft: "1.5rem", marginBottom: "1rem" }}>
                   <li style={{ marginBottom: "0.5rem" }}>
                     <Typography variant="body1">
-                      <strong>Cosinorage Biomarker:</strong> Novel aging
+                      <strong>CosinorAge Biomarker:</strong> Novel aging
                       assessment from circadian patterns
                     </Typography>
                   </li>
@@ -393,7 +393,7 @@ const HomeTab = ({ setCurrentTab }) => {
               <Typography variant="body2">
                 <strong>Getting Started:</strong> Click the button below to
                 access the interactive Lab. You can upload sample data to
-                explore the Cosinorage aging biomarker features, or use your own
+                explore the CosinorAge aging biomarker features, or use your own
                 accelerometer data for analysis.
               </Typography>
             </Alert>
@@ -470,7 +470,7 @@ const HomeTab = ({ setCurrentTab }) => {
                     Programmatic Access
                   </Typography>
                   <Typography variant="body1" color="text.secondary">
-                    Integrate Cosinorage aging biomarker analysis into your
+                    Integrate CosinorAge aging biomarker analysis into your
                     research workflows and applications
                   </Typography>
                 </Box>
@@ -538,7 +538,7 @@ const HomeTab = ({ setCurrentTab }) => {
               For researchers and developers who need programmatic access to our
               aging biomarker analysis tools, CosinorLab provides a
               comprehensive Python API. This allows you to integrate our
-              Cosinorage aging biomarker calculation, circadian rhythm analysis,
+              CosinorAge aging biomarker calculation, circadian rhythm analysis,
               and activity classification into your own research pipelines and
               applications.
             </Typography>

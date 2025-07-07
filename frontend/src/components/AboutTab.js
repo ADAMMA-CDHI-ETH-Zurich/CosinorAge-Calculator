@@ -17,7 +17,7 @@ const AboutTab = () => {
                 About CosinorLab
               </Typography>
               <Typography variant="h6" color="text.secondary" gutterBottom>
-                Pioneering Cosinorage & Comprehensive Accelerometer Analysis at
+                Pioneering CosinorAge & Comprehensive Accelerometer Analysis at
                 ADAMMA, ETH Zurich
               </Typography>
             </Box>
@@ -32,7 +32,7 @@ const AboutTab = () => {
               CosinorLab is a research platform developed at ADAMMA (Core for AI
               & Digital Biomarker Research) at ETH Zurich. Our mission is to
               advance health monitoring by pioneering{" "}
-              <strong>Cosinorage</strong> - a novel aging biomarker calculated
+              <strong>CosinorAge</strong> - a novel aging biomarker calculated
               from accelerometer data, while also providing comprehensive
               analysis of sleep, physical activity, and circadian rhythms.
             </Typography>
@@ -41,7 +41,7 @@ const AboutTab = () => {
               paragraph
               sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
             >
-              <strong>Cosinorage</strong> provides researchers and healthcare
+              <strong>CosinorAge</strong> provides researchers and healthcare
               professionals with a non-invasive, objective measure of biological
               aging based on daily activity patterns. This innovative biomarker
               works alongside our other analysis tools to provide a complete
@@ -118,7 +118,7 @@ const AboutTab = () => {
             >
               At CosinorLab, we're dedicated to advancing the field of digital
               health through innovative research and accessible tools. Our main
-              feature is <strong>Cosinorage</strong> - a novel aging biomarker,
+              feature is <strong>CosinorAge</strong> - a novel aging biomarker,
               while we also provide comprehensive analysis of sleep, physical
               activity, and circadian rhythms to bridge the gap between complex
               research methodologies and practical health applications.
@@ -141,7 +141,7 @@ const AboutTab = () => {
                     Novel Aging Biomarker
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Pioneering <strong>Cosinorage</strong> - a breakthrough
+                    Pioneering <strong>CosinorAge</strong> - a breakthrough
                     aging biomarker calculated from accelerometer data through
                     sophisticated cosinor analysis of circadian rhythms.
                   </Typography>
@@ -164,7 +164,7 @@ const AboutTab = () => {
                     Open Source
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Making our <strong>Cosinorage</strong> aging biomarker tools
+                    Making our <strong>CosinorAge</strong> aging biomarker tools
                     freely available to the research community to accelerate
                     innovation in digital health and aging research.
                   </Typography>

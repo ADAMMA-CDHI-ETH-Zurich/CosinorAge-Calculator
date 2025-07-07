@@ -3431,7 +3431,7 @@ const MultiIndividualTab = () => {
         <DialogTitle>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <CheckCircleIcon sx={{ color: "#0034f0" }} />
-            Set Age and Gender for Cosinorage
+            Set Age and Gender for CosinorAge
           </Box>
         </DialogTitle>
         <DialogContent>
