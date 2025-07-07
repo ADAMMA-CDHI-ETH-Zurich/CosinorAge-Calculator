@@ -749,7 +749,7 @@ const SingleIndividualLabSubTab = ({
             alignItems: "stretch", // changed from 'center' to 'stretch'
             width: "100%", // ensure full width
             maxWidth: "none", // remove any maxWidth restriction
-                            border: dragActive ? "2px dashed #0034f0" : "none",
+            border: dragActive ? "2px dashed #0034f0" : "none",
             background: dragActive ? "rgba(33,150,243,0.05)" : undefined,
             position: "relative",
           }}
@@ -973,12 +973,12 @@ const SingleIndividualLabSubTab = ({
                       <span
                         dangerouslySetInnerHTML={{
                           __html: `The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in ${dataUnit} units. The timestamp column should be in ${
-                                timestampFormat === "unix-ms"
-                                  ? "Unix milliseconds"
-                                  : timestampFormat === "unix-s"
-                                  ? "Unix seconds"
-                                  : "datetime"
-                              } format.`,
+                            timestampFormat === "unix-ms"
+                              ? "Unix milliseconds"
+                              : timestampFormat === "unix-s"
+                              ? "Unix seconds"
+                              : "datetime"
+                          } format.`,
                         }}
                       />
                     )}
@@ -1103,18 +1103,22 @@ const SingleIndividualLabSubTab = ({
                       <Typography variant="body2" paragraph sx={{ mb: 2 }}>
                         {dataSource === "other" ? (
                           <span>
-                            The uploaded CSV file must contain ENMO or accelerometer data collected from a smartwatch or wearable device. Please ensure your file is formatted as time series data with appropriate timestamp and measurement columns.
+                            The uploaded CSV file must contain ENMO or
+                            accelerometer data collected from a smartwatch or
+                            wearable device. Please ensure your file is
+                            formatted as time series data with appropriate
+                            timestamp and measurement columns.
                           </span>
                         ) : dataType === "accelerometer" ? (
                           <span
                             dangerouslySetInnerHTML={{
                               __html: `The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in ${dataUnit} units. The timestamp column should be in ${
-                              timestampFormat === "unix-ms"
-                                ? "Unix milliseconds"
-                                : timestampFormat === "unix-s"
-                                ? "Unix seconds"
-                                : "datetime"
-                            } format.`,
+                                timestampFormat === "unix-ms"
+                                  ? "Unix milliseconds"
+                                  : timestampFormat === "unix-s"
+                                  ? "Unix seconds"
+                                  : "datetime"
+                              } format.`,
                             }}
                           />
                         ) : dataType === "enmo" ? (
@@ -2191,15 +2195,15 @@ const SingleIndividualLabSubTab = ({
                         onClick={handleReset}
                         disabled={processing}
                         startIcon={<RefreshIcon />}
-                        sx={{ 
-                          px: 4, 
+                        sx={{
+                          px: 4,
                           py: 1.5,
                           color: "#0034f0",
                           borderColor: "#0034f0",
                           "&:hover": {
                             borderColor: "#0034f0",
-                            backgroundColor: "rgba(0, 52, 240, 0.04)"
-                          }
+                            backgroundColor: "rgba(0, 52, 240, 0.04)",
+                          },
                         }}
                       >
                         Reset All
@@ -2350,16 +2354,16 @@ const SingleIndividualLabSubTab = ({
             </Paper>
           </Grid>
 
-          {/* Cosinor Age Prediction */}
+          {/* CosinorAge Prediction */}
           {data?.features && (
             <>
               <Grid item xs={12}>
                 <Paper sx={{ p: 3, mb: 3 }}>
                   <Typography variant="h6" gutterBottom>
-                    Cosinor Age Prediction
+                    CosinorAge Prediction
                   </Typography>
-                  <Alert 
-                    sx={{ 
+                  <Alert
+                    sx={{
                       mb: 3,
                       backgroundColor: "#d1d8ff",
                       border: "1px solid #0034f0",
@@ -2368,7 +2372,7 @@ const SingleIndividualLabSubTab = ({
                       },
                       "& .MuiAlert-message": {
                         color: "#0034f0",
-                      }
+                      },
                     }}
                   >
                     <Typography variant="body2" sx={{ color: "#0034f0" }}>
@@ -2633,16 +2637,25 @@ const SingleIndividualLabSubTab = ({
                       {/* ENMO Data Plot */}
                       <Paper sx={{ p: 3, mb: 3 }}>
                         <Typography variant="h6" gutterBottom>
-                          ENMO time series{(() => {
+                          ENMO time series
+                          {(() => {
                             // Check if wear data exists and has meaningful values (not all -1)
-                            const hasWearData = data.data.some(point => point.wear !== undefined && point.wear !== -1);
-                            return hasWearData ? " (incl. wear/non-wear segments)" : "";
+                            const hasWearData = data.data.some(
+                              (point) =>
+                                point.wear !== undefined && point.wear !== -1
+                            );
+                            return hasWearData
+                              ? " (incl. wear/non-wear segments)"
+                              : "";
                           })()}
                         </Typography>
                         {/* Custom legend for wear/non-wear - only show if wear data is available */}
                         {(() => {
                           // Check if wear data exists and has meaningful values (not all -1)
-                          const hasWearData = data.data.some(point => point.wear !== undefined && point.wear !== -1);
+                          const hasWearData = data.data.some(
+                            (point) =>
+                              point.wear !== undefined && point.wear !== -1
+                          );
                           return hasWearData;
                         })() && (
                           <Box
@@ -3728,77 +3741,96 @@ const SingleIndividualLabSubTab = ({
                                       >
                                         {label}
                                       </p>
-                                      {payload.slice().reverse().map((entry, index) => {
-                                        let value = entry.value;
-                                        let unit = "";
-                                        if (entry.name === "TST") {
-                                          value = Math.round(value).toFixed(0);
-                                          unit = " minutes";
-                                        } else if (
-                                          entry.name === "WASO" ||
-                                          entry.name === "SOL"
-                                        ) {
-                                          value = value.toFixed(0);
-                                          unit = " minutes";
-                                        } else if (entry.name === "PTA") {
-                                          value = value.toFixed(1);
-                                          unit = "%";
-                                        } else if (
-                                          entry.name === "M10" ||
-                                          entry.name === "L5"
-                                        ) {
-                                          value = value.toFixed(2);
-                                          unit = " mg";
-                                        } else if (
-                                          [
-                                            "sedentary",
-                                            "light",
-                                            "moderate",
-                                            "vigorous",
-                                          ].includes(entry.name)
-                                        ) {
-                                          value = value.toFixed(0);
-                                          unit = " minutes";
-                                        }
-                                        return (
-                                          <p
-                                            key={index}
-                                            style={{
-                                              margin: "0",
-                                              color: entry.color,
-                                            }}
-                                          >
-                                            {`${entry.name}: ${value}${unit}`}
-                                          </p>
-                                        );
-                                      })}
+                                      {payload
+                                        .slice()
+                                        .reverse()
+                                        .map((entry, index) => {
+                                          let value = entry.value;
+                                          let unit = "";
+                                          if (entry.name === "TST") {
+                                            value =
+                                              Math.round(value).toFixed(0);
+                                            unit = " minutes";
+                                          } else if (
+                                            entry.name === "WASO" ||
+                                            entry.name === "SOL"
+                                          ) {
+                                            value = value.toFixed(0);
+                                            unit = " minutes";
+                                          } else if (entry.name === "PTA") {
+                                            value = value.toFixed(1);
+                                            unit = "%";
+                                          } else if (
+                                            entry.name === "M10" ||
+                                            entry.name === "L5"
+                                          ) {
+                                            value = value.toFixed(2);
+                                            unit = " mg";
+                                          } else if (
+                                            [
+                                              "sedentary",
+                                              "light",
+                                              "moderate",
+                                              "vigorous",
+                                            ].includes(entry.name)
+                                          ) {
+                                            value = value.toFixed(0);
+                                            unit = " minutes";
+                                          }
+                                          return (
+                                            <p
+                                              key={index}
+                                              style={{
+                                                margin: "0",
+                                                color: entry.color,
+                                              }}
+                                            >
+                                              {`${entry.name}: ${value}${unit}`}
+                                            </p>
+                                          );
+                                        })}
                                     </div>
                                   );
                                 }
                                 return null;
                               }}
                             />
-                            <Legend 
+                            <Legend
                               content={({ payload }) => (
-                                <ul style={{ 
-                                  listStyle: 'none', 
-                                  padding: 0, 
-                                  margin: 0,
-                                  display: 'flex',
-                                  justifyContent: 'center',
-                                  gap: '20px'
-                                }}>
-                                  {payload?.slice().reverse().map((entry, index) => (
-                                    <li key={`item-${index}`} style={{ display: 'flex', alignItems: 'center' }}>
-                                      <div style={{
-                                        width: '14px',
-                                        height: '14px',
-                                        backgroundColor: entry.color,
-                                        marginRight: '8px'
-                                      }} />
-                                      <span style={{ color: '#666' }}>{entry.value}</span>
-                                    </li>
-                                  ))}
+                                <ul
+                                  style={{
+                                    listStyle: "none",
+                                    padding: 0,
+                                    margin: 0,
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    gap: "20px",
+                                  }}
+                                >
+                                  {payload
+                                    ?.slice()
+                                    .reverse()
+                                    .map((entry, index) => (
+                                      <li
+                                        key={`item-${index}`}
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            width: "14px",
+                                            height: "14px",
+                                            backgroundColor: entry.color,
+                                            marginRight: "8px",
+                                          }}
+                                        />
+                                        <span style={{ color: "#666" }}>
+                                          {entry.value}
+                                        </span>
+                                      </li>
+                                    ))}
                                 </ul>
                               )}
                             />
@@ -4010,11 +4042,11 @@ const SingleIndividualLabSubTab = ({
                                       }}
                                     />
                                     <Legend />
-                                                                          <Bar
-                                        dataKey={key}
-                                        fill="#0034f0"
-                                        name={key}
-                                      />
+                                    <Bar
+                                      dataKey={key}
+                                      fill="#0034f0"
+                                      name={key}
+                                    />
                                   </BarChart>
                                 </ResponsiveContainer>
                               </Box>

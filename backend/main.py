@@ -780,7 +780,7 @@ async def predict_age(file_id: str, request: AgePredictionRequest):
         prediction = predictions[0]
         if 'cosinorage' not in prediction:
             raise HTTPException(
-                status_code=500, detail="Prediction result missing cosinor age")
+                status_code=500, detail="Prediction result missing CosinorAge")
 
         return {
             "predicted_age": prediction['cosinorage'],

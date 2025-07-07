@@ -890,10 +890,7 @@ const MultiIndividualTab = () => {
                   color: "#0034f0",
                 }}
               >
-                <CheckCircleIcon
-                  fontSize="small"
-                  sx={{ color: "#0034f0" }}
-                />
+                <CheckCircleIcon fontSize="small" sx={{ color: "#0034f0" }} />
                 All files have the same column structure
               </Typography>
             </Box>
@@ -1746,17 +1743,17 @@ const MultiIndividualTab = () => {
                           );
                         } else if (validation.totalCount > 0) {
                           return (
-                            <Alert 
-                              sx={{ 
+                            <Alert
+                              sx={{
                                 py: 0.5,
                                 bgcolor: "rgba(0, 52, 240, 0.08)",
                                 border: "1px solid rgba(0, 52, 240, 0.2)",
                                 "& .MuiAlert-icon": {
-                                  color: "#0034f0"
+                                  color: "#0034f0",
                                 },
                                 "& .MuiAlert-message": {
-                                  color: "#0034f0"
-                                }
+                                  color: "#0034f0",
+                                },
                               }}
                             >
                               <Typography variant="body2">
@@ -1822,15 +1819,15 @@ const MultiIndividualTab = () => {
                   onClick={handleBulkReset}
                   disabled={bulkProcessing}
                   startIcon={<RefreshIcon />}
-                  sx={{ 
-                    px: 4, 
+                  sx={{
+                    px: 4,
                     py: 1.5,
                     color: "#0034f0",
                     borderColor: "#0034f0",
                     "&:hover": {
                       borderColor: "#0034f0",
-                      backgroundColor: "rgba(0, 52, 240, 0.04)"
-                    }
+                      backgroundColor: "rgba(0, 52, 240, 0.04)",
+                    },
                   }}
                 >
                   Reset All
@@ -1951,8 +1948,8 @@ const MultiIndividualTab = () => {
                           borderColor: "#0034f0",
                           "&:hover": {
                             borderColor: "#0034f0",
-                            backgroundColor: "rgba(0, 52, 240, 0.04)"
-                          }
+                            backgroundColor: "rgba(0, 52, 240, 0.04)",
+                          },
                         }}
                       >
                         Feature Distributions
@@ -1967,8 +1964,8 @@ const MultiIndividualTab = () => {
                           borderColor: "#0034f0",
                           "&:hover": {
                             borderColor: "#0034f0",
-                            backgroundColor: "rgba(0, 52, 240, 0.04)"
-                          }
+                            backgroundColor: "rgba(0, 52, 240, 0.04)",
+                          },
                         }}
                       >
                         ENMO Timeseries
@@ -2139,16 +2136,28 @@ const MultiIndividualTab = () => {
                                 if (clampedValue >= 0) {
                                   // White to CL blue (#0034f0) for positive correlations
                                   const intensity = clampedValue;
-                                  const r = Math.round(255 - intensity * (255 - 0));
-                                  const g = Math.round(255 - intensity * (255 - 52));
-                                  const b = Math.round(255 - intensity * (255 - 240));
+                                  const r = Math.round(
+                                    255 - intensity * (255 - 0)
+                                  );
+                                  const g = Math.round(
+                                    255 - intensity * (255 - 52)
+                                  );
+                                  const b = Math.round(
+                                    255 - intensity * (255 - 240)
+                                  );
                                   return `rgb(${r}, ${g}, ${b})`;
                                 } else {
                                   // Reddish to white for negative correlations
                                   const intensity = Math.abs(clampedValue);
-                                  const r = Math.round(255 - intensity * (255 - 220));
-                                  const g = Math.round(255 - intensity * (255 - 53));
-                                  const b = Math.round(255 - intensity * (255 - 69));
+                                  const r = Math.round(
+                                    255 - intensity * (255 - 220)
+                                  );
+                                  const g = Math.round(
+                                    255 - intensity * (255 - 53)
+                                  );
+                                  const b = Math.round(
+                                    255 - intensity * (255 - 69)
+                                  );
                                   return `rgb(${r}, ${g}, ${b})`;
                                 }
                               };
@@ -2512,7 +2521,7 @@ const MultiIndividualTab = () => {
       >
         <DialogTitle>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <BarChartIcon sx={{ color: "#0034f0" }} />
+            <BarChartIcon sx={{ color: "#0034f0" }} />
             Feature Distributions
           </Box>
         </DialogTitle>
@@ -2520,17 +2529,17 @@ const MultiIndividualTab = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Distribution plots for each feature across all processed files:
           </Typography>
-          <Alert 
-            sx={{ 
+          <Alert
+            sx={{
               mb: 2,
               bgcolor: "rgba(0, 52, 240, 0.08)",
               border: "1px solid rgba(0, 52, 240, 0.2)",
               "& .MuiAlert-icon": {
-                color: "#0034f0"
+                color: "#0034f0",
               },
               "& .MuiAlert-message": {
-                color: "#0034f0"
-              }
+                color: "#0034f0",
+              },
             }}
           >
             <Typography variant="body2">
@@ -3218,8 +3227,8 @@ const MultiIndividualTab = () => {
               borderColor: "#0034f0",
               "&:hover": {
                 borderColor: "#0034f0",
-                backgroundColor: "rgba(0, 52, 240, 0.04)"
-              }
+                backgroundColor: "rgba(0, 52, 240, 0.04)",
+              },
             }}
           >
             Close
@@ -3421,13 +3430,13 @@ const MultiIndividualTab = () => {
       >
         <DialogTitle>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <CheckCircleIcon sx={{ color: "#0034f0" }} />
+            <CheckCircleIcon sx={{ color: "#0034f0" }} />
             Set Age and Gender for Cosinorage
           </Box>
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Set chronological age and gender for each file to enable cosinorage
+            Set chronological age and gender for each file to enable CosinorAge
             age prediction:
           </Typography>
 
@@ -3436,44 +3445,44 @@ const MultiIndividualTab = () => {
             const validation = getCosinorageValidationStatus();
             if (!validation.isValid) {
               return (
-                <Alert 
-                  sx={{ 
+                <Alert
+                  sx={{
                     mb: 2,
                     bgcolor: "rgba(255, 152, 0, 0.08)",
                     border: "1px solid rgba(255, 152, 0, 0.2)",
                     "& .MuiAlert-icon": {
-                      color: "#ff9800"
+                      color: "#ff9800",
                     },
                     "& .MuiAlert-message": {
-                      color: "#ff9800"
-                    }
+                      color: "#ff9800",
+                    },
                   }}
                 >
                   <Typography variant="body2">
                     Please set age and gender for {validation.missingCount} out
-                    of {validation.totalCount} file(s) to enable cosinorage
+                    of {validation.totalCount} file(s) to enable CosinorAge
                     processing.
                   </Typography>
                 </Alert>
               );
             } else if (validation.totalCount > 0) {
               return (
-                <Alert 
-                  sx={{ 
+                <Alert
+                  sx={{
                     mb: 2,
                     bgcolor: "rgba(0, 52, 240, 0.08)",
                     border: "1px solid rgba(0, 52, 240, 0.2)",
                     "& .MuiAlert-icon": {
-                      color: "#0034f0"
+                      color: "#0034f0",
                     },
                     "& .MuiAlert-message": {
-                      color: "#0034f0"
-                    }
+                      color: "#0034f0",
+                    },
                   }}
                 >
                   <Typography variant="body2">
                     All {validation.totalCount} files have age and gender set.
-                    Ready for cosinorage processing.
+                    Ready for CosinorAge processing.
                   </Typography>
                 </Alert>
               );

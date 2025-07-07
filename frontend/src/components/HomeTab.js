@@ -40,7 +40,7 @@ const HomeTab = ({ setCurrentTab }) => {
               Novel Aging Biomarker & Comprehensive Accelerometer Analysis
             </Typography>
 
-            {/* New introduction section emphasizing cosinorage */}
+            {/* New introduction section emphasizing CosinorAge */}
             <Box sx={{ mb: 4, textAlign: "left", maxWidth: 800, mx: "auto" }}>
               <Typography
                 variant="body1"
@@ -49,7 +49,7 @@ const HomeTab = ({ setCurrentTab }) => {
               >
                 CosinorLab is a research platform that introduces{" "}
                 <strong>Cosinorage</strong> - a novel aging biomarker calculated
-                from accelerometer data. While cosinorage is our main feature,
+                from accelerometer data. While CosinorAge is our main feature,
                 we also provide comprehensive analysis of sleep patterns,
                 physical activity levels, and circadian rhythms through
                 sophisticated algorithms.
@@ -377,17 +377,17 @@ const HomeTab = ({ setCurrentTab }) => {
               </Grid>
             </Grid>
 
-            <Alert 
-              sx={{ 
+            <Alert
+              sx={{
                 mb: 3,
                 bgcolor: "rgba(0, 52, 240, 0.08)",
                 border: "1px solid rgba(0, 52, 240, 0.2)",
                 "& .MuiAlert-icon": {
-                  color: "#0034f0"
+                  color: "#0034f0",
                 },
                 "& .MuiAlert-message": {
-                  color: "#0034f0"
-                }
+                  color: "#0034f0",
+                },
               }}
             >
               <Typography variant="body2">
@@ -684,17 +684,17 @@ pip install -e .`}
               </li>
             </ol>
 
-            <Alert 
-              sx={{ 
+            <Alert
+              sx={{
                 mt: 3,
                 bgcolor: "rgba(0, 52, 240, 0.08)",
                 border: "1px solid rgba(0, 52, 240, 0.2)",
                 "& .MuiAlert-icon": {
-                  color: "#0034f0"
+                  color: "#0034f0",
                 },
                 "& .MuiAlert-message": {
-                  color: "#0034f0"
-                }
+                  color: "#0034f0",
+                },
               }}
             >
               <Typography variant="body2">
