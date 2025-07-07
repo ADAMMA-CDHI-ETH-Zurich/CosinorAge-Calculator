@@ -377,7 +377,19 @@ const HomeTab = ({ setCurrentTab }) => {
               </Grid>
             </Grid>
 
-            <Alert severity="info" sx={{ mb: 3 }}>
+            <Alert 
+              sx={{ 
+                mb: 3,
+                bgcolor: "rgba(0, 52, 240, 0.08)",
+                border: "1px solid rgba(0, 52, 240, 0.2)",
+                "& .MuiAlert-icon": {
+                  color: "#0034f0"
+                },
+                "& .MuiAlert-message": {
+                  color: "#0034f0"
+                }
+              }}
+            >
               <Typography variant="body2">
                 <strong>Getting Started:</strong> Click the button below to
                 access the interactive Lab. You can upload sample data to
@@ -414,7 +426,7 @@ const HomeTab = ({ setCurrentTab }) => {
                   },
                 }}
               >
-                Launch Interactive Lab
+                Launch Lab
               </Button>
             </Box>
           </Box>
@@ -672,7 +684,19 @@ pip install -e .`}
               </li>
             </ol>
 
-            <Alert severity="success" sx={{ mt: 3 }}>
+            <Alert 
+              sx={{ 
+                mt: 3,
+                bgcolor: "rgba(0, 52, 240, 0.08)",
+                border: "1px solid rgba(0, 52, 240, 0.2)",
+                "& .MuiAlert-icon": {
+                  color: "#0034f0"
+                },
+                "& .MuiAlert-message": {
+                  color: "#0034f0"
+                }
+              }}
+            >
               <Typography variant="body2">
                 <strong>Ready to Start:</strong> Once installation is complete,
                 you can begin using the API to analyze accelerometer data

@@ -31,7 +31,19 @@ function LabDocumentationSubTab() {
         health insights.
       </Typography>
 
-      <Alert severity="info" sx={{ mb: 4 }}>
+      <Alert 
+        sx={{ 
+          mb: 4,
+          bgcolor: "rgba(0, 52, 240, 0.08)",
+          border: "1px solid rgba(0, 52, 240, 0.2)",
+          "& .MuiAlert-icon": {
+            color: "#0034f0"
+          },
+          "& .MuiAlert-message": {
+            color: "#0034f0"
+          }
+        }}
+      >
         <Typography variant="body2">
           <strong>Quick Start:</strong> If you're new to CosinorLab, we
           recommend starting with the "Getting Started" section below. For
@@ -458,7 +470,19 @@ function LabDocumentationSubTab() {
         and meaningful results from your accelerometer data analysis.
       </Typography>
 
-      <Alert severity="success" sx={{ mb: 3 }}>
+      <Alert 
+        sx={{ 
+          mb: 3,
+          bgcolor: "rgba(0, 52, 240, 0.08)",
+          border: "1px solid rgba(0, 52, 240, 0.2)",
+          "& .MuiAlert-icon": {
+            color: "#0034f0"
+          },
+          "& .MuiAlert-message": {
+            color: "#0034f0"
+          }
+        }}
+      >
         <Typography variant="body2">
           <strong>Data Quality:</strong> High-quality, continuous data with
           minimal gaps provides the most reliable analysis results. Aim for at
@@ -520,7 +544,19 @@ function LabDocumentationSubTab() {
         </li>
       </ul>
 
-      <Alert severity="info" sx={{ mt: 4 }}>
+      <Alert 
+        sx={{ 
+          mt: 4,
+          bgcolor: "rgba(0, 52, 240, 0.08)",
+          border: "1px solid rgba(0, 52, 240, 0.2)",
+          "& .MuiAlert-icon": {
+            color: "#0034f0"
+          },
+          "& .MuiAlert-message": {
+            color: "#0034f0"
+          }
+        }}
+      >
         <Typography variant="body2">
           <strong>Need Help?</strong> If you encounter issues not covered in
           this documentation, please refer to our API documentation or contact

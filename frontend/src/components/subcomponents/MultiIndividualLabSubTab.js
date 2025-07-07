@@ -60,6 +60,7 @@ import ErrorIcon from "@mui/icons-material/Error";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import config from "../../config";
+import { CLColors } from "../../plotTheme";
 
 // Helper to clean and format feature names for display
 const cleanFeatureName = (featureName) => {
@@ -843,14 +844,14 @@ const MultiIndividualTab = () => {
                   alignItems: "center",
                   justifyContent: "space-between",
                   p: 2,
-                  bgcolor: "rgba(76, 175, 80, 0.08)",
+                  bgcolor: "rgba(0, 52, 240, 0.08)",
                   borderRadius: 1,
-                  color: "success.main",
+                  border: "1px solid rgba(0, 52, 240, 0.2)",
                 }}
               >
                 <Typography
                   variant="subtitle1"
-                  sx={{ fontWeight: 500, color: "success.main" }}
+                  sx={{ fontWeight: 500, color: "#0034f0" }}
                 >
                   Successfully uploaded {uploadedFiles.length} files
                 </Typography>
@@ -859,11 +860,11 @@ const MultiIndividualTab = () => {
                   size="small"
                   onClick={() => setShowUploadedFilesDialog(true)}
                   sx={{
-                    color: "success.main",
-                    borderColor: "success.main",
+                    color: "#0034f0",
+                    borderColor: "#0034f0",
                     "&:hover": {
-                      borderColor: "success.main",
-                      bgcolor: "rgba(76, 175, 80, 0.1)",
+                      borderColor: "#0034f0",
+                      bgcolor: "rgba(0, 52, 240, 0.1)",
                     },
                   }}
                 >
@@ -878,20 +879,20 @@ const MultiIndividualTab = () => {
             <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
               <Typography
                 variant="body2"
-                color="success.main"
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
-                  bgcolor: "rgba(76, 175, 80, 0.08)",
+                  bgcolor: "rgba(0, 52, 240, 0.08)",
                   px: 2,
                   py: 1,
                   borderRadius: 2,
+                  color: "#0034f0",
                 }}
               >
                 <CheckCircleIcon
                   fontSize="small"
-                  sx={{ color: "success.main" }}
+                  sx={{ color: "#0034f0" }}
                 />
                 All files have the same column structure
               </Typography>
@@ -1737,7 +1738,7 @@ const MultiIndividualTab = () => {
                           return (
                             <Alert severity="warning" sx={{ py: 0.5 }}>
                               <Typography variant="body2">
-                                ⚠️ {validation.missingCount} out of{" "}
+                                {validation.missingCount} out of{" "}
                                 {validation.totalCount} files need age and
                                 gender set
                               </Typography>
@@ -1745,7 +1746,19 @@ const MultiIndividualTab = () => {
                           );
                         } else if (validation.totalCount > 0) {
                           return (
-                            <Alert severity="success" sx={{ py: 0.5 }}>
+                            <Alert 
+                              sx={{ 
+                                py: 0.5,
+                                bgcolor: "rgba(0, 52, 240, 0.08)",
+                                border: "1px solid rgba(0, 52, 240, 0.2)",
+                                "& .MuiAlert-icon": {
+                                  color: "#0034f0"
+                                },
+                                "& .MuiAlert-message": {
+                                  color: "#0034f0"
+                                }
+                              }}
+                            >
                               <Typography variant="body2">
                                 All {validation.totalCount} files have age and
                                 gender set
@@ -1806,11 +1819,19 @@ const MultiIndividualTab = () => {
                 </Button>
                 <Button
                   variant="outlined"
-                  color="secondary"
                   onClick={handleBulkReset}
                   disabled={bulkProcessing}
                   startIcon={<RefreshIcon />}
-                  sx={{ px: 4, py: 1.5 }}
+                  sx={{ 
+                    px: 4, 
+                    py: 1.5,
+                    color: "#0034f0",
+                    borderColor: "#0034f0",
+                    "&:hover": {
+                      borderColor: "#0034f0",
+                      backgroundColor: "rgba(0, 52, 240, 0.04)"
+                    }
+                  }}
                 >
                   Reset All
                 </Button>
@@ -1822,10 +1843,10 @@ const MultiIndividualTab = () => {
       {/* Processing Complete Summary */}
       {bulkData && (
         <Grid item xs={12}>
-          <Paper sx={{ p: 3, bgcolor: "#e8f5e8", border: "1px solid #4caf50" }}>
+          <Paper sx={{ p: 3, bgcolor: "#d1d8ff", border: "1px solid #0034f0" }}>
             {/* Processing Summary */}
             <Box sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom color="success.dark">
+              <Typography variant="h6" gutterBottom sx={{ color: "#0034f0" }}>
                 Processing Complete
               </Typography>
 
@@ -1835,15 +1856,14 @@ const MultiIndividualTab = () => {
               >
                 <Typography
                   variant="body1"
-                  color="success.main"
-                  sx={{ fontWeight: 500 }}
+                  sx={{ fontWeight: 500, color: "#0034f0" }}
                 >
                   Successfully processed:{" "}
                   {bulkData.individual_results?.length || 0} files
                 </Typography>
 
                 {bulkData.failed_files && bulkData.failed_files.length > 0 && (
-                  <Typography variant="body2" color="warning.dark">
+                  <Typography variant="body2" sx={{ color: "#0034f0" }}>
                     Handler creation failed: {bulkData.failed_files.length}{" "}
                     files
                   </Typography>
@@ -1851,7 +1871,7 @@ const MultiIndividualTab = () => {
 
                 {bulkData.failed_handlers &&
                   bulkData.failed_handlers.length > 0 && (
-                    <Typography variant="body2" color="error.dark">
+                    <Typography variant="body2" sx={{ color: "#0034f0" }}>
                       Processing failed: {bulkData.failed_handlers.length} files
                     </Typography>
                   )}
@@ -1859,8 +1879,7 @@ const MultiIndividualTab = () => {
                 <Divider sx={{ my: 1 }} />
                 <Typography
                   variant="body2"
-                  color="success.dark"
-                  sx={{ fontWeight: 600 }}
+                  sx={{ fontWeight: 600, color: "#0034f0" }}
                 >
                   Total: {bulkData.total_files || uploadedFiles.length} files
                 </Typography>
@@ -1924,19 +1943,33 @@ const MultiIndividualTab = () => {
                     <Box sx={{ display: "flex", gap: 1 }}>
                       <Button
                         variant="outlined"
-                        color="primary"
                         startIcon={<BarChartIcon />}
                         onClick={() => setShowFeatureDistributionsDialog(true)}
                         size="small"
+                        sx={{
+                          color: "#0034f0",
+                          borderColor: "#0034f0",
+                          "&:hover": {
+                            borderColor: "#0034f0",
+                            backgroundColor: "rgba(0, 52, 240, 0.04)"
+                          }
+                        }}
                       >
                         Feature Distributions
                       </Button>
                       <Button
                         variant="outlined"
-                        color="secondary"
                         startIcon={<ShowChartIcon />}
                         onClick={() => setShowEnmoTimeseriesDialog(true)}
                         size="small"
+                        sx={{
+                          color: "#0034f0",
+                          borderColor: "#0034f0",
+                          "&:hover": {
+                            borderColor: "#0034f0",
+                            backgroundColor: "rgba(0, 52, 240, 0.04)"
+                          }
+                        }}
                       >
                         ENMO Timeseries
                       </Button>
@@ -2095,7 +2128,7 @@ const MultiIndividualTab = () => {
                                 );
                               }
 
-                              // Continuous color scale from blue (1) to red (-1)
+                              // Continuous color scale from red to CL blue
                               const getColor = (value) => {
                                 // Clamp value between -1 and 1
                                 const clampedValue = Math.max(
@@ -2104,21 +2137,19 @@ const MultiIndividualTab = () => {
                                 );
 
                                 if (clampedValue >= 0) {
-                                  // Blue to white for positive correlations
-                                  const intensity = Math.floor(
-                                    255 * clampedValue
-                                  );
-                                  return `rgb(${255 - intensity}, ${
-                                    255 - intensity
-                                  }, 255)`;
+                                  // White to CL blue (#0034f0) for positive correlations
+                                  const intensity = clampedValue;
+                                  const r = Math.round(255 - intensity * (255 - 0));
+                                  const g = Math.round(255 - intensity * (255 - 52));
+                                  const b = Math.round(255 - intensity * (255 - 240));
+                                  return `rgb(${r}, ${g}, ${b})`;
                                 } else {
-                                  // White to red for negative correlations
-                                  const intensity = Math.floor(
-                                    255 * Math.abs(clampedValue)
-                                  );
-                                  return `rgb(255, ${255 - intensity}, ${
-                                    255 - intensity
-                                  })`;
+                                  // Reddish to white for negative correlations
+                                  const intensity = Math.abs(clampedValue);
+                                  const r = Math.round(255 - intensity * (255 - 220));
+                                  const g = Math.round(255 - intensity * (255 - 53));
+                                  const b = Math.round(255 - intensity * (255 - 69));
+                                  return `rgb(${r}, ${g}, ${b})`;
                                 }
                               };
 
@@ -2185,7 +2216,7 @@ const MultiIndividualTab = () => {
                           width: "50%",
                           height: 20,
                           background:
-                            "linear-gradient(to right, rgb(255, 0, 0), rgb(255, 255, 255), rgb(0, 0, 255))",
+                            "linear-gradient(to right, #dc3545, rgb(255, 255, 255), #0034f0)",
                           borderRadius: 1,
                           border: "1px solid #ccc",
                           position: "relative",
@@ -2452,7 +2483,7 @@ const MultiIndividualTab = () => {
                 }}
               >
                 <ListItemIcon>
-                  <CheckCircleIcon color="success" />
+                  <CheckCircleIcon sx={{ color: "#0034f0" }} />
                 </ListItemIcon>
                 <ListItemText
                   primary={file.filename}
@@ -2481,7 +2512,7 @@ const MultiIndividualTab = () => {
       >
         <DialogTitle>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <BarChartIcon color="primary" />
+                            <BarChartIcon sx={{ color: "#0034f0" }} />
             Feature Distributions
           </Box>
         </DialogTitle>
@@ -2489,7 +2520,19 @@ const MultiIndividualTab = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Distribution plots for each feature across all processed files:
           </Typography>
-          <Alert severity="info" sx={{ mb: 2 }}>
+          <Alert 
+            sx={{ 
+              mb: 2,
+              bgcolor: "rgba(0, 52, 240, 0.08)",
+              border: "1px solid rgba(0, 52, 240, 0.2)",
+              "& .MuiAlert-icon": {
+                color: "#0034f0"
+              },
+              "& .MuiAlert-message": {
+                color: "#0034f0"
+              }
+            }}
+          >
             <Typography variant="body2">
               Note: Some metrics are calculated on a daily level, which is why
               the sample size (n) may be greater than the number of uploaded
@@ -3141,14 +3184,14 @@ const MultiIndividualTab = () => {
                                       <Bar
                                         yAxisId="right"
                                         dataKey="count"
-                                        fill="#8884d8"
+                                        fill="#0034f0"
                                         fillOpacity={0.7}
                                       />
                                       <Line
                                         yAxisId="left"
                                         type="monotone"
                                         dataKey="density"
-                                        stroke="#ff7300"
+                                        stroke="#0034f0"
                                         strokeWidth={2}
                                         dot={false}
                                         connectNulls={false}
@@ -3170,7 +3213,14 @@ const MultiIndividualTab = () => {
         <DialogActions>
           <Button
             onClick={() => setShowFeatureDistributionsDialog(false)}
-            color="primary"
+            sx={{
+              color: "#0034f0",
+              borderColor: "#0034f0",
+              "&:hover": {
+                borderColor: "#0034f0",
+                backgroundColor: "rgba(0, 52, 240, 0.04)"
+              }
+            }}
           >
             Close
           </Button>
@@ -3186,7 +3236,7 @@ const MultiIndividualTab = () => {
       >
         <DialogTitle>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <ShowChartIcon color="secondary" />
+            <ShowChartIcon sx={{ color: "#0034f0" }} />
             ENMO Timeseries
           </Box>
         </DialogTitle>
@@ -3318,7 +3368,7 @@ const MultiIndividualTab = () => {
                                 <Line
                                   type="monotone"
                                   dataKey="enmo"
-                                  stroke="#8884d8"
+                                  stroke="#0034f0"
                                   strokeWidth={1}
                                   dot={false}
                                   connectNulls={false}
@@ -3371,7 +3421,7 @@ const MultiIndividualTab = () => {
       >
         <DialogTitle>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <CheckCircleIcon color="primary" />
+                            <CheckCircleIcon sx={{ color: "#0034f0" }} />
             Set Age and Gender for Cosinorage
           </Box>
         </DialogTitle>
@@ -3386,7 +3436,19 @@ const MultiIndividualTab = () => {
             const validation = getCosinorageValidationStatus();
             if (!validation.isValid) {
               return (
-                <Alert severity="warning" sx={{ mb: 2 }}>
+                <Alert 
+                  sx={{ 
+                    mb: 2,
+                    bgcolor: "rgba(255, 152, 0, 0.08)",
+                    border: "1px solid rgba(255, 152, 0, 0.2)",
+                    "& .MuiAlert-icon": {
+                      color: "#ff9800"
+                    },
+                    "& .MuiAlert-message": {
+                      color: "#ff9800"
+                    }
+                  }}
+                >
                   <Typography variant="body2">
                     Please set age and gender for {validation.missingCount} out
                     of {validation.totalCount} file(s) to enable cosinorage
@@ -3396,7 +3458,19 @@ const MultiIndividualTab = () => {
               );
             } else if (validation.totalCount > 0) {
               return (
-                <Alert severity="success" sx={{ mb: 2 }}>
+                <Alert 
+                  sx={{ 
+                    mb: 2,
+                    bgcolor: "rgba(0, 52, 240, 0.08)",
+                    border: "1px solid rgba(0, 52, 240, 0.2)",
+                    "& .MuiAlert-icon": {
+                      color: "#0034f0"
+                    },
+                    "& .MuiAlert-message": {
+                      color: "#0034f0"
+                    }
+                  }}
+                >
                   <Typography variant="body2">
                     All {validation.totalCount} files have age and gender set.
                     Ready for cosinorage processing.
@@ -3416,12 +3490,9 @@ const MultiIndividualTab = () => {
                     p: 2,
                     borderColor:
                       !input.age || input.age === "" || input.gender === ""
-                        ? "warning.main"
-                        : "success.main",
-                    bgcolor:
-                      !input.age || input.age === "" || input.gender === ""
-                        ? "warning.50"
-                        : "success.50",
+                        ? "#ff9800"
+                        : "#0034f0",
+                    bgcolor: "white",
                   }}
                 >
                   <Typography variant="subtitle2" gutterBottom>
@@ -3442,7 +3513,9 @@ const MultiIndividualTab = () => {
                           )
                         }
                         inputProps={{ min: 0, max: 120 }}
-                        helperText="Enter chronological age (0-120)"
+                        helperText="Enter chronological age
+
+"
                         error={!input.age || input.age === ""}
                       />
                     </Grid>

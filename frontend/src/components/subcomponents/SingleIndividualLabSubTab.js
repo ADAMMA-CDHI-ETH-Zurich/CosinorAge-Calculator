@@ -8,6 +8,7 @@ import {
 import { getFirstDate, getDateForIndex } from "../../utils/dateUtils";
 import HorizontalScale from "../common/HorizontalScale";
 import SectionInfoButton from "../common/SectionInfoButton";
+import { CLColors } from "../../plotTheme";
 import {
   Box,
   Container,
@@ -748,7 +749,7 @@ const SingleIndividualLabSubTab = ({
             alignItems: "stretch", // changed from 'center' to 'stretch'
             width: "100%", // ensure full width
             maxWidth: "none", // remove any maxWidth restriction
-            border: dragActive ? "2px dashed #2196f3" : "none",
+                            border: dragActive ? "2px dashed #0034f0" : "none",
             background: dragActive ? "rgba(33,150,243,0.05)" : undefined,
             position: "relative",
           }}
@@ -869,13 +870,13 @@ const SingleIndividualLabSubTab = ({
                   mt: 2,
                   mb: 3,
                   p: 2,
-                  bgcolor: "info.light",
+                  bgcolor: "#0034f0",
                   borderRadius: 2,
                   border: "1px solid",
-                  borderColor: "info.main",
+                  borderColor: "#0034f0",
                 }}
               >
-                <Typography variant="body2" sx={{ color: "info.contrastText" }}>
+                <Typography variant="body2" sx={{ color: "white" }}>
                   <strong>Ready to upload!</strong> Your data format has been
                   configured. You can now drag and drop your file or click the
                   upload button below. The system will automatically process
@@ -971,16 +972,20 @@ const SingleIndividualLabSubTab = ({
                     {dataType === "accelerometer" && (
                       <span
                         dangerouslySetInnerHTML={{
-                          __html:
-                            "The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in g-force units (typically ranging from -2g to +2g).",
+                          __html: `The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in ${dataUnit} units. The timestamp column should be in ${
+                                timestampFormat === "unix-ms"
+                                  ? "Unix milliseconds"
+                                  : timestampFormat === "unix-s"
+                                  ? "Unix seconds"
+                                  : "datetime"
+                              } format.`,
                         }}
                       />
                     )}
                     {dataType === "enmo" && (
                       <span
                         dangerouslySetInnerHTML={{
-                          __html:
-                            "The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in milligravitational (mg) units, representing the magnitude of acceleration minus 1g.",
+                          __html: `The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch.`,
                         }}
                       />
                     )}
@@ -1096,34 +1101,29 @@ const SingleIndividualLabSubTab = ({
                         Data Format Requirements
                       </Typography>
                       <Typography variant="body2" paragraph sx={{ mb: 2 }}>
-                        {dataType === "accelerometer" && (
+                        {dataSource === "other" ? (
+                          <span>
+                            The uploaded CSV file must contain ENMO or accelerometer data collected from a smartwatch or wearable device. Please ensure your file is formatted as time series data with appropriate timestamp and measurement columns.
+                          </span>
+                        ) : dataType === "accelerometer" ? (
                           <span
                             dangerouslySetInnerHTML={{
                               __html: `The uploaded CSV file must contain raw accelerometer data collected from a smartwatch. It should include exactly four columns: <strong>'timestamp'</strong>, <strong>'x'</strong>, <strong>'y'</strong>, and <strong>'z'</strong>. The x, y, and z columns represent acceleration values along the three axes in ${dataUnit} units. The timestamp column should be in ${
-                                timestampFormat === "unix-ms"
-                                  ? "Unix milliseconds"
-                                  : timestampFormat === "unix-s"
-                                  ? "Unix seconds"
-                                  : "datetime"
-                              } format.`,
+                              timestampFormat === "unix-ms"
+                                ? "Unix milliseconds"
+                                : timestampFormat === "unix-s"
+                                ? "Unix seconds"
+                                : "datetime"
+                            } format.`,
                             }}
                           />
-                        )}
-                        {dataType === "enmo" && (
+                        ) : dataType === "enmo" ? (
                           <span
                             dangerouslySetInnerHTML={{
-                              __html: `The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch. It should include exactly two columns: <strong>'timestamp'</strong> and <strong>'enmo'</strong>. ENMO values should be in ${dataUnit} units, representing the magnitude of acceleration minus 1g. The timestamp column should be in ${
-                                timestampFormat === "unix-ms"
-                                  ? "Unix milliseconds"
-                                  : timestampFormat === "unix-s"
-                                  ? "Unix seconds"
-                                  : "datetime"
-                              } format.`,
+                              __html: `The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch.`,
                             }}
                           />
-                        )}
-
-                        {!dataType && (
+                        ) : (
                           <span
                             dangerouslySetInnerHTML={{
                               __html:
@@ -1192,7 +1192,7 @@ const SingleIndividualLabSubTab = ({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "#2196f3",
+                      color: "#0034f0",
                       fontSize: 24,
                       pointerEvents: "none",
                       background: "rgba(255,255,255,0.5)",
@@ -1220,12 +1220,12 @@ const SingleIndividualLabSubTab = ({
           {data?.file_id && (
             <Typography
               variant="body2"
-              color="success.main"
               sx={{
                 mt: 1,
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
+                color: "#0034f0",
               }}
             >
               <CheckCircleIcon fontSize="small" />
@@ -1244,7 +1244,7 @@ const SingleIndividualLabSubTab = ({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#2196f3",
+                color: "#0034f0",
                 fontSize: 24,
                 pointerEvents: "none",
                 background: "rgba(255,255,255,0.5)",
@@ -2188,11 +2188,19 @@ const SingleIndividualLabSubTab = ({
                       </Button>
                       <Button
                         variant="outlined"
-                        color="secondary"
                         onClick={handleReset}
                         disabled={processing}
                         startIcon={<RefreshIcon />}
-                        sx={{ px: 4, py: 1.5 }}
+                        sx={{ 
+                          px: 4, 
+                          py: 1.5,
+                          color: "#0034f0",
+                          borderColor: "#0034f0",
+                          "&:hover": {
+                            borderColor: "#0034f0",
+                            backgroundColor: "rgba(0, 52, 240, 0.04)"
+                          }
+                        }}
                       >
                         Reset All
                       </Button>
@@ -2211,13 +2219,13 @@ const SingleIndividualLabSubTab = ({
           <Paper
             sx={{
               p: 3,
-              bgcolor: "#e8f5e8",
-              border: "1px solid #4caf50",
+              bgcolor: "#d1d8ff",
+              border: "1px solid #0034f0",
             }}
           >
             {/* Processing Summary */}
             <Box sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom color="success.dark">
+              <Typography variant="h6" gutterBottom sx={{ color: "#0034f0" }}>
                 Processing Complete
               </Typography>
 
@@ -2232,15 +2240,13 @@ const SingleIndividualLabSubTab = ({
               >
                 <Typography
                   variant="body1"
-                  color="success.main"
-                  sx={{ fontWeight: 500 }}
+                  sx={{ fontWeight: 500, color: "#0034f0" }}
                 >
                   Data was successfully preprocessed.
                 </Typography>
                 <Typography
                   variant="body1"
-                  color="success.main"
-                  sx={{ fontWeight: 500 }}
+                  sx={{ fontWeight: 500, color: "#0034f0" }}
                 >
                   Features were successfully computed.
                 </Typography>
@@ -2352,8 +2358,20 @@ const SingleIndividualLabSubTab = ({
                   <Typography variant="h6" gutterBottom>
                     Cosinor Age Prediction
                   </Typography>
-                  <Alert severity="info" sx={{ mb: 3 }}>
-                    <Typography variant="body2">
+                  <Alert 
+                    sx={{ 
+                      mb: 3,
+                      backgroundColor: "#d1d8ff",
+                      border: "1px solid #0034f0",
+                      "& .MuiAlert-icon": {
+                        color: "#0034f0",
+                      },
+                      "& .MuiAlert-message": {
+                        color: "#0034f0",
+                      }
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: "#0034f0" }}>
                       <strong>Manual Input Required:</strong> To predict your
                       biological age, you need to manually enter your
                       chronological age and select your gender below. The
@@ -2373,6 +2391,16 @@ const SingleIndividualLabSubTab = ({
                         onChange={(e) => setChronologicalAge(e.target.value)}
                         inputProps={{ min: 0, max: 120 }}
                         helperText="Required: Enter your chronological age for biological age prediction"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#0034f0",
+                            },
+                          },
+                          "& .MuiInputLabel-root.Mui-focused": {
+                            color: "#0034f0",
+                          },
+                        }}
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
@@ -2417,7 +2445,7 @@ const SingleIndividualLabSubTab = ({
                       <Box sx={{ textAlign: "center", p: 2 }}>
                         <Typography
                           variant="h4"
-                          color="secondary.main"
+                          sx={{ color: "#0034f0" }}
                           gutterBottom
                         >
                           {chronologicalAge ? `${chronologicalAge} years` : "-"}
@@ -2575,21 +2603,21 @@ const SingleIndividualLabSubTab = ({
                                     <Line
                                       type="monotone"
                                       dataKey="x"
-                                      stroke="#ff0000"
+                                      stroke={CLColors.error}
                                       dot={false}
                                       name="X-axis"
                                     />
                                     <Line
                                       type="monotone"
                                       dataKey="y"
-                                      stroke="#00ff00"
+                                      stroke={CLColors.success}
                                       dot={false}
                                       name="Y-axis"
                                     />
                                     <Line
                                       type="monotone"
                                       dataKey="z"
-                                      stroke="#0000ff"
+                                      stroke={CLColors.secondary}
                                       dot={false}
                                       name="Z-axis"
                                     />
@@ -2605,48 +2633,58 @@ const SingleIndividualLabSubTab = ({
                       {/* ENMO Data Plot */}
                       <Paper sx={{ p: 3, mb: 3 }}>
                         <Typography variant="h6" gutterBottom>
-                          ENMO time series (incl. wear/non-wear segments)
+                          ENMO time series{(() => {
+                            // Check if wear data exists and has meaningful values (not all -1)
+                            const hasWearData = data.data.some(point => point.wear !== undefined && point.wear !== -1);
+                            return hasWearData ? " (incl. wear/non-wear segments)" : "";
+                          })()}
                         </Typography>
-                        {/* Custom legend for wear/non-wear */}
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            mb: 2,
-                            ml: 1,
-                          }}
-                        >
+                        {/* Custom legend for wear/non-wear - only show if wear data is available */}
+                        {(() => {
+                          // Check if wear data exists and has meaningful values (not all -1)
+                          const hasWearData = data.data.some(point => point.wear !== undefined && point.wear !== -1);
+                          return hasWearData;
+                        })() && (
                           <Box
                             sx={{
-                              width: 18,
-                              height: 18,
-                              bgcolor: "#4caf50",
-                              opacity: 0.3,
-                              border: "1px solid #4caf50",
-                              mr: 1,
+                              display: "flex",
+                              alignItems: "center",
+                              mb: 2,
+                              ml: 1,
                             }}
-                          />
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mr: 2 }}
                           >
-                            wear
-                          </Typography>
-                          <Box
-                            sx={{
-                              width: 18,
-                              height: 18,
-                              bgcolor: "#ff5252",
-                              opacity: 0.3,
-                              border: "1px solid #ff5252",
-                              mr: 1,
-                            }}
-                          />
-                          <Typography variant="body2" color="text.secondary">
-                            non-wear
-                          </Typography>
-                        </Box>
+                            <Box
+                              sx={{
+                                width: 18,
+                                height: 18,
+                                bgcolor: CLColors.success,
+                                opacity: 0.3,
+                                border: `1px solid ${CLColors.success}`,
+                                mr: 1,
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ mr: 2 }}
+                            >
+                              wear
+                            </Typography>
+                            <Box
+                              sx={{
+                                width: 18,
+                                height: 18,
+                                bgcolor: CLColors.error,
+                                opacity: 0.3,
+                                border: `1px solid ${CLColors.error}`,
+                                mr: 1,
+                              }}
+                            />
+                            <Typography variant="body2" color="text.secondary">
+                              non-wear
+                            </Typography>
+                          </Box>
+                        )}
                         <ResponsiveContainer width="100%" height={400}>
                           <LineChart
                             data={data.data}
@@ -2739,7 +2777,7 @@ const SingleIndividualLabSubTab = ({
                             <Line
                               type="monotone"
                               dataKey="ENMO"
-                              stroke="#8884d8"
+                              stroke="#0034f0"
                               dot={false}
                             />
                             {/* Shaded background for wear/non-wear segments */}
@@ -2935,11 +2973,7 @@ const SingleIndividualLabSubTab = ({
                                   value={value}
                                   min={key.toLowerCase() === "is" ? 0 : 0}
                                   max={key.toLowerCase() === "is" ? 1 : 2}
-                                  color={
-                                    key.toLowerCase() === "is"
-                                      ? "#1976d2"
-                                      : "#388e3c"
-                                  }
+                                  color="#0034f0"
                                 />
                               ) : key.toLowerCase() === "ra" &&
                                 Array.isArray(value) ? (
@@ -3059,7 +3093,7 @@ const SingleIndividualLabSubTab = ({
                                       />
                                       <Bar
                                         dataKey="RA"
-                                        fill="#0088fe"
+                                        fill="#0034f0"
                                         name="RA"
                                       />
                                     </BarChart>
@@ -3203,12 +3237,12 @@ const SingleIndividualLabSubTab = ({
                                         <Legend />
                                         <Bar
                                           dataKey="M10"
-                                          fill="#8884d8"
+                                          fill="#0034f0"
                                           name="M10"
                                         />
                                         <Bar
                                           dataKey="L5"
-                                          fill="#82ca9d"
+                                          fill="#7aa7ff"
                                           name="L5"
                                         />
                                       </BarChart>
@@ -3330,7 +3364,7 @@ const SingleIndividualLabSubTab = ({
                                       <Legend />
                                       <Bar
                                         dataKey={key}
-                                        fill="#8884d8"
+                                        fill="#0034f0"
                                         name={key}
                                       />
                                     </BarChart>
@@ -3535,7 +3569,7 @@ const SingleIndividualLabSubTab = ({
                                     <Line
                                       type="monotone"
                                       dataKey="ENMO"
-                                      stroke="#8884d8"
+                                      stroke="#0034f0"
                                       dot={false}
                                       isAnimationActive={false}
                                       yAxisId="left"
@@ -3543,7 +3577,7 @@ const SingleIndividualLabSubTab = ({
                                     <Line
                                       type="monotone"
                                       dataKey="cosinor_fitted"
-                                      stroke="#ff0000"
+                                      stroke={CLColors.error}
                                       dot={false}
                                       isAnimationActive={false}
                                       name="Cosinor Fit"
@@ -3565,7 +3599,7 @@ const SingleIndividualLabSubTab = ({
                                         }
                                         return x2Value.getTime();
                                       })()}
-                                      fill="#8884d8"
+                                      fill="#0034f0"
                                       fillOpacity={0.1}
                                       label="M10"
                                       yAxisId="left"
@@ -3586,7 +3620,7 @@ const SingleIndividualLabSubTab = ({
                                         }
                                         return x2Value.getTime();
                                       })()}
-                                      fill="#82ca9d"
+                                      fill="#7aa7ff"
                                       fillOpacity={0.1}
                                       label="L5"
                                       yAxisId="left"
@@ -3694,7 +3728,7 @@ const SingleIndividualLabSubTab = ({
                                       >
                                         {label}
                                       </p>
-                                      {payload.map((entry, index) => {
+                                      {payload.slice().reverse().map((entry, index) => {
                                         let value = entry.value;
                                         let unit = "";
                                         if (entry.name === "TST") {
@@ -3744,29 +3778,52 @@ const SingleIndividualLabSubTab = ({
                                 return null;
                               }}
                             />
-                            <Legend />
+                            <Legend 
+                              content={({ payload }) => (
+                                <ul style={{ 
+                                  listStyle: 'none', 
+                                  padding: 0, 
+                                  margin: 0,
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  gap: '20px'
+                                }}>
+                                  {payload?.slice().reverse().map((entry, index) => (
+                                    <li key={`item-${index}`} style={{ display: 'flex', alignItems: 'center' }}>
+                                      <div style={{
+                                        width: '14px',
+                                        height: '14px',
+                                        backgroundColor: entry.color,
+                                        marginRight: '8px'
+                                      }} />
+                                      <span style={{ color: '#666' }}>{entry.value}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            />
                             <Bar
                               dataKey="sedentary"
                               stackId="a"
-                              fill="#ff6b6b"
+                              fill="#d1d8ff"
                               name="Sedentary"
                             />
                             <Bar
                               dataKey="light"
                               stackId="a"
-                              fill="#4ecdc4"
+                              fill="#bdcbff"
                               name="Light"
                             />
                             <Bar
                               dataKey="moderate"
                               stackId="a"
-                              fill="#45b7d1"
+                              fill="#577bff"
                               name="Moderate"
                             />
                             <Bar
                               dataKey="vigorous"
                               stackId="a"
-                              fill="#96ceb4"
+                              fill="#0034f0"
                               name="Vigorous"
                             />
                           </BarChart>
@@ -3848,7 +3905,7 @@ const SingleIndividualLabSubTab = ({
                                 value={value}
                                 min={-100}
                                 max={100}
-                                color="#9c27b0"
+                                color="#0034f0"
                               />
                             ) : Array.isArray(value) ? (
                               <Box
@@ -3953,11 +4010,11 @@ const SingleIndividualLabSubTab = ({
                                       }}
                                     />
                                     <Legend />
-                                    <Bar
-                                      dataKey={key}
-                                      fill="#8884d8"
-                                      name={key}
-                                    />
+                                                                          <Bar
+                                        dataKey={key}
+                                        fill="#0034f0"
+                                        name={key}
+                                      />
                                   </BarChart>
                                 </ResponsiveContainer>
                               </Box>
@@ -3994,9 +4051,9 @@ const SingleIndividualLabSubTab = ({
                           sx={{
                             width: 18,
                             height: 18,
-                            bgcolor: "#2196f3",
-                            opacity: 0.15,
-                            border: "1px solid #2196f3",
+                            bgcolor: "#bdcbff",
+                            opacity: 0.9,
+                            border: "1px solid #bdcbff",
                             mr: 1,
                           }}
                         />
@@ -4163,7 +4220,7 @@ const SingleIndividualLabSubTab = ({
                                     <Line
                                       type="monotone"
                                       dataKey="ENMO"
-                                      stroke="#8884d8"
+                                      stroke="#0034f0"
                                       dot={false}
                                       isAnimationActive={false}
                                       yAxisId="left"
@@ -4174,7 +4231,7 @@ const SingleIndividualLabSubTab = ({
                                         key={`sleep-band-${idx}`}
                                         x1={band.start}
                                         x2={band.end}
-                                        fill="#2196f3"
+                                        fill="#bdcbff"
                                         fillOpacity={0.15}
                                         yAxisId="left"
                                       />

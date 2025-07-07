@@ -41,15 +41,11 @@ export const formatTime = (seconds) => {
     .padStart(2, "0")}`;
 };
 
-// Helper to interpolate between red and green
+// Helper to interpolate between red and green using CL colors
 export function interpolateColor(wear) {
-  // Linear interpolation between #ff5252 and #4caf50
-  const r0 = 255,
-    g0 = 82,
-    b0 = 82; // red
-  const r1 = 76,
-    g1 = 175,
-    b1 = 80; // green
+  // Linear interpolation between CL error and success colors
+  const r0 = 211, g0 = 47, b0 = 47; // #D32F2F (CL error)
+  const r1 = 46, g1 = 125, b1 = 50; // #2E7D32 (CL success)
   const r = Math.round(r0 + (r1 - r0) * wear);
   const g = Math.round(g0 + (g1 - g0) * wear);
   const b = Math.round(b0 + (b1 - b0) * wear);
