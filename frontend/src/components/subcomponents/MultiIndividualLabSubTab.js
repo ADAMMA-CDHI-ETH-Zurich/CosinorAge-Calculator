@@ -61,6 +61,8 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import config from "../../config";
 import { CLColors } from "../../plotTheme";
+import HistoryButton from "../common/HistoryButton";
+import { useHistory } from "../../hooks/useHistory";
 
 // Helper to clean and format feature names for display
 const cleanFeatureName = (featureName) => {
@@ -113,6 +115,17 @@ const cleanFeatureName = (featureName) => {
 
 // Multi Individual Tab Component
 const MultiIndividualTab = () => {
+  // History management
+  const {
+    history,
+    currentIndex,
+    saveState,
+    restoreState,
+    clearHistory,
+    removeHistoryItem,
+    hasHistory
+  } = useHistory('multi');
+
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [bulkData, setBulkData] = useState(null);
   const [bulkError, setBulkError] = useState(null);
@@ -585,6 +598,9 @@ const MultiIndividualTab = () => {
           `Successfully processed all ${actualSuccessfulCount} files!`
         );
       }
+
+      // Save current state to history after successful processing
+      setTimeout(() => saveCurrentState(), 100);
     } catch (err) {
       setBulkError(err.message);
     } finally {
@@ -769,6 +785,73 @@ const MultiIndividualTab = () => {
       bulkFileInputRef.current.value = "";
     }
   };
+
+  // Function to save current state to history
+  const saveCurrentState = useCallback(() => {
+    const currentState = {
+      uploadedFiles,
+      bulkData,
+      bulkDataType,
+      bulkDataUnit,
+      bulkTimestampFormat,
+      bulkTimeColumn,
+      bulkDataColumns,
+      bulkXColumn,
+      bulkYColumn,
+      bulkZColumn,
+      bulkPreprocessParams,
+      bulkFeatureParams,
+      bulkCosinorAgeInputs,
+      enableCosinorage
+    };
+    saveState(currentState);
+  }, [
+    uploadedFiles, bulkData, bulkDataType, bulkDataUnit, bulkTimestampFormat,
+    bulkTimeColumn, bulkDataColumns, bulkXColumn, bulkYColumn, bulkZColumn,
+    bulkPreprocessParams, bulkFeatureParams, bulkCosinorAgeInputs, enableCosinorage, saveState
+  ]);
+
+  // Function to restore state from history
+  const handleRestoreState = useCallback((index) => {
+    const restoredState = restoreState(index);
+    if (restoredState) {
+      setUploadedFiles(restoredState.uploadedFiles || []);
+      setBulkData(restoredState.bulkData);
+      setBulkDataType(restoredState.bulkDataType || "");
+      setBulkDataUnit(restoredState.bulkDataUnit || "");
+      setBulkTimestampFormat(restoredState.bulkTimestampFormat || "");
+      setBulkTimeColumn(restoredState.bulkTimeColumn || "");
+      setBulkDataColumns(restoredState.bulkDataColumns || []);
+      setBulkXColumn(restoredState.bulkXColumn || "");
+      setBulkYColumn(restoredState.bulkYColumn || "");
+      setBulkZColumn(restoredState.bulkZColumn || "");
+      setBulkPreprocessParams(restoredState.bulkPreprocessParams || {
+        autocalib_sd_criter: 0.00013,
+        autocalib_sphere_crit: 0.02,
+        filter_type: "lowpass",
+        filter_cutoff: 2,
+        wear_sd_criter: 0.00013,
+        wear_range_crit: 0.00067,
+        wear_window_length: 45,
+        wear_window_skip: 7,
+        required_daily_coverage: 0.5,
+      });
+      setBulkFeatureParams(restoredState.bulkFeatureParams || {
+        sleep_rescore: true,
+        sleep_ck_sf: 0.0025,
+        pa_cutpoint_sl: 15,
+        pa_cutpoint_lm: 35,
+        pa_cutpoint_mv: 70,
+      });
+      setBulkCosinorAgeInputs(restoredState.bulkCosinorAgeInputs || []);
+      setEnableCosinorage(restoredState.enableCosinorage || false);
+    }
+  }, [
+    restoreState, setUploadedFiles, setBulkData, setBulkDataType, setBulkDataUnit,
+    setBulkTimestampFormat, setBulkTimeColumn, setBulkDataColumns, setBulkXColumn,
+    setBulkYColumn, setBulkZColumn, setBulkPreprocessParams, setBulkFeatureParams,
+    setBulkCosinorAgeInputs, setEnableCosinorage
+  ]);
 
   return (
     <>
@@ -1832,6 +1915,15 @@ const MultiIndividualTab = () => {
                 >
                   Reset All
                 </Button>
+                <HistoryButton
+                  history={history}
+                  currentIndex={currentIndex}
+                  onRestore={handleRestoreState}
+                  onRemoveItem={removeHistoryItem}
+                  onClearHistory={clearHistory}
+                  hasHistory={hasHistory}
+                  disabled={bulkProcessing}
+                />
               </Box>
             )}
         </Paper>

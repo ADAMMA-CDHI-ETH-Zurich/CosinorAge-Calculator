@@ -8,6 +8,8 @@ import {
 import { getFirstDate, getDateForIndex } from "../../utils/dateUtils";
 import HorizontalScale from "../common/HorizontalScale";
 import SectionInfoButton from "../common/SectionInfoButton";
+import HistoryButton from "../common/HistoryButton";
+import { useHistory } from "../../hooks/useHistory";
 import { CLColors } from "../../plotTheme";
 import {
   Box,
@@ -157,6 +159,17 @@ const SingleIndividualLabSubTab = ({
   setColumnSelectionComplete,
   handleReset,
 }) => {
+  // History management
+  const {
+    history,
+    currentIndex,
+    saveState,
+    restoreState,
+    clearHistory,
+    removeHistoryItem,
+    hasHistory
+  } = useHistory('single');
+
   // Function to start the timer
   const startTimer = () => {
     // Clear any existing timer first
@@ -562,6 +575,9 @@ const SingleIndividualLabSubTab = ({
         extracted: true,
         processed: true, // Add a flag to indicate processing is complete
       }));
+
+      // Save current state to history after successful processing
+      setTimeout(() => saveCurrentState(), 100);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -598,6 +614,9 @@ const SingleIndividualLabSubTab = ({
 
       const result = await response.json();
       setPredictedAge(result.predicted_age);
+      
+      // Save current state to history after successful age prediction
+      setTimeout(() => saveCurrentState(), 100);
     } catch (err) {
       setError(err.message);
     }
@@ -702,6 +721,70 @@ const SingleIndividualLabSubTab = ({
       [param]: processedValue,
     }));
   };
+
+  // Function to save current state to history
+  const saveCurrentState = useCallback(() => {
+    const currentState = {
+      data,
+      dataSource,
+      predictedAge,
+      chronologicalAge,
+      gender,
+      preprocessParams,
+      featureParams,
+      fileType,
+      dataType,
+      dataUnit,
+      timestampFormat,
+      isGeneric,
+      genericDataType,
+      genericTimeFormat,
+      genericTimeColumn,
+      genericDataColumns,
+      csvColumns,
+      selectedTimeColumn,
+      selectedDataColumns
+    };
+    saveState(currentState);
+  }, [
+    data, dataSource, predictedAge, chronologicalAge, gender,
+    preprocessParams, featureParams, fileType, dataType, dataUnit,
+    timestampFormat, isGeneric, genericDataType, genericTimeFormat,
+    genericTimeColumn, genericDataColumns, csvColumns,
+    selectedTimeColumn, selectedDataColumns, saveState
+  ]);
+
+  // Function to restore state from history
+  const handleRestoreState = useCallback((index) => {
+    const restoredState = restoreState(index);
+    if (restoredState) {
+      setData(restoredState.data);
+      setDataSource(restoredState.dataSource);
+      setPredictedAge(restoredState.predictedAge);
+      setChronologicalAge(restoredState.chronologicalAge);
+      setGender(restoredState.gender);
+      setPreprocessParams(restoredState.preprocessParams);
+      setFeatureParams(restoredState.featureParams);
+      setFileType(restoredState.fileType);
+      setDataType(restoredState.dataType);
+      setDataUnit(restoredState.dataUnit);
+      setTimestampFormat(restoredState.timestampFormat);
+      setIsGeneric(restoredState.isGeneric);
+      setGenericDataType(restoredState.genericDataType);
+      setGenericTimeFormat(restoredState.genericTimeFormat);
+      setGenericTimeColumn(restoredState.genericTimeColumn);
+      setGenericDataColumns(restoredState.genericDataColumns);
+      setCsvColumns(restoredState.csvColumns);
+      setSelectedTimeColumn(restoredState.selectedTimeColumn);
+      setSelectedDataColumns(restoredState.selectedDataColumns);
+    }
+  }, [
+    restoreState, setData, setDataSource, setPredictedAge, setChronologicalAge,
+    setGender, setPreprocessParams, setFeatureParams, setFileType, setDataType,
+    setDataUnit, setTimestampFormat, setIsGeneric, setGenericDataType,
+    setGenericTimeFormat, setGenericTimeColumn, setGenericDataColumns,
+    setCsvColumns, setSelectedTimeColumn, setSelectedDataColumns
+  ]);
 
   return (
     <>
@@ -2208,6 +2291,15 @@ const SingleIndividualLabSubTab = ({
                       >
                         Reset All
                       </Button>
+                      <HistoryButton
+                        history={history}
+                        currentIndex={currentIndex}
+                        onRestore={handleRestoreState}
+                        onRemoveItem={removeHistoryItem}
+                        onClearHistory={clearHistory}
+                        hasHistory={hasHistory}
+                        disabled={processing}
+                      />
                     </Box>
                   </Grid>
                 )}
