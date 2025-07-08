@@ -672,6 +672,10 @@ function App() {
     setSelectedDataColumns([]);
     setCsvColumns([]);
     setCsvPreview([]);
+    // Reset timezone state
+    setTimezone("UTC");
+    setTimezoneContinent("");
+    setTimezoneCity("");
   };
 
   // Scroll to top when changing tabs
