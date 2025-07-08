@@ -82,7 +82,10 @@ function App() {
     pa_cutpoint_lm: 35,
     pa_cutpoint_mv: 70,
   });
-  const [currentTab, setCurrentTab] = useState(0);
+  const [currentTab, setCurrentTab] = useState(() => {
+    const savedTab = localStorage.getItem("currentTab");
+    return savedTab ? parseInt(savedTab, 10) : 0;
+  });
 
   const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
   // Add state for fileType
@@ -146,11 +149,7 @@ function App() {
     setCsvPreview([]);
   }, [dataSource]);
 
-  // Clear all state on mount
-  useEffect(() => {
-    // Always clear localStorage on page reload to start fresh
-    localStorage.clear();
-  }, []);
+  // Note: Removed localStorage.clear() to preserve tab state persistence
 
   // Log when component re-renders
   useEffect(() => {
@@ -175,6 +174,7 @@ function App() {
           selectedDataColumns.length > 0) ||
           fileType !== "csv") &&
         timestampFormat &&
+        ((timestampFormat === "datetime") || (timestampFormat !== "datetime" && timezone)) &&
         (dataType === "alternative_count" ||
           dataUnit ||
           dataType.includes("-"));
@@ -194,6 +194,7 @@ function App() {
     timestampFormat,
     dataType,
     dataUnit,
+    timezone,
     columnSelectionComplete,
   ]);
 
@@ -313,6 +314,10 @@ function App() {
         throw new Error("Please select a data unit");
       }
 
+      if (timestampFormat !== "datetime" && !timezone) {
+        throw new Error("Please select a timezone for Unix timestamp formats");
+      }
+
       if (
         fileType === "csv" &&
         (!selectedTimeColumn || selectedDataColumns.length === 0)
@@ -355,6 +360,11 @@ function App() {
         data_unit: dataUnit,
         data_type: data_type,
       };
+
+      // Only include timezone for unix formats
+      if (timestampFormat !== "datetime") {
+        requestBody.time_zone = timezone;
+      }
 
       console.log("=== Final Request Body ===");
       console.log("time_format:", requestBody.time_format);
@@ -632,6 +642,11 @@ function App() {
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
   };
+
+  // Save currentTab to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("currentTab", currentTab.toString());
+  }, [currentTab]);
 
   const handleReset = () => {
     setData(null);

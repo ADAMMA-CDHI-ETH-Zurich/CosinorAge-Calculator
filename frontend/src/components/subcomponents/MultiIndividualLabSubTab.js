@@ -1145,11 +1145,12 @@ const MultiIndividualTab = ({
                 </Grid>
               </Grid>
               
-              {/* Timezone Configuration - Second Row */}
-              <Box sx={{ border: '2px dashed #0034f0', bgcolor: '#0034f0' + '10', borderRadius: 2, p: 2, mt: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, color: '#0034f0' }}>
-                  Timezone (Optional)
-                </Typography>
+              {/* Timezone Configuration - Second Row - Only show for unix formats */}
+              {(bulkTimestampFormat === "unix-s" || bulkTimestampFormat === "unix-ms") && (
+                <Box sx={{ border: '2px dashed #0034f0', bgcolor: '#0034f0' + '10', borderRadius: 2, p: 2, mt: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: '#0034f0' }}>
+                    Timezone (Required for Unix timestamps)
+                  </Typography>
                 <Grid container spacing={2}>
                   {/* Continent Selection */}
                   <Grid item xs={12} md={6}>
@@ -1174,7 +1175,7 @@ const MultiIndividualTab = ({
                           ))}
                       </Select>
                       <FormHelperText>
-                        {bulkDataUnit && bulkTimestampFormat ? "Select the continent for your timezone (optional)" : "Please select data unit and timestamp format first"}
+                        {bulkDataUnit && bulkTimestampFormat ? "Select the continent for your timezone (required for Unix timestamps)" : "Please select data unit and timestamp format first"}
                       </FormHelperText>
                     </FormControl>
                   </Grid>
@@ -1204,12 +1205,13 @@ const MultiIndividualTab = ({
                         }).filter(Boolean)}
                       </Select>
                       <FormHelperText>
-                        Select the city for your timezone (optional, default: UTC)
+                        Select the city for your timezone (required for Unix timestamps, default: UTC)
                       </FormHelperText>
                     </FormControl>
                   </Grid>
                 </Grid>
               </Box>
+              )}
             </Box>
           )}
 

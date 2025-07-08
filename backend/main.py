@@ -476,10 +476,24 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
             time_zone = request.time_zone or file_data.get("time_zone", "UTC")
             logger.info(f"Using timezone for file {file_id}: {time_zone}")
             logger.info(f"Request timezone: {request.time_zone}")
+            logger.info(f"Request timezone type: {type(request.time_zone) if request.time_zone else 'None'}")
             logger.info(f"Stored timezone: {file_data.get('time_zone', 'NOT_SET')}")
+            logger.info(f"Stored timezone type: {type(file_data.get('time_zone')) if file_data.get('time_zone') else 'None'}")
             logger.info(f"File data keys: {list(file_data.keys())}")
             logger.info(f"File data time_zone field: {file_data.get('time_zone', 'NOT_SET')}")
             logger.info(f"Full file_data content: {file_data}")
+            
+            # Handle timezone-aware data issue by using None for timezone if data might be timezone-aware
+            # This prevents the cosinorage library from trying to localize already timezone-aware data
+            if time_format in ['datetime', 'iso']:
+                logger.info(f"Using timezone=None for {time_format} format to avoid timezone-aware data conflicts")
+                time_zone = None
+            
+            # Handle timezone-aware data by setting time_zone to None if data might already be timezone-aware
+            # This prevents the "Already tz-aware" error in cosinorage
+            if time_format in ["datetime", "iso"]:
+                logger.info(f"Detected datetime/iso format, setting time_zone to None to avoid tz-aware conflict")
+                time_zone = None
             
             handler = GenericDataHandler(
                 file_path=file_data["file_path"],
@@ -743,6 +757,10 @@ async def update_column_selections(file_id: str, request: ColumnSelectionRequest
         if request.time_zone is not None:
             file_info["time_zone"] = request.time_zone
             logger.info(f"Updated timezone for file {file_id}: {request.time_zone}")
+            logger.info(f"Request time_zone value: {request.time_zone}")
+            logger.info(f"Request time_zone type: {type(request.time_zone)}")
+        else:
+            logger.warning(f"No time_zone provided in request for file {file_id}")
 
         logger.info(
             f"Updated column selections for file {file_id}: time_column={request.time_column}, data_columns={request.data_columns}, data_type={request.data_type}, data_unit={request.data_unit}, time_format={request.time_format}, time_zone={request.time_zone}")
@@ -1354,6 +1372,12 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                 logger.info(f"File config keys: {list(file_config.keys())}")
                 logger.info(f"File data time_zone field: {file_data.get('time_zone', 'NOT_SET')}")
                 logger.info(f"File config time_zone field: {file_config.get('time_zone', 'NOT_SET')}")
+                
+                # Handle timezone-aware data issue by using None for timezone if data might be timezone-aware
+                # This prevents the cosinorage library from trying to localize already timezone-aware data
+                if timestamp_format in ['datetime', 'iso']:
+                    logger.info(f"Using timezone=None for {timestamp_format} format to avoid timezone-aware data conflicts")
+                    time_zone = None
                 
                 # Create GenericDataHandler for each file
                 handler = GenericDataHandler(

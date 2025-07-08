@@ -315,8 +315,8 @@ const SingleIndividualLabSubTab = ({
         throw new Error("Please select a data unit");
       }
 
-      if (!timezone) {
-        throw new Error("Please select a timezone");
+      if (timestampFormat !== "datetime" && !timezone) {
+        throw new Error("Please select a timezone for Unix timestamp formats");
       }
 
       if (
@@ -360,15 +360,22 @@ const SingleIndividualLabSubTab = ({
         time_format: fileType === "csv" ? timestampFormat : genericTimeFormat,
         data_unit: dataUnit,
         data_type: data_type,
-        time_zone: timezone,
       };
 
+      // Only include timezone for unix formats
+      if (timestampFormat !== "datetime") {
+        requestBody.time_zone = timezone;
+      }
+
       console.log("Sending timezone to backend:", timezone);
+      console.log("Timezone value:", timezone);
+      console.log("Timezone type:", typeof timezone);
 
       console.log("=== Final Request Body ===");
       console.log("time_format:", requestBody.time_format);
       console.log("data_unit:", requestBody.data_unit);
       console.log("data_type:", requestBody.data_type);
+      console.log("time_zone:", requestBody.time_zone);
 
       if (fileType === "csv") {
         requestBody.time_column = selectedTimeColumn;
@@ -1552,77 +1559,81 @@ const SingleIndividualLabSubTab = ({
                         </Grid>
                       </Grid>
                       
-                      {/* Timezone Configuration - Second Row */}
-                      <Box sx={{ border: '2px dashed #0034f0', bgcolor: '#0034f0' + '10', borderRadius: 2, p: 2, mt: 2 }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1, color: '#0034f0' }}>
-                          Timezone (Optional)
-                        </Typography>
-                        <Grid container spacing={2}>
-                          {/* Continent Selection */}
-                          <Grid item xs={12} md={6}>
-                            <FormControl fullWidth>
-                              <InputLabel>Timezone Continent</InputLabel>
-                              <Select
-                                value={timezoneContinent}
-                                onChange={(e) => handleTimezoneContinentChange(e.target.value)}
-                                label="Timezone Continent"
-                                disabled={!dataUnit}
-                              >
-                                <MenuItem value="">Select Continent</MenuItem>
-                                {Object.keys(timezones)
-                                  .filter(continent => {
-                                    const validContinents = ['Africa', 'Antarctica', 'Asia', 'Europe', 'America', 'Australia'];
-                                    return validContinents.includes(continent) && timezones[continent] && timezones[continent].length > 0;
-                                  })
-                                  .map((continent) => (
-                                    <MenuItem key={continent} value={continent}>
-                                      {continent}
-                                    </MenuItem>
-                                  ))}
-                              </Select>
-                              <FormHelperText>
-                                {dataUnit ? "Select the continent for your timezone (optional)" : "Please select data unit first"}
-                              </FormHelperText>
-                            </FormControl>
-                          </Grid>
-                          {/* City Selection */}
-                          <Grid item xs={12} md={6}>
-                            <FormControl fullWidth>
-                              <InputLabel>Timezone City</InputLabel>
-                              <Select
-                                value={timezoneCity}
-                                onChange={(e) => handleTimezoneCityChange(e.target.value)}
-                                label="Timezone City"
-                                disabled={!timezoneContinent}
-                              >
-                                <MenuItem value="">Select City</MenuItem>
-                                {timezoneContinent && timezones[timezoneContinent]?.map((tz) => {
-                                  const parts = tz.split('/');
-                                  // Only show timezones with exactly 2 parts (continent/city)
-                                  if (parts.length === 2) {
-                                    const city = parts[1];
-                                    return (
-                                      <MenuItem key={tz} value={tz}>
-                                        {city.replace(/_/g, ' ')}
+                      {/* Timezone Configuration - Second Row - Only show for unix formats */}
+                      {(timestampFormat === "unix-s" || timestampFormat === "unix-ms") && (
+                        <Box sx={{ border: '2px dashed #0034f0', bgcolor: '#0034f0' + '10', borderRadius: 2, p: 2, mt: 2 }}>
+                          <Typography variant="subtitle2" sx={{ mb: 1, color: '#0034f0' }}>
+                            Timezone (Required for Unix timestamps)
+                          </Typography>
+                          <Grid container spacing={2}>
+                            {/* Continent Selection */}
+                            <Grid item xs={12} md={6}>
+                              <FormControl fullWidth>
+                                <InputLabel>Timezone Continent</InputLabel>
+                                <Select
+                                  value={timezoneContinent}
+                                  onChange={(e) => handleTimezoneContinentChange(e.target.value)}
+                                  label="Timezone Continent"
+                                  disabled={!dataUnit}
+                                >
+                                  <MenuItem value="">Select Continent</MenuItem>
+                                  {Object.keys(timezones)
+                                    .filter(continent => {
+                                      const validContinents = ['Africa', 'Antarctica', 'Asia', 'Europe', 'America', 'Australia'];
+                                      return validContinents.includes(continent) && timezones[continent] && timezones[continent].length > 0;
+                                    })
+                                    .map((continent) => (
+                                      <MenuItem key={continent} value={continent}>
+                                        {continent}
                                       </MenuItem>
-                                    );
-                                  }
-                                  return null;
-                                }).filter(Boolean)}
-                              </Select>
-                              <FormHelperText>
-                                Select the city for your timezone (optional, default: UTC)
-                              </FormHelperText>
-                            </FormControl>
+                                    ))}
+                                </Select>
+                                <FormHelperText>
+                                  {dataUnit ? "Select the continent for your timezone (required for Unix timestamps)" : "Please select data unit first"}
+                                </FormHelperText>
+                              </FormControl>
+                            </Grid>
+                            {/* City Selection */}
+                            <Grid item xs={12} md={6}>
+                              <FormControl fullWidth>
+                                <InputLabel>Timezone City</InputLabel>
+                                <Select
+                                  value={timezoneCity}
+                                  onChange={(e) => handleTimezoneCityChange(e.target.value)}
+                                  label="Timezone City"
+                                  disabled={!timezoneContinent}
+                                >
+                                  <MenuItem value="">Select City</MenuItem>
+                                  {timezoneContinent && timezones[timezoneContinent]?.map((tz) => {
+                                    const parts = tz.split('/');
+                                    // Only show timezones with exactly 2 parts (continent/city)
+                                    if (parts.length === 2) {
+                                      const city = parts[1];
+                                      return (
+                                        <MenuItem key={tz} value={tz}>
+                                          {city.replace(/_/g, ' ')}
+                                        </MenuItem>
+                                      );
+                                    }
+                                    return null;
+                                  }).filter(Boolean)}
+                                </Select>
+                                <FormHelperText>
+                                  Select the city for your timezone (required for Unix timestamps, default: UTC)
+                                </FormHelperText>
+                              </FormControl>
+                            </Grid>
                           </Grid>
-                        </Grid>
-                      </Box>
+                        </Box>
+                      )}
                     </Box>
                   </>
                 )}
 
                 {/* Column Selection - Only show after Data Configuration is complete and only for CSV files */}
-                {timestampFormat && dataUnit && timezone && fileType === "csv" && (
+                {timestampFormat && dataUnit && 
+                 ((timestampFormat === "datetime") || (timestampFormat !== "datetime" && timezone)) && 
+                 fileType === "csv" && (
                   <>
                     {/* Column Selection */}
                     <Box sx={{ mt: 3 }}>
