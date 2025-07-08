@@ -61,8 +61,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import config from "../../config";
 import { CLColors } from "../../plotTheme";
-import HistoryButton from "../common/HistoryButton";
-import { useHistory } from "../../hooks/useHistory";
+import { fetchTimezones, filterTimezonesByContinent, searchTimezones } from "../../utils/timezoneUtils";
 
 // Helper to clean and format feature names for display
 const cleanFeatureName = (featureName) => {
@@ -114,17 +113,15 @@ const cleanFeatureName = (featureName) => {
 };
 
 // Multi Individual Tab Component
-const MultiIndividualTab = () => {
-  // History management
-  const {
-    history,
-    currentIndex,
-    saveState,
-    restoreState,
-    clearHistory,
-    removeHistoryItem,
-    hasHistory
-  } = useHistory('multi');
+const MultiIndividualTab = ({
+  timezone,
+  setTimezone,
+  timezoneContinent,
+  setTimezoneContinent,
+  timezoneCity,
+  setTimezoneCity,
+}) => {
+
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [bulkData, setBulkData] = useState(null);
@@ -184,6 +181,49 @@ const MultiIndividualTab = () => {
   // Cosinorage parameters for each file
   const [bulkCosinorAgeInputs, setBulkCosinorAgeInputs] = useState([]);
   const [enableCosinorage, setEnableCosinorage] = useState(false);
+
+  // Timezone state
+  const [timezones, setTimezones] = useState({});
+  const [timezoneSearchResults, setTimezoneSearchResults] = useState([]);
+  const [timezoneSearchOpen, setTimezoneSearchOpen] = useState(false);
+
+  // Load timezones on component mount
+  useEffect(() => {
+    const loadTimezones = async () => {
+      try {
+        const timezoneData = await fetchTimezones();
+        setTimezones(timezoneData.timezones);
+      } catch (error) {
+        console.error("Failed to load timezones:", error);
+      }
+    };
+    loadTimezones();
+  }, []);
+
+  // Timezone handling functions
+  const handleTimezoneContinentChange = (continent) => {
+    setTimezoneContinent(continent);
+    setTimezoneCity("");
+    setTimezone("UTC"); // Reset to UTC when continent changes
+  };
+
+  const handleTimezoneCityChange = (city) => {
+    setTimezoneCity(city);
+    setTimezone(city);
+    console.log("Timezone selected:", city);
+  };
+
+  const handleTimezoneSearch = (searchTerm) => {
+    if (searchTerm.length < 2) {
+      setTimezoneSearchResults([]);
+      setTimezoneSearchOpen(false);
+      return;
+    }
+    
+    const results = searchTimezones(timezones, searchTerm);
+    setTimezoneSearchResults(results);
+    setTimezoneSearchOpen(true);
+  };
 
   const startBulkTimer = () => {
     setBulkProcessingTime(0);
@@ -524,6 +564,7 @@ const MultiIndividualTab = () => {
         data_unit: bulkDataUnit,
         timestamp_format: bulkTimestampFormat,
         time_column: bulkTimeColumn,
+        time_zone: timezone,
         data_columns:
           bulkDataType === "accelerometer"
             ? [bulkXColumn, bulkYColumn, bulkZColumn]
@@ -599,8 +640,7 @@ const MultiIndividualTab = () => {
         );
       }
 
-      // Save current state to history after successful processing
-      setTimeout(() => saveCurrentState(), 100);
+
     } catch (err) {
       setBulkError(err.message);
     } finally {
@@ -760,6 +800,11 @@ const MultiIndividualTab = () => {
     setBulkCosinorAgeInputs([]);
     setEnableCosinorage(false);
 
+    // Reset timezone state
+    setTimezone("UTC");
+    setTimezoneContinent("");
+    setTimezoneCity("");
+
     // Reset parameters to defaults
     setBulkPreprocessParams({
       autocalib_sd_criter: 0.00013,
@@ -786,72 +831,7 @@ const MultiIndividualTab = () => {
     }
   };
 
-  // Function to save current state to history
-  const saveCurrentState = useCallback(() => {
-    const currentState = {
-      uploadedFiles,
-      bulkData,
-      bulkDataType,
-      bulkDataUnit,
-      bulkTimestampFormat,
-      bulkTimeColumn,
-      bulkDataColumns,
-      bulkXColumn,
-      bulkYColumn,
-      bulkZColumn,
-      bulkPreprocessParams,
-      bulkFeatureParams,
-      bulkCosinorAgeInputs,
-      enableCosinorage
-    };
-    saveState(currentState);
-  }, [
-    uploadedFiles, bulkData, bulkDataType, bulkDataUnit, bulkTimestampFormat,
-    bulkTimeColumn, bulkDataColumns, bulkXColumn, bulkYColumn, bulkZColumn,
-    bulkPreprocessParams, bulkFeatureParams, bulkCosinorAgeInputs, enableCosinorage, saveState
-  ]);
 
-  // Function to restore state from history
-  const handleRestoreState = useCallback((index) => {
-    const restoredState = restoreState(index);
-    if (restoredState) {
-      setUploadedFiles(restoredState.uploadedFiles || []);
-      setBulkData(restoredState.bulkData);
-      setBulkDataType(restoredState.bulkDataType || "");
-      setBulkDataUnit(restoredState.bulkDataUnit || "");
-      setBulkTimestampFormat(restoredState.bulkTimestampFormat || "");
-      setBulkTimeColumn(restoredState.bulkTimeColumn || "");
-      setBulkDataColumns(restoredState.bulkDataColumns || []);
-      setBulkXColumn(restoredState.bulkXColumn || "");
-      setBulkYColumn(restoredState.bulkYColumn || "");
-      setBulkZColumn(restoredState.bulkZColumn || "");
-      setBulkPreprocessParams(restoredState.bulkPreprocessParams || {
-        autocalib_sd_criter: 0.00013,
-        autocalib_sphere_crit: 0.02,
-        filter_type: "lowpass",
-        filter_cutoff: 2,
-        wear_sd_criter: 0.00013,
-        wear_range_crit: 0.00067,
-        wear_window_length: 45,
-        wear_window_skip: 7,
-        required_daily_coverage: 0.5,
-      });
-      setBulkFeatureParams(restoredState.bulkFeatureParams || {
-        sleep_rescore: true,
-        sleep_ck_sf: 0.0025,
-        pa_cutpoint_sl: 15,
-        pa_cutpoint_lm: 35,
-        pa_cutpoint_mv: 70,
-      });
-      setBulkCosinorAgeInputs(restoredState.bulkCosinorAgeInputs || []);
-      setEnableCosinorage(restoredState.enableCosinorage || false);
-    }
-  }, [
-    restoreState, setUploadedFiles, setBulkData, setBulkDataType, setBulkDataUnit,
-    setBulkTimestampFormat, setBulkTimeColumn, setBulkDataColumns, setBulkXColumn,
-    setBulkYColumn, setBulkZColumn, setBulkPreprocessParams, setBulkFeatureParams,
-    setBulkCosinorAgeInputs, setEnableCosinorage
-  ]);
 
   return (
     <>
@@ -859,7 +839,7 @@ const MultiIndividualTab = () => {
       <Grid item xs={12}>
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Upload Multiple CSV Files
+            Data Upload
           </Typography>
 
           {/* File Upload Area */}
@@ -1164,6 +1144,72 @@ const MultiIndividualTab = () => {
                   </FormControl>
                 </Grid>
               </Grid>
+              
+              {/* Timezone Configuration - Second Row */}
+              <Box sx={{ border: '2px dashed #0034f0', bgcolor: '#0034f0' + '10', borderRadius: 2, p: 2, mt: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, color: '#0034f0' }}>
+                  Timezone (Optional)
+                </Typography>
+                <Grid container spacing={2}>
+                  {/* Continent Selection */}
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Timezone Continent</InputLabel>
+                      <Select
+                        value={timezoneContinent}
+                        onChange={(e) => handleTimezoneContinentChange(e.target.value)}
+                        label="Timezone Continent"
+                        disabled={!bulkDataType || !bulkDataUnit || !bulkTimestampFormat}
+                      >
+                        <MenuItem value="">Select Continent</MenuItem>
+                        {Object.keys(timezones)
+                          .filter(continent => {
+                            const validContinents = ['Africa', 'Antarctica', 'Asia', 'Europe', 'America', 'Australia'];
+                            return validContinents.includes(continent) && timezones[continent] && timezones[continent].length > 0;
+                          })
+                          .map((continent) => (
+                            <MenuItem key={continent} value={continent}>
+                              {continent}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                      <FormHelperText>
+                        {bulkDataUnit && bulkTimestampFormat ? "Select the continent for your timezone (optional)" : "Please select data unit and timestamp format first"}
+                      </FormHelperText>
+                    </FormControl>
+                  </Grid>
+                  {/* City Selection */}
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Timezone City</InputLabel>
+                      <Select
+                        value={timezoneCity}
+                        onChange={(e) => handleTimezoneCityChange(e.target.value)}
+                        label="Timezone City"
+                        disabled={!timezoneContinent}
+                      >
+                        <MenuItem value="">Select City</MenuItem>
+                        {timezoneContinent && timezones[timezoneContinent]?.map((tz) => {
+                          const parts = tz.split('/');
+                          // Only show timezones with exactly 2 parts (continent/city)
+                          if (parts.length === 2) {
+                            const city = parts[1];
+                            return (
+                              <MenuItem key={tz} value={tz}>
+                                {city.replace(/_/g, ' ')}
+                              </MenuItem>
+                            );
+                          }
+                          return null;
+                        }).filter(Boolean)}
+                      </Select>
+                      <FormHelperText>
+                        Select the city for your timezone (optional, default: UTC)
+                      </FormHelperText>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              </Box>
             </Box>
           )}
 
@@ -1915,15 +1961,7 @@ const MultiIndividualTab = () => {
                 >
                   Reset All
                 </Button>
-                <HistoryButton
-                  history={history}
-                  currentIndex={currentIndex}
-                  onRestore={handleRestoreState}
-                  onRemoveItem={removeHistoryItem}
-                  onClearHistory={clearHistory}
-                  hasHistory={hasHistory}
-                  disabled={bulkProcessing}
-                />
+
               </Box>
             )}
         </Paper>

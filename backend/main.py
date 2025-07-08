@@ -16,6 +16,7 @@ from cosinorage.features.bulk_features import BulkWearableFeatures
 from pydantic import BaseModel
 import pandas as pd
 import numpy as np
+import pytz
 try:
     from docs_service import setup_docs_routes
 except ImportError:
@@ -369,6 +370,7 @@ class ProcessRequest(BaseModel):
         'pa_cutpoint_lm': 35,
         'pa_cutpoint_mv': 70,
     }
+    time_zone: Optional[str] = None
 
 
 @app.post("/process/{file_id}")
@@ -470,12 +472,22 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
                 logger.info(
                     f"Processing alternative counts data with column: {data_columns[0]}")
 
+            # Get timezone from request first, then from file data, default to UTC
+            time_zone = request.time_zone or file_data.get("time_zone", "UTC")
+            logger.info(f"Using timezone for file {file_id}: {time_zone}")
+            logger.info(f"Request timezone: {request.time_zone}")
+            logger.info(f"Stored timezone: {file_data.get('time_zone', 'NOT_SET')}")
+            logger.info(f"File data keys: {list(file_data.keys())}")
+            logger.info(f"File data time_zone field: {file_data.get('time_zone', 'NOT_SET')}")
+            logger.info(f"Full file_data content: {file_data}")
+            
             handler = GenericDataHandler(
                 file_path=file_data["file_path"],
                 data_format="csv",
                 data_type=data_type,
                 time_format=time_format,
                 time_column=time_column,
+                time_zone=time_zone,
                 data_columns=data_columns,
                 preprocess_args=request.preprocess_args,
                 verbose=True
@@ -638,6 +650,38 @@ async def health_check():
     return {"status": "healthy"}
 
 
+@app.get("/timezones")
+async def get_timezones():
+    """
+    Get all available timezones organized by continent
+    """
+    try:
+        # Get all timezones from pytz
+        all_timezones = pytz.all_timezones
+        
+        # Organize timezones by continent
+        timezones_by_continent = {}
+        for tz in all_timezones:
+            continent = tz.split('/')[0]
+            if continent not in timezones_by_continent:
+                timezones_by_continent[continent] = []
+            timezones_by_continent[continent].append(tz)
+        
+        # Sort continents and timezones within each continent
+        sorted_continents = sorted(timezones_by_continent.keys())
+        for continent in sorted_continents:
+            timezones_by_continent[continent].sort()
+        
+        return {
+            "timezones": timezones_by_continent,
+            "continents": sorted_continents,
+            "default": "UTC"
+        }
+    except Exception as e:
+        logger.error(f"Error getting timezones: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.on_event("shutdown")
 async def cleanup():
     """
@@ -666,6 +710,7 @@ class ColumnSelectionRequest(BaseModel):
     data_type: Optional[str] = None
     data_unit: Optional[str] = None
     time_format: Optional[str] = None
+    time_zone: Optional[str] = None
 
 
 class AgePredictionRequest(BaseModel):
@@ -695,9 +740,13 @@ async def update_column_selections(file_id: str, request: ColumnSelectionRequest
             file_info["data_unit"] = request.data_unit
         if request.time_format is not None:
             file_info["time_format"] = request.time_format
+        if request.time_zone is not None:
+            file_info["time_zone"] = request.time_zone
+            logger.info(f"Updated timezone for file {file_id}: {request.time_zone}")
 
         logger.info(
-            f"Updated column selections for file {file_id}: time_column={request.time_column}, data_columns={request.data_columns}, data_type={request.data_type}, data_unit={request.data_unit}, time_format={request.time_format}")
+            f"Updated column selections for file {file_id}: time_column={request.time_column}, data_columns={request.data_columns}, data_type={request.data_type}, data_unit={request.data_unit}, time_format={request.time_format}, time_zone={request.time_zone}")
+        logger.info(f"File data after update: {uploaded_data[file_id]}")
 
         return {
             "message": "Column selections updated successfully",
@@ -705,7 +754,8 @@ async def update_column_selections(file_id: str, request: ColumnSelectionRequest
             "data_columns": request.data_columns,
             "data_type": request.data_type,
             "data_unit": request.data_unit,
-            "time_format": request.time_format
+            "time_format": request.time_format,
+            "time_zone": request.time_zone
         }
 
     except HTTPException:
@@ -897,7 +947,9 @@ async def get_docs_content(page_path: str = ""):
     Get documentation content for a specific page
     """
     try:
-        return docs_service.get_page_content(page_path)
+        # Import the function here to avoid circular imports
+        from docs_service import fetch_documentation
+        return {"content": fetch_documentation(page_path)}
     except Exception as e:
         logger.error(f"Error fetching docs content: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -909,7 +961,14 @@ async def get_docs_sitemap():
     Get the sitemap of all documentation pages
     """
     try:
-        return {"pages": docs_service.get_sitemap()}
+        # Return available documentation modules
+        return {
+            "pages": [
+                {"name": "dataloaders", "title": "Data Handlers"},
+                {"name": "features", "title": "Feature Extraction"},
+                {"name": "bioages", "title": "Biological Age Prediction"}
+            ]
+        }
     except Exception as e:
         logger.error(f"Error fetching docs sitemap: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1154,6 +1213,11 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
         if request.enable_cosinorage:
             logger.info(f"Number of cosinorage age inputs: {len(request.cosinor_age_inputs)}")
             logger.info(f"Cosinorage age inputs: {request.cosinor_age_inputs}")
+        
+        # Log file configurations to debug timezone issue
+        for i, file_config in enumerate(request.files):
+            logger.info(f"File {i} config: {file_config}")
+            logger.info(f"File {i} timezone: {file_config.get('time_zone', 'NOT_SET')}")
 
         # Validate that all files have the same column structure
         file_ids = [file_config["file_id"] for file_config in request.files]
@@ -1279,6 +1343,18 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                 f"Using inferred columns for file {file_id}: time_column={time_column}, data_columns={data_columns}, timestamp_format={timestamp_format}")
 
             try:
+                # Get timezone from stored file data first, then from file config, default to UTC
+                stored_time_zone = file_data.get("time_zone")
+                config_time_zone = file_config.get("time_zone")
+                time_zone = stored_time_zone or config_time_zone or "UTC"
+                logger.info(f"Using timezone for file {file_id}: {time_zone}")
+                logger.info(f"Stored timezone: {stored_time_zone}")
+                logger.info(f"Config timezone: {config_time_zone}")
+                logger.info(f"File data keys: {list(file_data.keys())}")
+                logger.info(f"File config keys: {list(file_config.keys())}")
+                logger.info(f"File data time_zone field: {file_data.get('time_zone', 'NOT_SET')}")
+                logger.info(f"File config time_zone field: {file_config.get('time_zone', 'NOT_SET')}")
+                
                 # Create GenericDataHandler for each file
                 handler = GenericDataHandler(
                     file_path=file_data["file_path"],
@@ -1286,6 +1362,7 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                     data_type=data_type,
                     time_format=timestamp_format,
                     time_column=time_column,
+                    time_zone=time_zone,
                     data_columns=data_columns,
                     preprocess_args=request.preprocess_args,
                     verbose=True

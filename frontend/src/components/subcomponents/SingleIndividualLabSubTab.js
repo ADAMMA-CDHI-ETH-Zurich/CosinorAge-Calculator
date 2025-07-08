@@ -8,8 +8,6 @@ import {
 import { getFirstDate, getDateForIndex } from "../../utils/dateUtils";
 import HorizontalScale from "../common/HorizontalScale";
 import SectionInfoButton from "../common/SectionInfoButton";
-import HistoryButton from "../common/HistoryButton";
-import { useHistory } from "../../hooks/useHistory";
 import { CLColors } from "../../plotTheme";
 import {
   Box,
@@ -91,6 +89,7 @@ import SGSBinaryZippedExample from "../../assets/SGS_Binary_Zipped_Example.png";
 import SGSCSVExample from "../../assets/SGS_CSV_Example.png";
 import config from "../../config";
 import InfoIcon from "@mui/icons-material/Info";
+import { fetchTimezones, filterTimezonesByContinent, searchTimezones } from "../../utils/timezoneUtils";
 
 // Single Individual Lab Sub Tab Component
 const SingleIndividualLabSubTab = ({
@@ -157,18 +156,31 @@ const SingleIndividualLabSubTab = ({
   setSelectedDataColumns,
   columnSelectionComplete,
   setColumnSelectionComplete,
+  timezone,
+  setTimezone,
+  timezoneContinent,
+  setTimezoneContinent,
+  timezoneCity,
+  setTimezoneCity,
   handleReset,
 }) => {
-  // History management
-  const {
-    history,
-    currentIndex,
-    saveState,
-    restoreState,
-    clearHistory,
-    removeHistoryItem,
-    hasHistory
-  } = useHistory('single');
+  // Timezone state
+  const [timezones, setTimezones] = useState({});
+  const [timezoneSearchResults, setTimezoneSearchResults] = useState([]);
+  const [timezoneSearchOpen, setTimezoneSearchOpen] = useState(false);
+
+  // Load timezones on component mount
+  useEffect(() => {
+    const loadTimezones = async () => {
+      try {
+        const timezoneData = await fetchTimezones();
+        setTimezones(timezoneData.timezones);
+      } catch (error) {
+        console.error("Failed to load timezones:", error);
+      }
+    };
+    loadTimezones();
+  }, []);
 
   // Function to start the timer
   const startTimer = () => {
@@ -303,6 +315,10 @@ const SingleIndividualLabSubTab = ({
         throw new Error("Please select a data unit");
       }
 
+      if (!timezone) {
+        throw new Error("Please select a timezone");
+      }
+
       if (
         fileType === "csv" &&
         (!selectedTimeColumn || selectedDataColumns.length === 0)
@@ -344,7 +360,10 @@ const SingleIndividualLabSubTab = ({
         time_format: fileType === "csv" ? timestampFormat : genericTimeFormat,
         data_unit: dataUnit,
         data_type: data_type,
+        time_zone: timezone,
       };
+
+      console.log("Sending timezone to backend:", timezone);
 
       console.log("=== Final Request Body ===");
       console.log("time_format:", requestBody.time_format);
@@ -540,6 +559,7 @@ const SingleIndividualLabSubTab = ({
       const extractResult = await extractResponse.json();
 
       // Then process the data with parameters
+      console.log("Sending timezone in process request:", timezone);
       const processResponse = await fetch(
         config.getApiUrl(`process/${data.file_id}`),
         {
@@ -550,6 +570,7 @@ const SingleIndividualLabSubTab = ({
           body: JSON.stringify({
             preprocess_args: preprocessParams,
             features_args: featureParams,
+            time_zone: timezone,
           }),
         }
       );
@@ -575,9 +596,6 @@ const SingleIndividualLabSubTab = ({
         extracted: true,
         processed: true, // Add a flag to indicate processing is complete
       }));
-
-      // Save current state to history after successful processing
-      setTimeout(() => saveCurrentState(), 100);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -614,9 +632,6 @@ const SingleIndividualLabSubTab = ({
 
       const result = await response.json();
       setPredictedAge(result.predicted_age);
-      
-      // Save current state to history after successful age prediction
-      setTimeout(() => saveCurrentState(), 100);
     } catch (err) {
       setError(err.message);
     }
@@ -722,69 +737,30 @@ const SingleIndividualLabSubTab = ({
     }));
   };
 
-  // Function to save current state to history
-  const saveCurrentState = useCallback(() => {
-    const currentState = {
-      data,
-      dataSource,
-      predictedAge,
-      chronologicalAge,
-      gender,
-      preprocessParams,
-      featureParams,
-      fileType,
-      dataType,
-      dataUnit,
-      timestampFormat,
-      isGeneric,
-      genericDataType,
-      genericTimeFormat,
-      genericTimeColumn,
-      genericDataColumns,
-      csvColumns,
-      selectedTimeColumn,
-      selectedDataColumns
-    };
-    saveState(currentState);
-  }, [
-    data, dataSource, predictedAge, chronologicalAge, gender,
-    preprocessParams, featureParams, fileType, dataType, dataUnit,
-    timestampFormat, isGeneric, genericDataType, genericTimeFormat,
-    genericTimeColumn, genericDataColumns, csvColumns,
-    selectedTimeColumn, selectedDataColumns, saveState
-  ]);
+  // Timezone handling functions
+  const handleTimezoneContinentChange = (continent) => {
+    setTimezoneContinent(continent);
+    setTimezoneCity("");
+    setTimezone("UTC"); // Reset to UTC when continent changes
+  };
 
-  // Function to restore state from history
-  const handleRestoreState = useCallback((index) => {
-    const restoredState = restoreState(index);
-    if (restoredState) {
-      setData(restoredState.data);
-      setDataSource(restoredState.dataSource);
-      setPredictedAge(restoredState.predictedAge);
-      setChronologicalAge(restoredState.chronologicalAge);
-      setGender(restoredState.gender);
-      setPreprocessParams(restoredState.preprocessParams);
-      setFeatureParams(restoredState.featureParams);
-      setFileType(restoredState.fileType);
-      setDataType(restoredState.dataType);
-      setDataUnit(restoredState.dataUnit);
-      setTimestampFormat(restoredState.timestampFormat);
-      setIsGeneric(restoredState.isGeneric);
-      setGenericDataType(restoredState.genericDataType);
-      setGenericTimeFormat(restoredState.genericTimeFormat);
-      setGenericTimeColumn(restoredState.genericTimeColumn);
-      setGenericDataColumns(restoredState.genericDataColumns);
-      setCsvColumns(restoredState.csvColumns);
-      setSelectedTimeColumn(restoredState.selectedTimeColumn);
-      setSelectedDataColumns(restoredState.selectedDataColumns);
+  const handleTimezoneCityChange = (city) => {
+    setTimezoneCity(city);
+    setTimezone(city);
+    console.log("Timezone selected:", city);
+  };
+
+  const handleTimezoneSearch = (searchTerm) => {
+    if (searchTerm.length < 2) {
+      setTimezoneSearchResults([]);
+      setTimezoneSearchOpen(false);
+      return;
     }
-  }, [
-    restoreState, setData, setDataSource, setPredictedAge, setChronologicalAge,
-    setGender, setPreprocessParams, setFeatureParams, setFileType, setDataType,
-    setDataUnit, setTimestampFormat, setIsGeneric, setGenericDataType,
-    setGenericTimeFormat, setGenericTimeColumn, setGenericDataColumns,
-    setCsvColumns, setSelectedTimeColumn, setSelectedDataColumns
-  ]);
+    
+    const results = searchTimezones(timezones, searchTerm);
+    setTimezoneSearchResults(results);
+    setTimezoneSearchOpen(true);
+  };
 
   return (
     <>
@@ -1515,6 +1491,7 @@ const SingleIndividualLabSubTab = ({
                                 }}
                                 label="Data Unit"
                                 displayEmpty
+                                disabled={!timestampFormat}
                               >
                                 <MenuItem value="g">g</MenuItem>
                                 <MenuItem value="mg">mg</MenuItem>
@@ -1530,6 +1507,7 @@ const SingleIndividualLabSubTab = ({
                                 }}
                                 label="Data Unit"
                                 displayEmpty
+                                disabled={!timestampFormat}
                               >
                                 <MenuItem value="g">g</MenuItem>
                                 <MenuItem value="mg">mg</MenuItem>
@@ -1544,6 +1522,7 @@ const SingleIndividualLabSubTab = ({
                                 }}
                                 label="Data Unit"
                                 displayEmpty
+                                disabled={!timestampFormat}
                               >
                                 <MenuItem value="">No unit required</MenuItem>
                               </Select>
@@ -1561,22 +1540,89 @@ const SingleIndividualLabSubTab = ({
                                 }}
                                 label="Data Unit"
                                 displayEmpty
+                                disabled={!timestampFormat}
                               >
                                 <MenuItem value="">No unit required</MenuItem>
                               </Select>
                             )}
                             <FormHelperText>
-                              Select the unit of your data values
+                              {timestampFormat ? "Select the unit of your data values" : "Please select timestamp format first"}
                             </FormHelperText>
                           </FormControl>
                         </Grid>
                       </Grid>
+                      
+                      {/* Timezone Configuration - Second Row */}
+                      <Box sx={{ border: '2px dashed #0034f0', bgcolor: '#0034f0' + '10', borderRadius: 2, p: 2, mt: 2 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1, color: '#0034f0' }}>
+                          Timezone (Optional)
+                        </Typography>
+                        <Grid container spacing={2}>
+                          {/* Continent Selection */}
+                          <Grid item xs={12} md={6}>
+                            <FormControl fullWidth>
+                              <InputLabel>Timezone Continent</InputLabel>
+                              <Select
+                                value={timezoneContinent}
+                                onChange={(e) => handleTimezoneContinentChange(e.target.value)}
+                                label="Timezone Continent"
+                                disabled={!dataUnit}
+                              >
+                                <MenuItem value="">Select Continent</MenuItem>
+                                {Object.keys(timezones)
+                                  .filter(continent => {
+                                    const validContinents = ['Africa', 'Antarctica', 'Asia', 'Europe', 'America', 'Australia'];
+                                    return validContinents.includes(continent) && timezones[continent] && timezones[continent].length > 0;
+                                  })
+                                  .map((continent) => (
+                                    <MenuItem key={continent} value={continent}>
+                                      {continent}
+                                    </MenuItem>
+                                  ))}
+                              </Select>
+                              <FormHelperText>
+                                {dataUnit ? "Select the continent for your timezone (optional)" : "Please select data unit first"}
+                              </FormHelperText>
+                            </FormControl>
+                          </Grid>
+                          {/* City Selection */}
+                          <Grid item xs={12} md={6}>
+                            <FormControl fullWidth>
+                              <InputLabel>Timezone City</InputLabel>
+                              <Select
+                                value={timezoneCity}
+                                onChange={(e) => handleTimezoneCityChange(e.target.value)}
+                                label="Timezone City"
+                                disabled={!timezoneContinent}
+                              >
+                                <MenuItem value="">Select City</MenuItem>
+                                {timezoneContinent && timezones[timezoneContinent]?.map((tz) => {
+                                  const parts = tz.split('/');
+                                  // Only show timezones with exactly 2 parts (continent/city)
+                                  if (parts.length === 2) {
+                                    const city = parts[1];
+                                    return (
+                                      <MenuItem key={tz} value={tz}>
+                                        {city.replace(/_/g, ' ')}
+                                      </MenuItem>
+                                    );
+                                  }
+                                  return null;
+                                }).filter(Boolean)}
+                              </Select>
+                              <FormHelperText>
+                                Select the city for your timezone (optional, default: UTC)
+                              </FormHelperText>
+                            </FormControl>
+                          </Grid>
+                        </Grid>
+                      </Box>
                     </Box>
                   </>
                 )}
 
                 {/* Column Selection - Only show after Data Configuration is complete and only for CSV files */}
-                {timestampFormat && dataUnit && fileType === "csv" && (
+                {timestampFormat && dataUnit && timezone && fileType === "csv" && (
                   <>
                     {/* Column Selection */}
                     <Box sx={{ mt: 3 }}>
@@ -1738,6 +1784,7 @@ const SingleIndividualLabSubTab = ({
                 {/* Binary File Configuration Complete Button - Only for binary files */}
                 {timestampFormat &&
                   dataUnit &&
+                  timezone &&
                   fileType === "binary" &&
                   !columnSelectionComplete && (
                     <Box sx={{ mt: 3, textAlign: "center" }}>
@@ -2291,15 +2338,6 @@ const SingleIndividualLabSubTab = ({
                       >
                         Reset All
                       </Button>
-                      <HistoryButton
-                        history={history}
-                        currentIndex={currentIndex}
-                        onRestore={handleRestoreState}
-                        onRemoveItem={removeHistoryItem}
-                        onClearHistory={clearHistory}
-                        hasHistory={hasHistory}
-                        disabled={processing}
-                      />
                     </Box>
                   </Grid>
                 )}

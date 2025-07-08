@@ -107,6 +107,11 @@ function App() {
   const [selectedDataColumns, setSelectedDataColumns] = useState([]);
   const [columnSelectionComplete, setColumnSelectionComplete] = useState(false);
 
+  // Timezone state
+  const [timezone, setTimezone] = useState("UTC");
+  const [timezoneContinent, setTimezoneContinent] = useState("");
+  const [timezoneCity, setTimezoneCity] = useState("");
+
   // Update dataType when fileType changes
   useEffect(() => {
     if (fileType === "binary") {
@@ -840,6 +845,12 @@ function App() {
               setSelectedDataColumns={setSelectedDataColumns}
               columnSelectionComplete={columnSelectionComplete}
               setColumnSelectionComplete={setColumnSelectionComplete}
+              timezone={timezone}
+              setTimezone={setTimezone}
+              timezoneContinent={timezoneContinent}
+              setTimezoneContinent={setTimezoneContinent}
+              timezoneCity={timezoneCity}
+              setTimezoneCity={setTimezoneCity}
               handleFileUpload={handleFileUploadWithParams}
               handleDrag={handleDragWithParams}
               handleDrop={handleDropWithParams}

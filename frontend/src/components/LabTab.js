@@ -67,6 +67,12 @@ const LabTab = ({
   setSelectedDataColumns,
   columnSelectionComplete,
   setColumnSelectionComplete,
+  timezone,
+  setTimezone,
+  timezoneContinent,
+  setTimezoneContinent,
+  timezoneCity,
+  setTimezoneCity,
   handleReset,
 }) => {
   const [labSubTab, setLabSubTab] = useState(() => {
@@ -190,12 +196,27 @@ const LabTab = ({
             setSelectedDataColumns={setSelectedDataColumns}
             columnSelectionComplete={columnSelectionComplete}
             setColumnSelectionComplete={setColumnSelectionComplete}
+            timezone={timezone}
+            setTimezone={setTimezone}
+            timezoneContinent={timezoneContinent}
+            setTimezoneContinent={setTimezoneContinent}
+            timezoneCity={timezoneCity}
+            setTimezoneCity={setTimezoneCity}
             handleReset={handleReset}
           />
         )}
 
         {/* Multi Individual Tab Content */}
-        {labSubTab === "multi" && <MultiIndividualTab />}
+        {labSubTab === "multi" && (
+          <MultiIndividualTab
+            timezone={timezone}
+            setTimezone={setTimezone}
+            timezoneContinent={timezoneContinent}
+            setTimezoneContinent={setTimezoneContinent}
+            timezoneCity={timezoneCity}
+            setTimezoneCity={setTimezoneCity}
+          />
+        )}
       </Grid>
     </>
   );
