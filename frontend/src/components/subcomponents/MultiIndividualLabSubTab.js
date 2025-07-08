@@ -1149,7 +1149,7 @@ const MultiIndividualTab = ({
               {(bulkTimestampFormat === "unix-s" || bulkTimestampFormat === "unix-ms") && (
                 <Box sx={{ border: '2px dashed #0034f0', bgcolor: '#0034f0' + '10', borderRadius: 2, p: 2, mt: 2 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, color: '#0034f0' }}>
-                    Timezone (Required for Unix timestamps)
+                    Timezone (Optional for Unix timestamps)
                   </Typography>
                 <Grid container spacing={2}>
                   {/* Continent Selection */}
