@@ -10,6 +10,9 @@ import {
   Button,
   Alert,
   Chip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import TimelineIcon from "@mui/icons-material/Timeline";
@@ -17,6 +20,8 @@ import ShowChartIcon from "@mui/icons-material/ShowChart";
 import ScienceIcon from "@mui/icons-material/Science";
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import PsychologyIcon from "@mui/icons-material/Psychology";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import demoVideo from "../assets/demo_video.mp4";
 
 const HomeTab = ({ setCurrentTab }) => {
   return (
@@ -101,7 +106,15 @@ const HomeTab = ({ setCurrentTab }) => {
                   >
                     <AccessTimeIcon sx={{ fontSize: 30, color: "white" }} />
                   </Box>
-                  <CardContent sx={{ pt: 6, textAlign: "center" }}>
+                  <CardContent
+                    sx={{
+                      pt: 6,
+                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      flex: 1,
+                    }}
+                  >
                     <Typography variant="h5" gutterBottom>
                       CosinorAge: Novel Aging Biomarker
                     </Typography>
@@ -111,18 +124,16 @@ const HomeTab = ({ setCurrentTab }) => {
                       paragraph
                     >
                       Our <strong>CosinorAge</strong> algorithm analyzes
-                      circadian rhythm patterns from accelerometer data to
-                      predict biological age - a novel approach to aging
-                      assessment.
+                      circadian rhythm patterns to predict biological age from
+                      accelerometer data.
                     </Typography>
                     <Typography
                       variant="body2"
                       color="text.secondary"
-                      sx={{ mb: 2 }}
+                      sx={{ mb: 2, flex: 1 }}
                     >
-                      This innovative biomarker provides objective, non-invasive
-                      insights into biological aging through sophisticated
-                      cosinor analysis of daily activity patterns.
+                      Provides objective, non-invasive insights into biological
+                      aging through sophisticated cosinor analysis.
                     </Typography>
                     <Chip
                       label="Novel Biomarker"
@@ -167,7 +178,15 @@ const HomeTab = ({ setCurrentTab }) => {
                   >
                     <TimelineIcon sx={{ fontSize: 30, color: "white" }} />
                   </Box>
-                  <CardContent sx={{ pt: 6, textAlign: "center" }}>
+                  <CardContent
+                    sx={{
+                      pt: 6,
+                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      flex: 1,
+                    }}
+                  >
                     <Typography variant="h5" gutterBottom>
                       Advanced Data Processing
                     </Typography>
@@ -177,18 +196,16 @@ const HomeTab = ({ setCurrentTab }) => {
                       paragraph
                     >
                       Transform raw accelerometer data into meaningful health
-                      metrics using state-of-the-art preprocessing and feature
-                      extraction techniques for comprehensive analysis.
+                      metrics using state-of-the-art preprocessing techniques.
                     </Typography>
                     <Typography
                       variant="body2"
                       color="text.secondary"
-                      sx={{ mb: 2 }}
+                      sx={{ mb: 2, flex: 1 }}
                     >
-                      Our pipeline handles data cleaning, noise reduction, and
-                      feature calculation for sleep, activity, and circadian
-                      rhythm analysis, ensuring reliable and reproducible
-                      results.
+                      Handles data cleaning, noise reduction, and feature
+                      calculation for sleep, activity, and circadian rhythm
+                      analysis.
                     </Typography>
                     <Chip
                       label="Research-Grade Processing"
@@ -233,7 +250,15 @@ const HomeTab = ({ setCurrentTab }) => {
                   >
                     <ShowChartIcon sx={{ fontSize: 30, color: "white" }} />
                   </Box>
-                  <CardContent sx={{ pt: 6, textAlign: "center" }}>
+                  <CardContent
+                    sx={{
+                      pt: 6,
+                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      flex: 1,
+                    }}
+                  >
                     <Typography variant="h5" gutterBottom>
                       Interactive Visualizations
                     </Typography>
@@ -242,18 +267,18 @@ const HomeTab = ({ setCurrentTab }) => {
                       color="text.secondary"
                       paragraph
                     >
-                      Explore your data through comprehensive, interactive
-                      visualizations that reveal patterns in circadian rhythms,
-                      activity levels, sleep patterns, and aging biomarkers.
+                      Explore your data through interactive visualizations that
+                      reveal patterns in circadian rhythms, activity levels, and
+                      aging biomarkers.
                     </Typography>
                     <Typography
                       variant="body2"
                       color="text.secondary"
-                      sx={{ mb: 2 }}
+                      sx={{ mb: 2, flex: 1 }}
                     >
-                      From cosinor analysis plots to sleep and activity charts,
-                      our visualizations help you understand comprehensive
-                      health patterns and biological aging trajectories.
+                      From cosinor analysis plots to sleep charts, our
+                      visualizations help you understand health patterns and
+                      biological aging trajectories.
                     </Typography>
                     <Chip
                       label="Biomarker Insights"
@@ -272,19 +297,7 @@ const HomeTab = ({ setCurrentTab }) => {
       {/* Enhanced Getting Started using Lab section */}
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Box
-            sx={{
-              mb: 2,
-              mt: 2,
-              p: 4,
-              bgcolor: "background.paper",
-              borderRadius: 3,
-              boxShadow: 2,
-              width: "100%",
-              border: "1px solid",
-              borderColor: "primary.light",
-            }}
-          >
+          <Paper elevation={3} sx={{ mb: 2, mt: 2, p: 4 }}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
               <ScienceIcon
                 sx={{ fontSize: 40, color: "primary.main", mr: 2 }}
@@ -298,105 +311,11 @@ const HomeTab = ({ setCurrentTab }) => {
                   Interactive Lab Analysis
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  Upload, process, and analyze your accelerometer data to
-                  calculate CosinorAge aging biomarkers
+                  Turn your smartwatch data into insight — process, analyze, and
+                  predict your CosinorAge biomarker.
                 </Typography>
               </Box>
             </Box>
-
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-              <Grid item xs={12} md={6}>
-                <Typography
-                  variant="h6"
-                  gutterBottom
-                  sx={{ color: "primary.main" }}
-                >
-                  What You Can Do:
-                </Typography>
-                <ul style={{ paddingLeft: "1.5rem", marginBottom: "1rem" }}>
-                  <li style={{ marginBottom: "0.5rem" }}>
-                    <Typography variant="body1">
-                      <strong>Calculate CosinorAge:</strong> Generate novel
-                      aging biomarkers from accelerometer data
-                    </Typography>
-                  </li>
-                  <li style={{ marginBottom: "0.5rem" }}>
-                    <Typography variant="body1">
-                      <strong>Upload Data:</strong> Support for Samsung Galaxy
-                      Smartwatch and generic CSV formats
-                    </Typography>
-                  </li>
-                  <li style={{ marginBottom: "0.5rem" }}>
-                    <Typography variant="body1">
-                      <strong>Process Data:</strong> Advanced preprocessing with
-                      customizable parameters
-                    </Typography>
-                  </li>
-                  <li style={{ marginBottom: "0.5rem" }}>
-                    <Typography variant="body1">
-                      <strong>Analyze Results:</strong> Comprehensive circadian
-                      rhythm and aging biomarker analysis
-                    </Typography>
-                  </li>
-                </ul>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography
-                  variant="h6"
-                  gutterBottom
-                  sx={{ color: "primary.main" }}
-                >
-                  Key Features:
-                </Typography>
-                <ul style={{ paddingLeft: "1.5rem", marginBottom: "1rem" }}>
-                  <li style={{ marginBottom: "0.5rem" }}>
-                    <Typography variant="body1">
-                      <strong>CosinorAge Biomarker:</strong> Novel aging
-                      assessment from circadian patterns
-                    </Typography>
-                  </li>
-                  <li style={{ marginBottom: "0.5rem" }}>
-                    <Typography variant="body1">
-                      <strong>Real-time Processing:</strong> See results as
-                      they're calculated
-                    </Typography>
-                  </li>
-                  <li style={{ marginBottom: "0.5rem" }}>
-                    <Typography variant="body1">
-                      <strong>Interactive Charts:</strong> Explore your data
-                      with zoom and hover features
-                    </Typography>
-                  </li>
-                  <li style={{ marginBottom: "0.5rem" }}>
-                    <Typography variant="body1">
-                      <strong>Batch Processing:</strong> Analyze multiple
-                      individuals simultaneously
-                    </Typography>
-                  </li>
-                </ul>
-              </Grid>
-            </Grid>
-
-            <Alert
-              sx={{
-                mb: 3,
-                bgcolor: "rgba(0, 52, 240, 0.08)",
-                border: "1px solid rgba(0, 52, 240, 0.2)",
-                "& .MuiAlert-icon": {
-                  color: "#0034f0",
-                },
-                "& .MuiAlert-message": {
-                  color: "#0034f0",
-                },
-              }}
-            >
-              <Typography variant="body2">
-                <strong>Getting Started:</strong> Click the button below to
-                access the interactive Lab. You can upload sample data to
-                explore the CosinorAge aging biomarker features, or use your own
-                accelerometer data for analysis.
-              </Typography>
-            </Alert>
 
             <Box
               sx={{
@@ -429,200 +348,233 @@ const HomeTab = ({ setCurrentTab }) => {
                 Launch Lab
               </Button>
             </Box>
-          </Box>
+            
+            {/* Demo Video */}
+            <Box
+              sx={{
+                mt: 4,
+                textAlign: "center",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <video
+                controls
+                autoPlay
+                muted
+                loop
+                width="100%"
+                maxWidth="800px"
+                style={{
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                  border: "3px solid #666666",
+                }}
+              >
+                <source src={demoVideo} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </Box>
+          </Paper>
         </Grid>
       </Grid>
 
       {/* Enhanced Getting Started Section for API */}
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Box
-            sx={{
-              mb: 2,
-              mt: 2,
-              p: 4,
-              bgcolor: "background.paper",
-              borderRadius: 3,
-              boxShadow: 2,
-              width: "100%",
-              border: "1px solid",
-              borderColor: "grey.300",
-            }}
-          >
-            <Box
+          <Paper elevation={3} sx={{ mb: 2, mt: 2 }}>
+            <Accordion
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                mb: 3,
+                width: "100%",
+                "&:before": {
+                  display: "none",
+                },
               }}
             >
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <HealthAndSafetyIcon
-                  sx={{ fontSize: 40, color: "primary.main", mr: 2 }}
-                />
-                <Box>
-                  <Typography
-                    variant="h4"
-                    gutterBottom
-                    sx={{ color: "primary.main", fontWeight: 700 }}
-                  >
-                    Programmatic Access
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    Integrate CosinorAge aging biomarker analysis into your
-                    research workflows and applications
-                  </Typography>
-                </Box>
-              </Box>
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <a
-                  href="https://github.com/ADAMMA-CDHI-ETH-Zurich/CosinorAge"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: "none" }}
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  p: 4,
+                  "& .MuiAccordionSummary-content": {
+                    margin: 0,
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    mb: 3,
+                  }}
                 >
-                  <img
-                    src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white"
-                    alt="GitHub Badge"
-                    style={{ height: 28, borderRadius: "16px" }}
-                  />
-                </a>
-                <a
-                  href="https://cosinorage-deployed.readthedocs.io/en/latest/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: "none" }}
-                >
-                  <img
-                    src="https://img.shields.io/badge/Read%20the%20Docs-8CA1AF?style=for-the-badge&logo=readthedocs&logoColor=white"
-                    alt="Read the Docs Badge"
-                    style={{ height: 28, borderRadius: "16px" }}
-                  />
-                </a>
-                <Box sx={{ position: "relative" }}>
-                  <div style={{ display: "inline-block" }}>
-                    <img
-                      src="https://img.shields.io/badge/PyPI-3775A9?style=for-the-badge&logo=pypi&logoColor=white"
-                      alt="PyPI Badge"
-                      style={{ height: 28, borderRadius: "16px" }}
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <HealthAndSafetyIcon
+                      sx={{ fontSize: 40, color: "primary.main", mr: 2 }}
                     />
-                  </div>
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: -8,
-                      right: -8,
-                      bgcolor: "warning.main",
-                      color: "white",
-                      px: 1,
-                      py: 0.5,
-                      borderRadius: 1,
-                      fontSize: "0.7rem",
-                      fontWeight: "bold",
-                      transform: "rotate(15deg)",
-                      zIndex: 1,
-                    }}
-                  >
-                    WIP
+                    <Box>
+                      <Typography
+                        variant="h4"
+                        gutterBottom
+                        sx={{ color: "primary.main", fontWeight: 700 }}
+                      >
+                        Programmatic Access
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary">
+                        Integrate CosinorAge aging biomarker analysis into your
+                        research workflows and applications
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <a
+                      href="https://github.com/ADAMMA-CDHI-ETH-Zurich/CosinorAge"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: "none" }}
+                    >
+                      <img
+                        src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white"
+                        alt="GitHub Badge"
+                        style={{ height: 28, borderRadius: "16px" }}
+                      />
+                    </a>
+                    <a
+                      href="https://cosinorage-deployed.readthedocs.io/en/latest/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: "none" }}
+                    >
+                      <img
+                        src="https://img.shields.io/badge/Read%20the%20Docs-8CA1AF?style=for-the-badge&logo=readthedocs&logoColor=white"
+                        alt="Read the Docs Badge"
+                        style={{ height: 28, borderRadius: "16px" }}
+                      />
+                    </a>
+                    <Box sx={{ position: "relative" }}>
+                      <div style={{ display: "inline-block" }}>
+                        <img
+                          src="https://img.shields.io/badge/PyPI-3775A9?style=for-the-badge&logo=pypi&logoColor=white"
+                          alt="PyPI Badge"
+                          style={{ height: 28, borderRadius: "16px" }}
+                        />
+                      </div>
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: -8,
+                          right: -8,
+                          bgcolor: "warning.main",
+                          color: "white",
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                          fontSize: "0.7rem",
+                          fontWeight: "bold",
+                          transform: "rotate(15deg)",
+                          zIndex: 1,
+                        }}
+                      >
+                        WIP
+                      </Box>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
-            </Box>
-
-            <Typography
-              variant="body1"
-              paragraph
-              sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
-            >
-              For researchers and developers who need programmatic access to our
-              aging biomarker analysis tools, CosinorLab provides a
-              comprehensive Python API. This allows you to integrate our
-              CosinorAge aging biomarker calculation, circadian rhythm analysis,
-              and activity classification into your own research pipelines and
-              applications.
-            </Typography>
-
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ mt: 4, mb: 2, color: "primary.main" }}
-            >
-              Prerequisites
-            </Typography>
-            <ul
-              style={{
-                textAlign: "left",
-                marginLeft: "1.5em",
-                color: "#4A5B7A",
-                marginBottom: "2rem",
-              }}
-            >
-              <li>Python &gt;= 3.10</li>
-              <li>pip (Python package installer)</li>
-              <li>git</li>
-            </ul>
-
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ mt: 4, mb: 2, color: "primary.main" }}
-            >
-              Installation Steps
-            </Typography>
-
-            <ol
-              style={{
-                textAlign: "left",
-                marginLeft: "1.5em",
-                color: "#4A5B7A",
-              }}
-            >
-              <li style={{ marginBottom: "1.5rem" }}>
-                <strong>Clone the Repository</strong>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 4, pb: 4 }}>
                 <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mt: 1, mb: 1 }}
+                  variant="body1"
+                  paragraph
+                  sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
                 >
-                  Get the latest version of the codebase from our GitHub
-                  repository.
+                  For researchers and developers who need programmatic access to
+                  our aging biomarker analysis tools, CosinorLab provides a
+                  comprehensive Python API. This allows you to integrate our
+                  CosinorAge aging biomarker calculation, circadian rhythm
+                  analysis, and activity classification into your own research
+                  pipelines and applications.
                 </Typography>
-                <pre
+
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ mt: 4, mb: 2, color: "primary.main" }}
+                >
+                  Prerequisites
+                </Typography>
+                <ul
                   style={{
-                    background: "#f5f5f5",
-                    padding: "10px",
-                    borderRadius: "6px",
-                    marginTop: "8px",
-                    overflowX: "auto",
-                    border: "1px solid #e0e0e0",
+                    textAlign: "left",
+                    marginLeft: "1.5em",
+                    color: "#4A5B7A",
+                    marginBottom: "2rem",
                   }}
                 >
-                  {`git clone https://github.com/yourusername/cosinorage.git
+                  <li>Python &gt;= 3.10</li>
+                  <li>pip (Python package installer)</li>
+                  <li>git</li>
+                </ul>
+
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ mt: 4, mb: 2, color: "primary.main" }}
+                >
+                  Installation Steps
+                </Typography>
+
+                <ol
+                  style={{
+                    textAlign: "left",
+                    marginLeft: "1.5em",
+                    color: "#4A5B7A",
+                  }}
+                >
+                  <li style={{ marginBottom: "1.5rem" }}>
+                    <strong>Clone the Repository</strong>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 1, mb: 1 }}
+                    >
+                      Get the latest version of the codebase from our GitHub
+                      repository.
+                    </Typography>
+                    <pre
+                      style={{
+                        background: "#f5f5f5",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        marginTop: "8px",
+                        overflowX: "auto",
+                        border: "1px solid #e0e0e0",
+                      }}
+                    >
+                      {`git clone https://github.com/yourusername/cosinorage.git
 cd cosinorage`}
-                </pre>
-              </li>
-              <li style={{ marginBottom: "1.5rem" }}>
-                <strong>Set Up Virtual Environment</strong>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mt: 1, mb: 1 }}
-                >
-                  Create an isolated Python environment to avoid dependency
-                  conflicts.
-                </Typography>
-                <pre
-                  style={{
-                    background: "#f5f5f5",
-                    padding: "10px",
-                    borderRadius: "6px",
-                    marginTop: "8px",
-                    overflowX: "auto",
-                    border: "1px solid #e0e0e0",
-                  }}
-                >
-                  {`# Create a new virtual environment
+                    </pre>
+                  </li>
+                  <li style={{ marginBottom: "1.5rem" }}>
+                    <strong>Set Up Virtual Environment</strong>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 1, mb: 1 }}
+                    >
+                      Create an isolated Python environment to avoid dependency
+                      conflicts.
+                    </Typography>
+                    <pre
+                      style={{
+                        background: "#f5f5f5",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        marginTop: "8px",
+                        overflowX: "auto",
+                        border: "1px solid #e0e0e0",
+                      }}
+                    >
+                      {`# Create a new virtual environment
 python -m venv venv
 
 # Activate the virtual environment
@@ -630,81 +582,83 @@ python -m venv venv
 venv\\Scripts\\activate
 # On macOS/Linux:
 source venv/bin/activate`}
-                </pre>
-              </li>
-              <li style={{ marginBottom: "1.5rem" }}>
-                <strong>Install Dependencies</strong>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mt: 1, mb: 1 }}
-                >
-                  Install all required packages and their dependencies.
-                </Typography>
-                <pre
-                  style={{
-                    background: "#f5f5f5",
-                    padding: "10px",
-                    borderRadius: "6px",
-                    marginTop: "8px",
-                    overflowX: "auto",
-                    border: "1px solid #e0e0e0",
-                  }}
-                >
-                  {`# Upgrade pip
+                    </pre>
+                  </li>
+                  <li style={{ marginBottom: "1.5rem" }}>
+                    <strong>Install Dependencies</strong>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 1, mb: 1 }}
+                    >
+                      Install all required packages and their dependencies.
+                    </Typography>
+                    <pre
+                      style={{
+                        background: "#f5f5f5",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        marginTop: "8px",
+                        overflowX: "auto",
+                        border: "1px solid #e0e0e0",
+                      }}
+                    >
+                      {`# Upgrade pip
 pip install --upgrade pip
 
 # Install required packages
 pip install -r requirements.txt`}
-                </pre>
-              </li>
-              <li style={{ marginBottom: "1.5rem" }}>
-                <strong>Install the Package</strong>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mt: 1, mb: 1 }}
-                >
-                  Install the package in development mode for easy updates and
-                  modifications.
-                </Typography>
-                <pre
-                  style={{
-                    background: "#f5f5f5",
-                    padding: "10px",
-                    borderRadius: "6px",
-                    marginTop: "8px",
-                    overflowX: "auto",
-                    border: "1px solid #e0e0e0",
+                    </pre>
+                  </li>
+                  <li style={{ marginBottom: "1.5rem" }}>
+                    <strong>Install the Package</strong>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 1, mb: 1 }}
+                    >
+                      Install the package in development mode for easy updates
+                      and modifications.
+                    </Typography>
+                    <pre
+                      style={{
+                        background: "#f5f5f5",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        marginTop: "8px",
+                        overflowX: "auto",
+                        border: "1px solid #e0e0e0",
+                      }}
+                    >
+                      {`# Install in development mode
+pip install -e .`}
+                    </pre>
+                  </li>
+                </ol>
+
+                <Alert
+                  sx={{
+                    mt: 3,
+                    bgcolor: "rgba(0, 52, 240, 0.08)",
+                    border: "1px solid rgba(0, 52, 240, 0.2)",
+                    "& .MuiAlert-icon": {
+                      color: "#0034f0",
+                    },
+                    "& .MuiAlert-message": {
+                      color: "#0034f0",
+                    },
                   }}
                 >
-                  {`# Install in development mode
-pip install -e .`}
-                </pre>
-              </li>
-            </ol>
-
-            <Alert
-              sx={{
-                mt: 3,
-                bgcolor: "rgba(0, 52, 240, 0.08)",
-                border: "1px solid rgba(0, 52, 240, 0.2)",
-                "& .MuiAlert-icon": {
-                  color: "#0034f0",
-                },
-                "& .MuiAlert-message": {
-                  color: "#0034f0",
-                },
-              }}
-            >
-              <Typography variant="body2">
-                <strong>Ready to Start:</strong> Once installation is complete,
-                you can begin using the API to analyze accelerometer data
-                programmatically. Check our documentation for detailed usage
-                examples.
-              </Typography>
-            </Alert>
-          </Box>
+                  <Typography variant="body2">
+                    <strong>Ready to Start:</strong> Once installation is
+                    complete, you can begin using the API to analyze
+                    accelerometer data programmatically. Check our documentation
+                    for detailed usage examples.
+                  </Typography>
+                </Alert>
+              </AccordionDetails>
+            </Accordion>
+          </Paper>
         </Grid>
       </Grid>
     </>

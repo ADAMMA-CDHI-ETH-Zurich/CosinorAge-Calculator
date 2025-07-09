@@ -254,9 +254,46 @@ const SingleIndividualLabSubTab = ({
                 col.toLowerCase().includes("timestamp")
             ) || result.columns[0]
           );
-          setSelectedDataColumns(
-            ["x", "y", "z"].filter((col) => result.columns.includes(col))
-          );
+          
+          // More flexible accelerometer column selection
+          const accelColumns = [];
+          const targetColumns = ["x", "y", "z"];
+          
+          // First try exact matches (case-insensitive)
+          for (const target of targetColumns) {
+            const exactMatch = result.columns.find(
+              col => col.toLowerCase() === target.toLowerCase()
+            );
+            if (exactMatch) {
+              accelColumns.push(exactMatch);
+            }
+          }
+          
+          // If we don't have all 3, try partial matches
+          if (accelColumns.length < 3) {
+            for (const target of targetColumns) {
+              if (!accelColumns.some(col => col.toLowerCase() === target.toLowerCase())) {
+                const partialMatch = result.columns.find(
+                  col => col.toLowerCase().includes(target.toLowerCase())
+                );
+                if (partialMatch && !accelColumns.includes(partialMatch)) {
+                  accelColumns.push(partialMatch);
+                }
+              }
+            }
+          }
+          
+          // If still don't have 3 columns, use first 3 non-time columns
+          if (accelColumns.length < 3) {
+            const nonTimeColumns = result.columns.filter(
+              col => !col.toLowerCase().includes("time") && !col.toLowerCase().includes("timestamp")
+            );
+            accelColumns.push(...nonTimeColumns.slice(0, 3 - accelColumns.length));
+          }
+          
+          console.log("Selected accelerometer columns:", accelColumns);
+          setSelectedDataColumns(accelColumns);
+          
         } else if (dataType === "enmo") {
           setSelectedTimeColumn(
             result.columns.find(
@@ -567,6 +604,45 @@ const SingleIndividualLabSubTab = ({
 
       // Then process the data with parameters
       console.log("Sending timezone in process request:", timezone);
+      
+      // Prepare the process request body
+      const processRequestBody = {
+        preprocess_args: preprocessParams,
+        features_args: featureParams,
+        time_zone: timezone,
+      };
+
+      // Add column information if column selection is complete
+      if (columnSelectionComplete) {
+        if (fileType === "csv") {
+          processRequestBody.time_column = selectedTimeColumn;
+          processRequestBody.data_columns = selectedDataColumns;
+        } else {
+          processRequestBody.time_column = genericTimeColumn;
+          processRequestBody.data_columns = genericDataColumns;
+        }
+        
+        // Add data type and format information
+        let data_type;
+        if (dataType === "alternative_count") {
+          data_type = "alternative_count";
+        } else if (dataType === "accelerometer" && dataUnit) {
+          data_type = `accelerometer-${dataUnit}`;
+        } else if (dataType === "enmo" && dataUnit) {
+          data_type = `enmo-${dataUnit}`;
+        } else if (dataType) {
+          data_type = dataType;
+        } else {
+          data_type = "unknown";
+        }
+        
+        processRequestBody.data_type = data_type;
+        processRequestBody.time_format = fileType === "csv" ? timestampFormat : genericTimeFormat;
+        processRequestBody.data_unit = dataUnit;
+      }
+
+      console.log("Process request body:", processRequestBody);
+      
       const processResponse = await fetch(
         config.getApiUrl(`process/${data.file_id}`),
         {
@@ -574,11 +650,7 @@ const SingleIndividualLabSubTab = ({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            preprocess_args: preprocessParams,
-            features_args: featureParams,
-            time_zone: timezone,
-          }),
+          body: JSON.stringify(processRequestBody),
         }
       );
 
@@ -1677,30 +1749,25 @@ const SingleIndividualLabSubTab = ({
                           {dataType === "accelerometer" ? (
                             <Box>
                               <Grid container spacing={2}>
-                                {["x", "y", "z"].map((axis) => (
+                                {["x", "y", "z"].map((axis, index) => (
                                   <Grid item xs={12} sm={4} key={axis}>
                                     <FormControl fullWidth>
                                       <InputLabel>
                                         {axis.toUpperCase()} Column
                                       </InputLabel>
                                       <Select
-                                        value={
-                                          selectedDataColumns.find((col) =>
-                                            col.toLowerCase().includes(axis)
-                                          ) || ""
-                                        }
+                                        value={selectedDataColumns[index] || ""}
                                         onChange={(e) => {
-                                          const newColumns =
-                                            selectedDataColumns.filter(
-                                              (col) =>
-                                                !col
-                                                  .toLowerCase()
-                                                  .includes(axis)
-                                            );
-                                          if (e.target.value) {
-                                            newColumns.push(e.target.value);
-                                          }
-                                          setSelectedDataColumns(newColumns);
+                                          const newColumns = [...selectedDataColumns];
+                                          newColumns[index] = e.target.value;
+                                          // Remove any empty values and duplicates
+                                          const filteredColumns = newColumns.filter(
+                                            (col, idx) => 
+                                              col && 
+                                              col !== "" && 
+                                              newColumns.indexOf(col) === idx
+                                          );
+                                          setSelectedDataColumns(filteredColumns);
                                         }}
                                         label={`${axis.toUpperCase()} Column`}
                                         MenuProps={{
@@ -4423,6 +4490,34 @@ const SingleIndividualLabSubTab = ({
             </>
           )}
         </>
+      )}
+
+      {/* Error Banner - Display at bottom */}
+      {error && (
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            p: 2,
+          }}
+        >
+          <Alert
+            severity="error"
+            onClose={() => setError(null)}
+            sx={{
+              maxWidth: "100%",
+              mx: "auto",
+              boxShadow: "0px -4px 10px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+              {error}
+            </Typography>
+          </Alert>
+        </Box>
       )}
     </>
   );

@@ -3168,7 +3168,7 @@ const MultiIndividualTab = ({
 
                   return (
                     <>
-                      <Grid container spacing={3}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                         {finalFeatureOrder.map((featureName) => {
                           const values = allFeatures[featureName];
 
@@ -3197,154 +3197,153 @@ const MultiIndividualTab = ({
                             return null;
 
                           return (
-                            <Grid item xs={12} md={6} key={featureName}>
-                              <Card variant="outlined" sx={{ p: 2 }}>
-                                <Typography variant="h6" gutterBottom>
-                                  {cleanFeatureName(featureName)}
-                                </Typography>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ mb: 2 }}
+                            <Card variant="outlined" sx={{ p: 2 }} key={featureName}>
+                              <Typography variant="h6" gutterBottom>
+                                {cleanFeatureName(featureName)}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mb: 2 }}
+                              >
+                                n = {values.length} | Mean ={" "}
+                                {values.length > 0
+                                  ? (
+                                      values.reduce((a, b) => a + b, 0) /
+                                      values.length
+                                    ).toFixed(4)
+                                  : "N/A"}{" "}
+                                | Std ={" "}
+                                {values.length > 0
+                                  ? Math.sqrt(
+                                      values.reduce(
+                                        (sq, n) =>
+                                          sq +
+                                          Math.pow(
+                                            n -
+                                              values.reduce(
+                                                (a, b) => a + b,
+                                                0
+                                              ) /
+                                                values.length,
+                                            2
+                                          ),
+                                        0
+                                      ) / values.length
+                                    ).toFixed(4)
+                                  : "N/A"}
+                              </Typography>
+                              <Box sx={{ width: "100%", height: 200 }}>
+                                <ResponsiveContainer
+                                  width="100%"
+                                  height="100%"
                                 >
-                                  n = {values.length} | Mean ={" "}
-                                  {values.length > 0
-                                    ? (
-                                        values.reduce((a, b) => a + b, 0) /
-                                        values.length
-                                      ).toFixed(4)
-                                    : "N/A"}{" "}
-                                  | Std ={" "}
-                                  {values.length > 0
-                                    ? Math.sqrt(
-                                        values.reduce(
-                                          (sq, n) =>
-                                            sq +
-                                            Math.pow(
-                                              n -
-                                                values.reduce(
-                                                  (a, b) => a + b,
-                                                  0
-                                                ) /
-                                                  values.length,
-                                              2
-                                            ),
-                                          0
-                                        ) / values.length
-                                      ).toFixed(4)
-                                    : "N/A"}
-                                </Typography>
-                                <Box sx={{ width: "100%", height: 200 }}>
-                                  <ResponsiveContainer
-                                    width="100%"
-                                    height="100%"
+                                  <ComposedChart
+                                    data={combinedData}
+                                    margin={{
+                                      top: 20,
+                                      right: 50,
+                                      left: 80,
+                                      bottom: 40,
+                                    }}
                                   >
-                                    <ComposedChart
-                                      data={combinedData}
-                                      margin={{
-                                        top: 20,
-                                        right: 50,
-                                        left: 80,
-                                        bottom: 40,
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis
+                                      dataKey="range"
+                                      angle={-45}
+                                      textAnchor="end"
+                                      height={60}
+                                      fontSize={10}
+                                    />
+                                    <YAxis
+                                      yAxisId="left"
+                                      orientation="left"
+                                      label={{
+                                        value: "Density",
+                                        angle: -90,
+                                        position: "insideLeft",
+                                        offset: -10,
+                                        style: { textAnchor: "middle" },
                                       }}
-                                    >
-                                      <CartesianGrid strokeDasharray="3 3" />
-                                      <XAxis
-                                        dataKey="range"
-                                        angle={-45}
-                                        textAnchor="end"
-                                        height={60}
-                                        fontSize={10}
-                                      />
-                                      <YAxis
-                                        yAxisId="left"
-                                        orientation="left"
-                                        label={{
-                                          value: "Density",
-                                          angle: -90,
-                                          position: "insideLeft",
-                                          offset: -10,
-                                          style: { textAnchor: "middle" },
-                                        }}
-                                      />
-                                      <YAxis
-                                        yAxisId="right"
-                                        orientation="right"
-                                        label={{
-                                          value: "Frequency",
-                                          angle: 90,
-                                          position: "insideRight",
-                                          offset: 5,
-                                          style: { textAnchor: "middle" },
-                                        }}
-                                      />
-                                      <RechartsTooltip
-                                        content={({
-                                          active,
-                                          payload,
-                                          label,
-                                        }) => {
-                                          if (
-                                            active &&
-                                            payload &&
-                                            payload.length
-                                          ) {
-                                            return (
-                                              <div
+                                    />
+                                    <YAxis
+                                      yAxisId="right"
+                                      orientation="right"
+                                      label={{
+                                        value: "Frequency",
+                                        angle: 90,
+                                        position: "insideRight",
+                                        offset: 5,
+                                        style: { textAnchor: "middle" },
+                                      }}
+                                    />
+                                    <RechartsTooltip
+                                      content={({
+                                        active,
+                                        payload,
+                                        label,
+                                      }) => {
+                                        if (
+                                          active &&
+                                          payload &&
+                                          payload.length
+                                        ) {
+                                          return (
+                                            <div
+                                              style={{
+                                                backgroundColor: "white",
+                                                padding: "10px",
+                                                border: "1px solid #ccc",
+                                                borderRadius: "4px",
+                                              }}
+                                            >
+                                              <p
                                                 style={{
-                                                  backgroundColor: "white",
-                                                  padding: "10px",
-                                                  border: "1px solid #ccc",
-                                                  borderRadius: "4px",
+                                                  margin: "0 0 5px 0",
                                                 }}
                                               >
-                                                <p
-                                                  style={{
-                                                    margin: "0 0 5px 0",
-                                                  }}
-                                                >
-                                                  Range: {label}
-                                                </p>
+                                                Range: {label}
+                                              </p>
+
+                                              <p style={{ margin: "0" }}>
+                                                Count: {payload[0].value}
+                                              </p>
+                                              {payload[1] && (
                                                 <p style={{ margin: "0" }}>
-                                                  Count: {payload[0].value}
+                                                  Density:{" "}
+                                                  {payload[1].value.toFixed(
+                                                    6
+                                                  )}
                                                 </p>
-                                                {payload[1] && (
-                                                  <p style={{ margin: "0" }}>
-                                                    Density:{" "}
-                                                    {payload[1].value.toFixed(
-                                                      6
-                                                    )}
-                                                  </p>
-                                                )}
-                                              </div>
-                                            );
-                                          }
-                                          return null;
-                                        }}
-                                      />
-                                      <Bar
-                                        yAxisId="right"
-                                        dataKey="count"
-                                        fill="#0034f0"
-                                        fillOpacity={0.7}
-                                      />
-                                      <Line
-                                        yAxisId="left"
-                                        type="monotone"
-                                        dataKey="density"
-                                        stroke="#0034f0"
-                                        strokeWidth={2}
-                                        dot={false}
-                                        connectNulls={false}
-                                      />
-                                    </ComposedChart>
-                                  </ResponsiveContainer>
-                                </Box>
-                              </Card>
-                            </Grid>
+                                              )}
+                                            </div>
+                                          );
+                                        }
+                                        return null;
+                                      }}
+                                    />
+                                    <Bar
+                                      yAxisId="right"
+                                      dataKey="count"
+                                      fill="#0034f0"
+                                      fillOpacity={0.7}
+                                    />
+                                    <Line
+                                      yAxisId="left"
+                                      type="monotone"
+                                      dataKey="density"
+                                      stroke="#0034f0"
+                                      strokeWidth={2}
+                                      dot={false}
+                                      connectNulls={false}
+                                    />
+                                  </ComposedChart>
+                                </ResponsiveContainer>
+                              </Box>
+                            </Card>
                           );
                         })}
-                      </Grid>
+                      </Box>
                     </>
                   );
                 })()}
@@ -3399,7 +3398,7 @@ const MultiIndividualTab = ({
             bulkData.individual_results &&
             bulkData.individual_results.length > 0 && (
               <Box>
-                <Grid container spacing={3}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {bulkData.individual_results.map((result, index) => {
                     // Access ENMO data from the backend response
                     const enmoData = result.enmo_timeseries;
@@ -3426,102 +3425,100 @@ const MultiIndividualTab = ({
                     }));
 
                     return (
-                      <Grid item xs={12} md={6} key={index}>
-                        <Card variant="outlined" sx={{ p: 2 }}>
-                          <Typography variant="h6" gutterBottom>
-                            {result.filename || `File ${index + 1}`}
-                          </Typography>
+                      <Card variant="outlined" sx={{ p: 2 }} key={index}>
+                        <Typography variant="h6" gutterBottom>
+                          {result.filename || `File ${index + 1}`}
+                        </Typography>
 
-                          <Box sx={{ width: "100%", height: 200 }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                              <LineChart
-                                data={plotData}
-                                margin={{
-                                  top: 20,
-                                  right: 30,
-                                  left: 40,
-                                  bottom: 40,
+                        <Box sx={{ width: "100%", height: 200 }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={plotData}
+                              margin={{
+                                top: 20,
+                                right: 30,
+                                left: 40,
+                                bottom: 40,
+                              }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis
+                                dataKey="timestamp"
+                                type="number"
+                                domain={["dataMin", "dataMax"]}
+                                tickFormatter={(timestamp) => {
+                                  const date = new Date(timestamp);
+                                  return date.toLocaleDateString();
                                 }}
-                              >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis
-                                  dataKey="timestamp"
-                                  type="number"
-                                  domain={["dataMin", "dataMax"]}
-                                  tickFormatter={(timestamp) => {
-                                    const date = new Date(timestamp);
-                                    return date.toLocaleDateString();
-                                  }}
-                                  ticks={(() => {
-                                    // Get unique dates for tick positions
-                                    const uniqueDates = [
-                                      ...new Set(
-                                        plotData.map((item) => {
-                                          const date = new Date(item.timestamp);
-                                          return new Date(
-                                            date.getFullYear(),
-                                            date.getMonth(),
-                                            date.getDate()
-                                          ).getTime();
-                                        })
-                                      ),
-                                    ];
-                                    return uniqueDates.sort((a, b) => a - b);
-                                  })()}
-                                  angle={-45}
-                                  textAnchor="end"
-                                  height={80}
-                                />
-                                <YAxis
-                                  label={{
-                                    value: "mg",
-                                    angle: -90,
-                                    position: "insideLeft",
-                                    offset: 20,
-                                  }}
-                                />
-                                <RechartsTooltip
-                                  content={({ active, payload, label }) => {
-                                    if (active && payload && payload.length) {
-                                      const date = new Date(label);
-                                      return (
-                                        <div
-                                          style={{
-                                            backgroundColor: "white",
-                                            padding: "10px",
-                                            border: "1px solid #ccc",
-                                            borderRadius: "4px",
-                                          }}
-                                        >
-                                          <p style={{ margin: "0 0 5px 0" }}>
-                                            Time: {date.toLocaleString()}
-                                          </p>
-                                          <p style={{ margin: "0" }}>
-                                            ENMO: {payload[0].value?.toFixed(4)}{" "}
-                                            mg
-                                          </p>
-                                        </div>
-                                      );
-                                    }
-                                    return null;
-                                  }}
-                                />
-                                <Line
-                                  type="monotone"
-                                  dataKey="enmo"
-                                  stroke="#0034f0"
-                                  strokeWidth={1}
-                                  dot={false}
-                                  connectNulls={false}
-                                />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          </Box>
-                        </Card>
-                      </Grid>
+                                ticks={(() => {
+                                  // Get unique dates for tick positions
+                                  const uniqueDates = [
+                                    ...new Set(
+                                      plotData.map((item) => {
+                                        const date = new Date(item.timestamp);
+                                        return new Date(
+                                          date.getFullYear(),
+                                          date.getMonth(),
+                                          date.getDate()
+                                        ).getTime();
+                                      })
+                                    ),
+                                  ];
+                                  return uniqueDates.sort((a, b) => a - b);
+                                })()}
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                              />
+                              <YAxis
+                                label={{
+                                  value: "mg",
+                                  angle: -90,
+                                  position: "insideLeft",
+                                  offset: 20,
+                                }}
+                              />
+                              <RechartsTooltip
+                                content={({ active, payload, label }) => {
+                                  if (active && payload && payload.length) {
+                                    const date = new Date(label);
+                                    return (
+                                      <div
+                                        style={{
+                                          backgroundColor: "white",
+                                          padding: "10px",
+                                          border: "1px solid #ccc",
+                                          borderRadius: "4px",
+                                        }}
+                                      >
+                                        <p style={{ margin: "0 0 5px 0" }}>
+                                          Time: {date.toLocaleString()}
+                                        </p>
+                                        <p style={{ margin: "0" }}>
+                                          ENMO: {payload[0].value?.toFixed(4)}{" "}
+                                          mg
+                                        </p>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                }}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="enmo"
+                                stroke="#0034f0"
+                                strokeWidth={1}
+                                dot={false}
+                                connectNulls={false}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </Box>
+                      </Card>
                     );
                   })}
-                </Grid>
+                </Box>
 
                 {bulkData.individual_results.every((result) => {
                   // Check for ENMO data in the backend response
@@ -3703,3 +3700,4 @@ const MultiIndividualTab = ({
 };
 
 export { MultiIndividualTab };
+
