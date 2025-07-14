@@ -61,7 +61,11 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import config from "../../config";
 import { CLColors } from "../../plotTheme";
-import { fetchTimezones, filterTimezonesByContinent, searchTimezones } from "../../utils/timezoneUtils";
+import {
+  fetchTimezones,
+  filterTimezonesByContinent,
+  searchTimezones,
+} from "../../utils/timezoneUtils";
 
 // Helper to clean and format feature names for display
 const cleanFeatureName = (featureName) => {
@@ -121,8 +125,6 @@ const MultiIndividualTab = ({
   timezoneCity,
   setTimezoneCity,
 }) => {
-
-
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [bulkData, setBulkData] = useState(null);
   const [bulkError, setBulkError] = useState(null);
@@ -219,7 +221,7 @@ const MultiIndividualTab = ({
       setTimezoneSearchOpen(false);
       return;
     }
-    
+
     const results = searchTimezones(timezones, searchTerm);
     setTimezoneSearchResults(results);
     setTimezoneSearchOpen(true);
@@ -639,8 +641,6 @@ const MultiIndividualTab = ({
           `Successfully processed all ${actualSuccessfulCount} files!`
         );
       }
-
-
     } catch (err) {
       setBulkError(err.message);
     } finally {
@@ -830,8 +830,6 @@ const MultiIndividualTab = ({
       bulkFileInputRef.current.value = "";
     }
   };
-
-
 
   return (
     <>
@@ -1144,73 +1142,110 @@ const MultiIndividualTab = ({
                   </FormControl>
                 </Grid>
               </Grid>
-              
+
               {/* Timezone Configuration - Second Row - Only show for unix formats */}
-              {(bulkTimestampFormat === "unix-s" || bulkTimestampFormat === "unix-ms") && (
-                <Box sx={{ border: '2px dashed #0034f0', bgcolor: '#0034f0' + '10', borderRadius: 2, p: 2, mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, color: '#0034f0' }}>
+              {(bulkTimestampFormat === "unix-s" ||
+                bulkTimestampFormat === "unix-ms") && (
+                <Box
+                  sx={{
+                    border: "2px dashed #0034f0",
+                    bgcolor: "#0034f0" + "10",
+                    borderRadius: 2,
+                    p: 2,
+                    mt: 2,
+                  }}
+                >
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ mb: 1, color: "#0034f0" }}
+                  >
                     Timezone (Optional for Unix timestamps)
                   </Typography>
-                <Grid container spacing={2}>
-                  {/* Continent Selection */}
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Timezone Continent</InputLabel>
-                      <Select
-                        value={timezoneContinent}
-                        onChange={(e) => handleTimezoneContinentChange(e.target.value)}
-                        label="Timezone Continent"
-                        disabled={!bulkDataType || !bulkDataUnit || !bulkTimestampFormat}
-                      >
-                        <MenuItem value="">Select Continent</MenuItem>
-                        {Object.keys(timezones)
-                          .filter(continent => {
-                            const validContinents = ['Africa', 'Antarctica', 'Asia', 'Europe', 'America', 'Australia'];
-                            return validContinents.includes(continent) && timezones[continent] && timezones[continent].length > 0;
-                          })
-                          .map((continent) => (
-                            <MenuItem key={continent} value={continent}>
-                              {continent}
-                            </MenuItem>
-                          ))}
-                      </Select>
-                      <FormHelperText>
-                        {bulkDataUnit && bulkTimestampFormat ? "Select the continent for your timezone (required for Unix timestamps)" : "Please select data unit and timestamp format first"}
-                      </FormHelperText>
-                    </FormControl>
-                  </Grid>
-                  {/* City Selection */}
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Timezone City</InputLabel>
-                      <Select
-                        value={timezoneCity}
-                        onChange={(e) => handleTimezoneCityChange(e.target.value)}
-                        label="Timezone City"
-                        disabled={!timezoneContinent}
-                      >
-                        <MenuItem value="">Select City</MenuItem>
-                        {timezoneContinent && timezones[timezoneContinent]?.map((tz) => {
-                          const parts = tz.split('/');
-                          // Only show timezones with exactly 2 parts (continent/city)
-                          if (parts.length === 2) {
-                            const city = parts[1];
-                            return (
-                              <MenuItem key={tz} value={tz}>
-                                {city.replace(/_/g, ' ')}
-                              </MenuItem>
-                            );
+                  <Grid container spacing={2}>
+                    {/* Continent Selection */}
+                    <Grid item xs={12} md={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Timezone Continent</InputLabel>
+                        <Select
+                          value={timezoneContinent}
+                          onChange={(e) =>
+                            handleTimezoneContinentChange(e.target.value)
                           }
-                          return null;
-                        }).filter(Boolean)}
-                      </Select>
-                      <FormHelperText>
-                        Select the city for your timezone (required for Unix timestamps, default: UTC)
-                      </FormHelperText>
-                    </FormControl>
+                          label="Timezone Continent"
+                          disabled={
+                            !bulkDataType ||
+                            !bulkDataUnit ||
+                            !bulkTimestampFormat
+                          }
+                        >
+                          <MenuItem value="">Select Continent</MenuItem>
+                          {Object.keys(timezones)
+                            .filter((continent) => {
+                              const validContinents = [
+                                "Africa",
+                                "Antarctica",
+                                "Asia",
+                                "Europe",
+                                "America",
+                                "Australia",
+                              ];
+                              return (
+                                validContinents.includes(continent) &&
+                                timezones[continent] &&
+                                timezones[continent].length > 0
+                              );
+                            })
+                            .map((continent) => (
+                              <MenuItem key={continent} value={continent}>
+                                {continent}
+                              </MenuItem>
+                            ))}
+                        </Select>
+                        <FormHelperText>
+                          {bulkDataUnit && bulkTimestampFormat
+                            ? "Select the continent for your timezone (required for Unix timestamps)"
+                            : "Please select data unit and timestamp format first"}
+                        </FormHelperText>
+                      </FormControl>
+                    </Grid>
+                    {/* City Selection */}
+                    <Grid item xs={12} md={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Timezone City</InputLabel>
+                        <Select
+                          value={timezoneCity}
+                          onChange={(e) =>
+                            handleTimezoneCityChange(e.target.value)
+                          }
+                          label="Timezone City"
+                          disabled={!timezoneContinent}
+                        >
+                          <MenuItem value="">Select City</MenuItem>
+                          {timezoneContinent &&
+                            timezones[timezoneContinent]
+                              ?.map((tz) => {
+                                const parts = tz.split("/");
+                                // Only show timezones with exactly 2 parts (continent/city)
+                                if (parts.length === 2) {
+                                  const city = parts[1];
+                                  return (
+                                    <MenuItem key={tz} value={tz}>
+                                      {city.replace(/_/g, " ")}
+                                    </MenuItem>
+                                  );
+                                }
+                                return null;
+                              })
+                              .filter(Boolean)}
+                        </Select>
+                        <FormHelperText>
+                          Select the city for your timezone (required for Unix
+                          timestamps, default: UTC)
+                        </FormHelperText>
+                      </FormControl>
+                    </Grid>
                   </Grid>
-                </Grid>
-              </Box>
+                </Box>
               )}
             </Box>
           )}
@@ -1963,7 +1998,6 @@ const MultiIndividualTab = ({
                 >
                   Reset All
                 </Button>
-
               </Box>
             )}
         </Paper>
@@ -3168,7 +3202,13 @@ const MultiIndividualTab = ({
 
                   return (
                     <>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 3,
+                        }}
+                      >
                         {finalFeatureOrder.map((featureName) => {
                           const values = allFeatures[featureName];
 
@@ -3197,7 +3237,11 @@ const MultiIndividualTab = ({
                             return null;
 
                           return (
-                            <Card variant="outlined" sx={{ p: 2 }} key={featureName}>
+                            <Card
+                              variant="outlined"
+                              sx={{ p: 2 }}
+                              key={featureName}
+                            >
                               <Typography variant="h6" gutterBottom>
                                 {cleanFeatureName(featureName)}
                               </Typography>
@@ -3234,10 +3278,7 @@ const MultiIndividualTab = ({
                                   : "N/A"}
                               </Typography>
                               <Box sx={{ width: "100%", height: 200 }}>
-                                <ResponsiveContainer
-                                  width="100%"
-                                  height="100%"
-                                >
+                                <ResponsiveContainer width="100%" height="100%">
                                   <ComposedChart
                                     data={combinedData}
                                     margin={{
@@ -3278,11 +3319,7 @@ const MultiIndividualTab = ({
                                       }}
                                     />
                                     <RechartsTooltip
-                                      content={({
-                                        active,
-                                        payload,
-                                        label,
-                                      }) => {
+                                      content={({ active, payload, label }) => {
                                         if (
                                           active &&
                                           payload &&
@@ -3311,9 +3348,7 @@ const MultiIndividualTab = ({
                                               {payload[1] && (
                                                 <p style={{ margin: "0" }}>
                                                   Density:{" "}
-                                                  {payload[1].value.toFixed(
-                                                    6
-                                                  )}
+                                                  {payload[1].value.toFixed(6)}
                                                 </p>
                                               )}
                                             </div>
@@ -3398,7 +3433,7 @@ const MultiIndividualTab = ({
             bulkData.individual_results &&
             bulkData.individual_results.length > 0 && (
               <Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
                   {bulkData.individual_results.map((result, index) => {
                     // Access ENMO data from the backend response
                     const enmoData = result.enmo_timeseries;
@@ -3700,4 +3735,3 @@ const MultiIndividualTab = ({
 };
 
 export { MultiIndividualTab };
-

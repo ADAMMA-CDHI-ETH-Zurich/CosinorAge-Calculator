@@ -348,7 +348,7 @@ const HomeTab = ({ setCurrentTab }) => {
                 Launch Lab
               </Button>
             </Box>
-            
+
             {/* Demo Video */}
             <Box
               sx={{

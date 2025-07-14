@@ -1,10 +1,10 @@
-import React from 'react';
-import { Box, Typography, Paper } from '@mui/material';
-import { plotContainerStyles, applyPlotTheme } from '../plotTheme';
+import React from "react";
+import { Box, Typography, Paper } from "@mui/material";
+import { plotContainerStyles, applyPlotTheme } from "../plotTheme";
 
 /**
  * PlotWrapper - A React component that wraps plots with CL styling
- * 
+ *
  * @param {Object} props
  * @param {React.ReactNode} props.children - The plot component to wrap
  * @param {string} props.title - Plot title
@@ -19,7 +19,7 @@ const PlotWrapper = ({
   children,
   title,
   subtitle,
-  library = 'plotly',
+  library = "plotly",
   plotConfig = {},
   containerProps = {},
   titleProps = {},
@@ -51,7 +51,7 @@ const PlotWrapper = ({
           {title}
         </Typography>
       )}
-      
+
       {subtitle && (
         <Typography
           variant="body2"
@@ -64,8 +64,8 @@ const PlotWrapper = ({
           {subtitle}
         </Typography>
       )}
-      
-      <Box sx={{ width: '100%', height: 'auto' }}>
+
+      <Box sx={{ width: "100%", height: "auto" }}>
         {React.cloneElement(children, {
           ...themedPlotConfig,
           ...children.props,
@@ -90,39 +90,39 @@ export const PlotlyWrapper = ({ data, layout, config, ...props }) => {
       font: {
         family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
         size: 12,
-        color: '#1A1A1A',
+        color: "#1A1A1A",
       },
-      paper_bgcolor: '#FFFFFF',
-      plot_bgcolor: '#FFFFFF',
+      paper_bgcolor: "#FFFFFF",
+      plot_bgcolor: "#FFFFFF",
       xaxis: {
-        gridcolor: '#E0E0E0',
-        zerolinecolor: '#E0E0E0',
-        linecolor: '#E0E0E0',
+        gridcolor: "#E0E0E0",
+        zerolinecolor: "#E0E0E0",
+        linecolor: "#E0E0E0",
         tickfont: {
           family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
           size: 11,
-          color: '#666666',
+          color: "#666666",
         },
         titlefont: {
           family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
           size: 12,
-          color: '#1A1A1A',
+          color: "#1A1A1A",
         },
         ...layout?.xaxis,
       },
       yaxis: {
-        gridcolor: '#E0E0E0',
-        zerolinecolor: '#E0E0E0',
-        linecolor: '#E0E0E0',
+        gridcolor: "#E0E0E0",
+        zerolinecolor: "#E0E0E0",
+        linecolor: "#E0E0E0",
         tickfont: {
           family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
           size: 11,
-          color: '#666666',
+          color: "#666666",
         },
         titlefont: {
           family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
           size: 12,
-          color: '#1A1A1A',
+          color: "#1A1A1A",
         },
         ...layout?.yaxis,
       },
@@ -130,10 +130,10 @@ export const PlotlyWrapper = ({ data, layout, config, ...props }) => {
         font: {
           family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
           size: 11,
-          color: '#1A1A1A',
+          color: "#1A1A1A",
         },
-        bgcolor: '#FFFFFF',
-        bordercolor: '#E0E0E0',
+        bgcolor: "#FFFFFF",
+        bordercolor: "#E0E0E0",
         ...layout?.legend,
       },
       margin: {
@@ -147,17 +147,13 @@ export const PlotlyWrapper = ({ data, layout, config, ...props }) => {
     config: {
       responsive: true,
       displayModeBar: true,
-      modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+      modeBarButtonsToRemove: ["pan2d", "lasso2d", "select2d"],
       ...config,
     },
   };
 
   return (
-    <PlotWrapper
-      library="plotly"
-      plotConfig={plotlyConfig}
-      {...props}
-    >
+    <PlotWrapper library="plotly" plotConfig={plotlyConfig} {...props}>
       {/* Plotly component would go here */}
       <div>Plotly Plot Component</div>
     </PlotWrapper>
@@ -165,21 +161,22 @@ export const PlotlyWrapper = ({ data, layout, config, ...props }) => {
 };
 
 // Chart.js wrapper
-export const ChartJsWrapper = ({ data, options, type = 'line', ...props }) => {
+export const ChartJsWrapper = ({ data, options, type = "line", ...props }) => {
   const chartJsConfig = {
     type,
     data: {
-      datasets: data.datasets?.map((dataset, index) => ({
-        borderColor: '#0066CC',
-        backgroundColor: '#0066CC20',
-        borderWidth: 2,
-        pointBackgroundColor: '#0066CC',
-        pointBorderColor: '#FFFFFF',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        ...dataset,
-      })) || data.datasets,
+      datasets:
+        data.datasets?.map((dataset, index) => ({
+          borderColor: "#0066CC",
+          backgroundColor: "#0066CC20",
+          borderWidth: 2,
+          pointBackgroundColor: "#0066CC",
+          pointBorderColor: "#FFFFFF",
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          ...dataset,
+        })) || data.datasets,
       labels: data.labels,
     },
     options: {
@@ -189,10 +186,11 @@ export const ChartJsWrapper = ({ data, options, type = 'line', ...props }) => {
         legend: {
           labels: {
             font: {
-              family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
+              family:
+                '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
               size: 12,
             },
-            color: '#1A1A1A',
+            color: "#1A1A1A",
           },
         },
         title: {
@@ -200,50 +198,54 @@ export const ChartJsWrapper = ({ data, options, type = 'line', ...props }) => {
           font: {
             family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
             size: 16,
-            weight: '600',
+            weight: "600",
           },
-          color: '#1A1A1A',
+          color: "#1A1A1A",
         },
       },
       scales: {
         x: {
           grid: {
-            color: '#E0E0E0',
-            borderColor: '#E0E0E0',
+            color: "#E0E0E0",
+            borderColor: "#E0E0E0",
           },
           ticks: {
             font: {
-              family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
+              family:
+                '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
               size: 11,
             },
-            color: '#666666',
+            color: "#666666",
           },
           title: {
             font: {
-              family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
+              family:
+                '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
               size: 12,
             },
-            color: '#1A1A1A',
+            color: "#1A1A1A",
           },
         },
         y: {
           grid: {
-            color: '#E0E0E0',
-            borderColor: '#E0E0E0',
+            color: "#E0E0E0",
+            borderColor: "#E0E0E0",
           },
           ticks: {
             font: {
-              family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
+              family:
+                '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
               size: 11,
             },
-            color: '#666666',
+            color: "#666666",
           },
           title: {
             font: {
-              family: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
+              family:
+                '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
               size: 12,
             },
-            color: '#1A1A1A',
+            color: "#1A1A1A",
           },
         },
       },
@@ -252,11 +254,7 @@ export const ChartJsWrapper = ({ data, options, type = 'line', ...props }) => {
   };
 
   return (
-    <PlotWrapper
-      library="chartjs"
-      plotConfig={chartJsConfig}
-      {...props}
-    >
+    <PlotWrapper library="chartjs" plotConfig={chartJsConfig} {...props}>
       {/* Chart.js component would go here */}
       <div>Chart.js Component</div>
     </PlotWrapper>
@@ -267,13 +265,13 @@ export const ChartJsWrapper = ({ data, options, type = 'line', ...props }) => {
 export const RechartsWrapper = ({ children, ...props }) => {
   const rechartsConfig = {
     colors: [
-      '#1A1A1A',
-      '#0066CC',
-      '#2E7D32',
-      '#ED6C02',
-      '#D32F2F',
-      '#0288D1',
-      '#666666',
+      "#1A1A1A",
+      "#0066CC",
+      "#2E7D32",
+      "#ED6C02",
+      "#D32F2F",
+      "#0288D1",
+      "#666666",
     ],
     style: {
       fontFamily: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
@@ -281,11 +279,7 @@ export const RechartsWrapper = ({ children, ...props }) => {
   };
 
   return (
-    <PlotWrapper
-      library="recharts"
-      plotConfig={rechartsConfig}
-      {...props}
-    >
+    <PlotWrapper library="recharts" plotConfig={rechartsConfig} {...props}>
       {children}
     </PlotWrapper>
   );
@@ -295,13 +289,13 @@ export const RechartsWrapper = ({ children, ...props }) => {
 export const D3Wrapper = ({ children, ...props }) => {
   const d3Config = {
     colors: [
-      '#1A1A1A',
-      '#0066CC',
-      '#2E7D32',
-      '#ED6C02',
-      '#D32F2F',
-      '#0288D1',
-      '#666666',
+      "#1A1A1A",
+      "#0066CC",
+      "#2E7D32",
+      "#ED6C02",
+      "#D32F2F",
+      "#0288D1",
+      "#666666",
     ],
     fontFamily: '"Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif',
     fontSize: {
@@ -311,15 +305,15 @@ export const D3Wrapper = ({ children, ...props }) => {
       title: 16,
     },
     colors: {
-      text: '#1A1A1A',
-      textSecondary: '#666666',
-      background: '#FFFFFF',
-      grid: '#E0E0E0',
-      axis: '#E0E0E0',
+      text: "#1A1A1A",
+      textSecondary: "#666666",
+      background: "#FFFFFF",
+      grid: "#E0E0E0",
+      axis: "#E0E0E0",
     },
     stroke: {
       width: 2,
-      color: '#0066CC',
+      color: "#0066CC",
     },
     fill: {
       opacity: 0.8,
@@ -327,12 +321,8 @@ export const D3Wrapper = ({ children, ...props }) => {
   };
 
   return (
-    <PlotWrapper
-      library="d3"
-      plotConfig={d3Config}
-      {...props}
-    >
+    <PlotWrapper library="d3" plotConfig={d3Config} {...props}>
       {children}
     </PlotWrapper>
   );
-}; 
+};

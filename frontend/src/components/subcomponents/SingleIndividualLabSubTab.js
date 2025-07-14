@@ -89,7 +89,11 @@ import SGSBinaryZippedExample from "../../assets/SGS_Binary_Zipped_Example.png";
 import SGSCSVExample from "../../assets/SGS_CSV_Example.png";
 import config from "../../config";
 import InfoIcon from "@mui/icons-material/Info";
-import { fetchTimezones, filterTimezonesByContinent, searchTimezones } from "../../utils/timezoneUtils";
+import {
+  fetchTimezones,
+  filterTimezonesByContinent,
+  searchTimezones,
+} from "../../utils/timezoneUtils";
 
 // Single Individual Lab Sub Tab Component
 const SingleIndividualLabSubTab = ({
@@ -254,27 +258,31 @@ const SingleIndividualLabSubTab = ({
                 col.toLowerCase().includes("timestamp")
             ) || result.columns[0]
           );
-          
+
           // More flexible accelerometer column selection
           const accelColumns = [];
           const targetColumns = ["x", "y", "z"];
-          
+
           // First try exact matches (case-insensitive)
           for (const target of targetColumns) {
             const exactMatch = result.columns.find(
-              col => col.toLowerCase() === target.toLowerCase()
+              (col) => col.toLowerCase() === target.toLowerCase()
             );
             if (exactMatch) {
               accelColumns.push(exactMatch);
             }
           }
-          
+
           // If we don't have all 3, try partial matches
           if (accelColumns.length < 3) {
             for (const target of targetColumns) {
-              if (!accelColumns.some(col => col.toLowerCase() === target.toLowerCase())) {
-                const partialMatch = result.columns.find(
-                  col => col.toLowerCase().includes(target.toLowerCase())
+              if (
+                !accelColumns.some(
+                  (col) => col.toLowerCase() === target.toLowerCase()
+                )
+              ) {
+                const partialMatch = result.columns.find((col) =>
+                  col.toLowerCase().includes(target.toLowerCase())
                 );
                 if (partialMatch && !accelColumns.includes(partialMatch)) {
                   accelColumns.push(partialMatch);
@@ -282,18 +290,21 @@ const SingleIndividualLabSubTab = ({
               }
             }
           }
-          
+
           // If still don't have 3 columns, use first 3 non-time columns
           if (accelColumns.length < 3) {
             const nonTimeColumns = result.columns.filter(
-              col => !col.toLowerCase().includes("time") && !col.toLowerCase().includes("timestamp")
+              (col) =>
+                !col.toLowerCase().includes("time") &&
+                !col.toLowerCase().includes("timestamp")
             );
-            accelColumns.push(...nonTimeColumns.slice(0, 3 - accelColumns.length));
+            accelColumns.push(
+              ...nonTimeColumns.slice(0, 3 - accelColumns.length)
+            );
           }
-          
+
           console.log("Selected accelerometer columns:", accelColumns);
           setSelectedDataColumns(accelColumns);
-          
         } else if (dataType === "enmo") {
           setSelectedTimeColumn(
             result.columns.find(
@@ -604,7 +615,7 @@ const SingleIndividualLabSubTab = ({
 
       // Then process the data with parameters
       console.log("Sending timezone in process request:", timezone);
-      
+
       // Prepare the process request body
       const processRequestBody = {
         preprocess_args: preprocessParams,
@@ -621,7 +632,7 @@ const SingleIndividualLabSubTab = ({
           processRequestBody.time_column = genericTimeColumn;
           processRequestBody.data_columns = genericDataColumns;
         }
-        
+
         // Add data type and format information
         let data_type;
         if (dataType === "alternative_count") {
@@ -635,14 +646,15 @@ const SingleIndividualLabSubTab = ({
         } else {
           data_type = "unknown";
         }
-        
+
         processRequestBody.data_type = data_type;
-        processRequestBody.time_format = fileType === "csv" ? timestampFormat : genericTimeFormat;
+        processRequestBody.time_format =
+          fileType === "csv" ? timestampFormat : genericTimeFormat;
         processRequestBody.data_unit = dataUnit;
       }
 
       console.log("Process request body:", processRequestBody);
-      
+
       const processResponse = await fetch(
         config.getApiUrl(`process/${data.file_id}`),
         {
@@ -835,7 +847,7 @@ const SingleIndividualLabSubTab = ({
       setTimezoneSearchOpen(false);
       return;
     }
-    
+
     const results = searchTimezones(timezones, searchTerm);
     setTimezoneSearchResults(results);
     setTimezoneSearchOpen(true);
@@ -998,6 +1010,47 @@ const SingleIndividualLabSubTab = ({
               </FormControl>
             </Grid>
           </Grid>
+
+          {/* Wearable Fitness Devices Banner - appears at the very top when "other" is selected */}
+          {dataSource === "other" && (
+            <Box
+              sx={{
+                mt: 2,
+                mb: 3,
+                p: 3,
+                bgcolor: "background.paper",
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: "success.main",
+                maxWidth: 1200,
+                mx: "auto",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 1,
+                }}
+              >
+                <InfoIcon sx={{ color: "success.main" }} />
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: "success.main",
+                    fontWeight: 600,
+                  }}
+                >
+                  Wearable Fitness Devices
+                </Typography>
+              </Box>
+              <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                This option is designed for data exported from any kinds of
+                wearable fitness devices, such as Apple Watch or Garmin.
+              </Typography>
+            </Box>
+          )}
 
           {((dataSource && fileType && dataType) ||
             (dataSource === "other" && fileType === "csv" && dataType)) && (
@@ -1625,16 +1678,30 @@ const SingleIndividualLabSubTab = ({
                               </Select>
                             )}
                             <FormHelperText>
-                              {timestampFormat ? "Select the unit of your data values" : "Please select timestamp format first"}
+                              {timestampFormat
+                                ? "Select the unit of your data values"
+                                : "Please select timestamp format first"}
                             </FormHelperText>
                           </FormControl>
                         </Grid>
                       </Grid>
-                      
+
                       {/* Timezone Configuration - Second Row - Only show for unix formats */}
-                      {(timestampFormat === "unix-s" || timestampFormat === "unix-ms") && (
-                        <Box sx={{ border: '2px dashed #0034f0', bgcolor: '#0034f0' + '10', borderRadius: 2, p: 2, mt: 2 }}>
-                          <Typography variant="subtitle2" sx={{ mb: 1, color: '#0034f0' }}>
+                      {(timestampFormat === "unix-s" ||
+                        timestampFormat === "unix-ms") && (
+                        <Box
+                          sx={{
+                            border: "2px dashed #0034f0",
+                            bgcolor: "#0034f0" + "10",
+                            borderRadius: 2,
+                            p: 2,
+                            mt: 2,
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ mb: 1, color: "#0034f0" }}
+                          >
                             Timezone (Optional for Unix timestamps)
                           </Typography>
                           <Grid container spacing={2}>
@@ -1644,24 +1711,44 @@ const SingleIndividualLabSubTab = ({
                                 <InputLabel>Timezone Continent</InputLabel>
                                 <Select
                                   value={timezoneContinent}
-                                  onChange={(e) => handleTimezoneContinentChange(e.target.value)}
+                                  onChange={(e) =>
+                                    handleTimezoneContinentChange(
+                                      e.target.value
+                                    )
+                                  }
                                   label="Timezone Continent"
                                   disabled={!dataUnit}
                                 >
                                   <MenuItem value="">Select Continent</MenuItem>
                                   {Object.keys(timezones)
-                                    .filter(continent => {
-                                      const validContinents = ['Africa', 'Antarctica', 'Asia', 'Europe', 'America', 'Australia'];
-                                      return validContinents.includes(continent) && timezones[continent] && timezones[continent].length > 0;
+                                    .filter((continent) => {
+                                      const validContinents = [
+                                        "Africa",
+                                        "Antarctica",
+                                        "Asia",
+                                        "Europe",
+                                        "America",
+                                        "Australia",
+                                      ];
+                                      return (
+                                        validContinents.includes(continent) &&
+                                        timezones[continent] &&
+                                        timezones[continent].length > 0
+                                      );
                                     })
                                     .map((continent) => (
-                                      <MenuItem key={continent} value={continent}>
+                                      <MenuItem
+                                        key={continent}
+                                        value={continent}
+                                      >
                                         {continent}
                                       </MenuItem>
                                     ))}
                                 </Select>
                                 <FormHelperText>
-                                  {dataUnit ? "Select the continent for your timezone (required for Unix timestamps)" : "Please select data unit first"}
+                                  {dataUnit
+                                    ? "Select the continent for your timezone (required for Unix timestamps)"
+                                    : "Please select data unit first"}
                                 </FormHelperText>
                               </FormControl>
                             </Grid>
@@ -1671,27 +1758,33 @@ const SingleIndividualLabSubTab = ({
                                 <InputLabel>Timezone City</InputLabel>
                                 <Select
                                   value={timezoneCity}
-                                  onChange={(e) => handleTimezoneCityChange(e.target.value)}
+                                  onChange={(e) =>
+                                    handleTimezoneCityChange(e.target.value)
+                                  }
                                   label="Timezone City"
                                   disabled={!timezoneContinent}
                                 >
                                   <MenuItem value="">Select City</MenuItem>
-                                  {timezoneContinent && timezones[timezoneContinent]?.map((tz) => {
-                                    const parts = tz.split('/');
-                                    // Only show timezones with exactly 2 parts (continent/city)
-                                    if (parts.length === 2) {
-                                      const city = parts[1];
-                                      return (
-                                        <MenuItem key={tz} value={tz}>
-                                          {city.replace(/_/g, ' ')}
-                                        </MenuItem>
-                                      );
-                                    }
-                                    return null;
-                                  }).filter(Boolean)}
+                                  {timezoneContinent &&
+                                    timezones[timezoneContinent]
+                                      ?.map((tz) => {
+                                        const parts = tz.split("/");
+                                        // Only show timezones with exactly 2 parts (continent/city)
+                                        if (parts.length === 2) {
+                                          const city = parts[1];
+                                          return (
+                                            <MenuItem key={tz} value={tz}>
+                                              {city.replace(/_/g, " ")}
+                                            </MenuItem>
+                                          );
+                                        }
+                                        return null;
+                                      })
+                                      .filter(Boolean)}
                                 </Select>
                                 <FormHelperText>
-                                  Select the city for your timezone (required for Unix timestamps, default: UTC)
+                                  Select the city for your timezone (required
+                                  for Unix timestamps, default: UTC)
                                 </FormHelperText>
                               </FormControl>
                             </Grid>
@@ -1703,161 +1796,174 @@ const SingleIndividualLabSubTab = ({
                 )}
 
                 {/* Column Selection - Only show after Data Configuration is complete and only for CSV files */}
-                {timestampFormat && dataUnit && 
-                 ((timestampFormat === "datetime") || (timestampFormat !== "datetime" && timezone)) && 
-                 fileType === "csv" && (
-                  <>
-                    {/* Column Selection */}
-                    <Box sx={{ mt: 3 }}>
-                      <Typography variant="subtitle1" gutterBottom>
-                        Column Selection
-                      </Typography>
-                      <Grid container spacing={2}>
-                        {/* Time Column Selection */}
-                        <Grid item xs={12} md={6}>
-                          <FormControl fullWidth>
-                            <InputLabel>Timestamp Column</InputLabel>
-                            <Select
-                              value={selectedTimeColumn || ""}
-                              onChange={(e) =>
-                                setSelectedTimeColumn(e.target.value)
-                              }
-                              label="Timestamp Column"
-                              MenuProps={{
-                                PaperProps: {
-                                  style: {
-                                    maxHeight: 300,
-                                    zIndex: 9999,
+                {timestampFormat &&
+                  dataUnit &&
+                  (timestampFormat === "datetime" ||
+                    (timestampFormat !== "datetime" && timezone)) &&
+                  fileType === "csv" && (
+                    <>
+                      {/* Column Selection */}
+                      <Box sx={{ mt: 3 }}>
+                        <Typography variant="subtitle1" gutterBottom>
+                          Column Selection
+                        </Typography>
+                        <Grid container spacing={2}>
+                          {/* Time Column Selection */}
+                          <Grid item xs={12} md={6}>
+                            <FormControl fullWidth>
+                              <InputLabel>Timestamp Column</InputLabel>
+                              <Select
+                                value={selectedTimeColumn || ""}
+                                onChange={(e) =>
+                                  setSelectedTimeColumn(e.target.value)
+                                }
+                                label="Timestamp Column"
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: 300,
+                                      zIndex: 9999,
+                                    },
                                   },
-                                },
-                                container: document.body,
-                              }}
-                            >
-                              {csvColumns.map((column) => (
-                                <MenuItem key={column} value={column}>
-                                  {column}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                            <FormHelperText>
-                              Select the column containing timestamp data
-                            </FormHelperText>
-                          </FormControl>
-                        </Grid>
-                        {/* Data Columns Selection */}
-                        <Grid item xs={12} md={6}>
-                          {dataType === "accelerometer" ? (
-                            <Box>
-                              <Grid container spacing={2}>
-                                {["x", "y", "z"].map((axis, index) => (
-                                  <Grid item xs={12} sm={4} key={axis}>
-                                    <FormControl fullWidth>
-                                      <InputLabel>
-                                        {axis.toUpperCase()} Column
-                                      </InputLabel>
-                                      <Select
-                                        value={selectedDataColumns[index] || ""}
-                                        onChange={(e) => {
-                                          const newColumns = [...selectedDataColumns];
-                                          newColumns[index] = e.target.value;
-                                          // Remove any empty values and duplicates
-                                          const filteredColumns = newColumns.filter(
-                                            (col, idx) => 
-                                              col && 
-                                              col !== "" && 
-                                              newColumns.indexOf(col) === idx
-                                          );
-                                          setSelectedDataColumns(filteredColumns);
-                                        }}
-                                        label={`${axis.toUpperCase()} Column`}
-                                        MenuProps={{
-                                          PaperProps: {
-                                            style: {
-                                              maxHeight: 300,
-                                              zIndex: 9999,
+                                  container: document.body,
+                                }}
+                              >
+                                {csvColumns.map((column) => (
+                                  <MenuItem key={column} value={column}>
+                                    {column}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                              <FormHelperText>
+                                Select the column containing timestamp data
+                              </FormHelperText>
+                            </FormControl>
+                          </Grid>
+                          {/* Data Columns Selection */}
+                          <Grid item xs={12} md={6}>
+                            {dataType === "accelerometer" ? (
+                              <Box>
+                                <Grid container spacing={2}>
+                                  {["x", "y", "z"].map((axis, index) => (
+                                    <Grid item xs={12} sm={4} key={axis}>
+                                      <FormControl fullWidth>
+                                        <InputLabel>
+                                          {axis.toUpperCase()} Column
+                                        </InputLabel>
+                                        <Select
+                                          value={
+                                            selectedDataColumns[index] || ""
+                                          }
+                                          onChange={(e) => {
+                                            const newColumns = [
+                                              ...selectedDataColumns,
+                                            ];
+                                            newColumns[index] = e.target.value;
+                                            // Remove any empty values and duplicates
+                                            const filteredColumns =
+                                              newColumns.filter(
+                                                (col, idx) =>
+                                                  col &&
+                                                  col !== "" &&
+                                                  newColumns.indexOf(col) ===
+                                                    idx
+                                              );
+                                            setSelectedDataColumns(
+                                              filteredColumns
+                                            );
+                                          }}
+                                          label={`${axis.toUpperCase()} Column`}
+                                          MenuProps={{
+                                            PaperProps: {
+                                              style: {
+                                                maxHeight: 300,
+                                                zIndex: 9999,
+                                              },
                                             },
-                                          },
-                                          container: document.body,
-                                        }}
-                                      >
-                                        <MenuItem value="">
-                                          <em>None</em>
-                                        </MenuItem>
-                                        {csvColumns.map((column) => (
-                                          <MenuItem key={column} value={column}>
-                                            {column}
+                                            container: document.body,
+                                          }}
+                                        >
+                                          <MenuItem value="">
+                                            <em>None</em>
                                           </MenuItem>
-                                        ))}
-                                      </Select>
-                                    </FormControl>
-                                  </Grid>
-                                ))}
-                              </Grid>
-                            </Box>
-                          ) : dataType === "enmo" ? (
-                            <FormControl fullWidth>
-                              <InputLabel>ENMO Column</InputLabel>
-                              <Select
-                                value={selectedDataColumns[0] || ""}
-                                onChange={(e) =>
-                                  setSelectedDataColumns([e.target.value])
-                                }
-                                label="ENMO Column"
-                                MenuProps={{
-                                  PaperProps: {
-                                    style: {
-                                      maxHeight: 300,
-                                      zIndex: 9999,
+                                          {csvColumns.map((column) => (
+                                            <MenuItem
+                                              key={column}
+                                              value={column}
+                                            >
+                                              {column}
+                                            </MenuItem>
+                                          ))}
+                                        </Select>
+                                      </FormControl>
+                                    </Grid>
+                                  ))}
+                                </Grid>
+                              </Box>
+                            ) : dataType === "enmo" ? (
+                              <FormControl fullWidth>
+                                <InputLabel>ENMO Column</InputLabel>
+                                <Select
+                                  value={selectedDataColumns[0] || ""}
+                                  onChange={(e) =>
+                                    setSelectedDataColumns([e.target.value])
+                                  }
+                                  label="ENMO Column"
+                                  MenuProps={{
+                                    PaperProps: {
+                                      style: {
+                                        maxHeight: 300,
+                                        zIndex: 9999,
+                                      },
                                     },
-                                  },
-                                  container: document.body,
-                                }}
-                              >
-                                {csvColumns.map((column) => (
-                                  <MenuItem key={column} value={column}>
-                                    {column}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                              <FormHelperText>
-                                Select the column containing ENMO data
-                              </FormHelperText>
-                            </FormControl>
-                          ) : dataType === "alternative_count" ? (
-                            <FormControl fullWidth>
-                              <InputLabel>Counts Column</InputLabel>
-                              <Select
-                                value={selectedDataColumns[0] || ""}
-                                onChange={(e) =>
-                                  setSelectedDataColumns([e.target.value])
-                                }
-                                label="Counts Column"
-                                MenuProps={{
-                                  PaperProps: {
-                                    style: {
-                                      maxHeight: 300,
-                                      zIndex: 9999,
+                                    container: document.body,
+                                  }}
+                                >
+                                  {csvColumns.map((column) => (
+                                    <MenuItem key={column} value={column}>
+                                      {column}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                <FormHelperText>
+                                  Select the column containing ENMO data
+                                </FormHelperText>
+                              </FormControl>
+                            ) : dataType === "alternative_count" ? (
+                              <FormControl fullWidth>
+                                <InputLabel>Counts Column</InputLabel>
+                                <Select
+                                  value={selectedDataColumns[0] || ""}
+                                  onChange={(e) =>
+                                    setSelectedDataColumns([e.target.value])
+                                  }
+                                  label="Counts Column"
+                                  MenuProps={{
+                                    PaperProps: {
+                                      style: {
+                                        maxHeight: 300,
+                                        zIndex: 9999,
+                                      },
                                     },
-                                  },
-                                  container: document.body,
-                                }}
-                              >
-                                {csvColumns.map((column) => (
-                                  <MenuItem key={column} value={column}>
-                                    {column}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                              <FormHelperText>
-                                Select the column containing activity counts
-                              </FormHelperText>
-                            </FormControl>
-                          ) : null}
+                                    container: document.body,
+                                  }}
+                                >
+                                  {csvColumns.map((column) => (
+                                    <MenuItem key={column} value={column}>
+                                      {column}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                <FormHelperText>
+                                  Select the column containing activity counts
+                                </FormHelperText>
+                              </FormControl>
+                            ) : null}
+                          </Grid>
                         </Grid>
-                      </Grid>
-                    </Box>
-                  </>
-                )}
+                      </Box>
+                    </>
+                  )}
 
                 {/* Binary File Configuration Complete Button - Only for binary files */}
                 {timestampFormat &&

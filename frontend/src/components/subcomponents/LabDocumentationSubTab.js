@@ -31,17 +31,17 @@ function LabDocumentationSubTab() {
         health insights.
       </Typography>
 
-      <Alert 
-        sx={{ 
+      <Alert
+        sx={{
           mb: 4,
           bgcolor: "rgba(0, 52, 240, 0.08)",
           border: "1px solid rgba(0, 52, 240, 0.2)",
           "& .MuiAlert-icon": {
-            color: "#0034f0"
+            color: "#0034f0",
           },
           "& .MuiAlert-message": {
-            color: "#0034f0"
-          }
+            color: "#0034f0",
+          },
         }}
       >
         <Typography variant="body2">
@@ -470,17 +470,17 @@ function LabDocumentationSubTab() {
         and meaningful results from your accelerometer data analysis.
       </Typography>
 
-      <Alert 
-        sx={{ 
+      <Alert
+        sx={{
           mb: 3,
           bgcolor: "rgba(0, 52, 240, 0.08)",
           border: "1px solid rgba(0, 52, 240, 0.2)",
           "& .MuiAlert-icon": {
-            color: "#0034f0"
+            color: "#0034f0",
           },
           "& .MuiAlert-message": {
-            color: "#0034f0"
-          }
+            color: "#0034f0",
+          },
         }}
       >
         <Typography variant="body2">
@@ -544,17 +544,17 @@ function LabDocumentationSubTab() {
         </li>
       </ul>
 
-      <Alert 
-        sx={{ 
+      <Alert
+        sx={{
           mt: 4,
           bgcolor: "rgba(0, 52, 240, 0.08)",
           border: "1px solid rgba(0, 52, 240, 0.2)",
           "& .MuiAlert-icon": {
-            color: "#0034f0"
+            color: "#0034f0",
           },
           "& .MuiAlert-message": {
-            color: "#0034f0"
-          }
+            color: "#0034f0",
+          },
         }}
       >
         <Typography variant="body2">
