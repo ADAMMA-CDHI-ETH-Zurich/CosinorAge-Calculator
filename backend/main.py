@@ -1002,14 +1002,44 @@ async def search_docs(query: str):
 async def download_sample_data():
     """Download sample data file."""
     sample_file_path = os.path.join(os.path.dirname(
-        os.path.abspath(__file__)), "data", "sample", "sample_data2.csv")
+        os.path.abspath(__file__)), "data", "sample", "sample_data_single.csv")
     if not os.path.exists(sample_file_path):
         raise HTTPException(status_code=404, detail="Sample file not found")
 
     return FileResponse(
         path=sample_file_path,
-        filename="sample_data2.csv",
+        filename="sample_data_single.csv",
         media_type="text/csv"
+    )
+
+
+@app.get("/download/sample-multi")
+async def download_sample_multi_data():
+    """Download sample multi-individual data file."""
+    sample_file_path = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), "data", "sample", "sample_data_multi.zip")
+    if not os.path.exists(sample_file_path):
+        raise HTTPException(status_code=404, detail="Sample multi file not found")
+
+    return FileResponse(
+        path=sample_file_path,
+        filename="sample_data_multi.zip",
+        media_type="application/zip"
+    )
+
+
+@app.get("/download/resample-notebook")
+async def download_resample_notebook():
+    """Download resample notebook for minute-level data processing."""
+    notebook_path = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), "data", "sample", "resample_to_minute_level.ipynb")
+    if not os.path.exists(notebook_path):
+        raise HTTPException(status_code=404, detail="Resample notebook not found")
+
+    return FileResponse(
+        path=notebook_path,
+        filename="resample_to_minute_level.ipynb",
+        media_type="application/x-ipynb+json"
     )
 
 

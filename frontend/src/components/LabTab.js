@@ -74,6 +74,7 @@ const LabTab = ({
   timezoneCity,
   setTimezoneCity,
   handleReset,
+  setCurrentLabSubTab,
 }) => {
   const [labSubTab, setLabSubTab] = useState(() => {
     const savedSubTab = localStorage.getItem("labSubTab");
@@ -88,6 +89,13 @@ const LabTab = ({
   useEffect(() => {
     localStorage.setItem("labSubTab", labSubTab);
   }, [labSubTab]);
+
+  // Notify parent component of current sub-tab
+  useEffect(() => {
+    if (setCurrentLabSubTab) {
+      setCurrentLabSubTab(labSubTab);
+    }
+  }, [labSubTab, setCurrentLabSubTab]);
 
   return (
     <>
@@ -215,6 +223,8 @@ const LabTab = ({
             setTimezoneContinent={setTimezoneContinent}
             timezoneCity={timezoneCity}
             setTimezoneCity={setTimezoneCity}
+            gettingStartedOpen={gettingStartedOpen}
+            setGettingStartedOpen={setGettingStartedOpen}
           />
         )}
       </Grid>

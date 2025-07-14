@@ -88,6 +88,7 @@ function App() {
   });
 
   const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
+  const [currentLabSubTab, setCurrentLabSubTab] = useState("single");
   // Add state for fileType
   const [fileType, setFileType] = useState("");
   // Add state for dataType
@@ -852,6 +853,7 @@ function App() {
               setGenericTimeColumn={setGenericTimeColumn}
               genericDataColumns={genericDataColumns}
               setGenericDataColumns={setGenericDataColumns}
+              setCurrentLabSubTab={setCurrentLabSubTab}
               csvColumns={csvColumns}
               setCsvColumns={setCsvColumns}
               csvPreview={csvPreview}
@@ -888,43 +890,92 @@ function App() {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Getting Started with CosinorLab</DialogTitle>
+        <DialogTitle>
+          Getting Started with CosinorLab - {currentLabSubTab === "single" ? "Single Individual" : "Multi Individual"}
+        </DialogTitle>
         <DialogContent>
           <Typography variant="body1" paragraph>
-            Welcome to CosinorLab! To help you explore the interface, we've
+            Welcome to CosinorLab! To help you explore the {currentLabSubTab === "single" ? "single individual" : "multi-individual"} interface, we've
             provided a sample file containing mock accelerometer data.
           </Typography>
 
-          <Typography variant="body1" paragraph>
-            This is an example file containing mock accelerometer data which can
-            be used to explore the UI. For uploading this file, you should
-            select:
-          </Typography>
+          {currentLabSubTab === "single" ? (
+            <>
+              <Typography variant="body1" paragraph>
+                This is an example file containing mock accelerometer data which can
+                be used to explore the single individual analysis interface. For uploading this file, you should
+                select:
+              </Typography>
 
-          <Box
-            sx={{
-              bgcolor: "grey.50",
-              p: 2,
-              borderRadius: 1,
-              mb: 3,
-              border: "1px solid",
-              borderColor: "grey.300",
-            }}
-          >
-            <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-              Recommended Settings:
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              • Data Source: <strong>Other</strong>
-              <br />• File Type: <strong>CSV</strong>
-              <br />• Data Type: <strong>Accelerometer</strong>
-              <br />• Timestamp Format: <strong>Unix - milliseconds</strong>
-              <br />• Data Unit: <strong>g</strong>
-              <br />• Time Column: <strong>timestamp</strong>
-              <br />• Data Columns: <strong>x,y,z</strong>
-              <br />
-            </Typography>
-          </Box>
+              <Box
+                sx={{
+                  bgcolor: "grey.50",
+                  p: 2,
+                  borderRadius: 1,
+                  mb: 3,
+                  border: "1px solid",
+                  borderColor: "grey.300",
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                  Recommended Settings for Single Individual Analysis:
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  • Data Source: <strong>Other</strong>
+                  <br />• File Type: <strong>CSV</strong>
+                  <br />• Data Type: <strong>Accelerometer</strong>
+                  <br />• Timestamp Format: <strong>Unix - milliseconds</strong>
+                  <br />• Data Unit: <strong>g</strong>
+                  <br />• Time Column: <strong>timestamp</strong>
+                  <br />• Data Columns: <strong>x,y,z</strong>
+                  <br />
+                </Typography>
+              </Box>
+
+              <Typography variant="body2" color="text.secondary" align="center">
+                After downloading, you can upload this file to explore the
+                single individual analysis interface and see how the analysis works.
+              </Typography>
+            </>
+          ) : (
+            <>
+              <Typography variant="body1" paragraph>
+                This is a ZIP file containing multiple minute-level accelerometer data files that can
+                be used to explore the multi-individual analysis interface. The ZIP contains multiple CSV files
+                with the same structure, perfect for bulk processing.
+              </Typography>
+
+              <Box
+                sx={{
+                  bgcolor: "grey.50",
+                  p: 2,
+                  borderRadius: 1,
+                  mb: 3,
+                  border: "1px solid",
+                  borderColor: "grey.300",
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                  Recommended Settings for Multi-Individual Analysis:
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  • Data Type: <strong>Accelerometer</strong>
+                  <br />• Data Unit: <strong>mg</strong>
+                  <br />• Timestamp Format: <strong>Unix - seconds</strong>
+                  <br />• Time Column: <strong>timestamp</strong>
+                  <br />• X Column: <strong>x</strong>
+                  <br />• Y Column: <strong>y</strong>
+                  <br />• Z Column: <strong>z</strong>
+                  <br />
+                </Typography>
+              </Box>
+
+              <Typography variant="body2" color="text.secondary" align="center">
+                After downloading, extract the ZIP file and upload all the CSV files to explore the
+                multi-individual analysis interface and see how bulk processing works.
+              </Typography>
+            </>
+          )}
 
           <Box sx={{ textAlign: "center" }}>
             <Button
@@ -932,8 +983,10 @@ function App() {
               color="primary"
               onClick={() => {
                 const link = document.createElement("a");
-                link.href = config.getApiUrl("download/sample");
-                link.download = "sample_data2.csv";
+                const endpoint = currentLabSubTab === "single" ? "download/sample" : "download/sample-multi";
+                const filename = currentLabSubTab === "single" ? "sample_data_single.csv" : "sample_data_multi.zip";
+                link.href = config.getApiUrl(endpoint);
+                link.download = filename;
                 link.target = "_blank";
                 document.body.appendChild(link);
                 link.click();
@@ -944,16 +997,47 @@ function App() {
                 px: 4,
                 py: 1.5,
                 mb: 2,
+                mt: 2,
               }}
             >
-              Download Sample CSV File
+              {currentLabSubTab === "single" ? "Download Sample CSV File" : "Download Sample Multi-Individual ZIP"}
             </Button>
           </Box>
 
-          <Typography variant="body2" color="text.secondary" align="center">
-            After downloading, you can upload this file to explore the
-            CosinorLab interface and see how the analysis works.
-          </Typography>
+          {/* Multi-individual specific note and resample notebook */}
+          {currentLabSubTab === "multi" && (
+            <>
+              <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
+                <strong>Note:</strong> It is helpful to resample data to minute level prior to uploading, 
+                as the amount of data that needs to be uploaded and processed on the server might be too large. 
+                You can download a Python notebook below to help you resample your data locally.
+              </Typography>
+
+              <Box sx={{ textAlign: "center", mt: 2 }}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={() => {
+                    const link = document.createElement("a");
+                    link.href = config.getApiUrl("download/resample-notebook");
+                    link.download = "resample_to_minute_level.ipynb";
+                    link.target = "_blank";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    px: 3,
+                    py: 1,
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  Download Resample Notebook
+                </Button>
+              </Box>
+            </>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setGettingStartedOpen(false)}>Close</Button>

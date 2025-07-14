@@ -59,6 +59,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ErrorIcon from "@mui/icons-material/Error";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
+import InfoIcon from "@mui/icons-material/Info";
 import config from "../../config";
 import { CLColors } from "../../plotTheme";
 import {
@@ -124,6 +125,8 @@ const MultiIndividualTab = ({
   setTimezoneContinent,
   timezoneCity,
   setTimezoneCity,
+  gettingStartedOpen,
+  setGettingStartedOpen,
 }) => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [bulkData, setBulkData] = useState(null);
@@ -833,6 +836,40 @@ const MultiIndividualTab = ({
 
   return (
     <>
+      {/* Getting Started Button - only show when no files are uploaded */}
+      {uploadedFiles.length === 0 && (
+        <Grid item xs={12}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mb: 3,
+            }}
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setGettingStartedOpen(true)}
+              startIcon={<InfoIcon />}
+              sx={{
+                borderRadius: 2,
+                px: 4,
+                py: 1.5,
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                textTransform: "none",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                "&:hover": {
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
+                },
+              }}
+            >
+              Getting Started
+            </Button>
+          </Box>
+        </Grid>
+      )}
+
       {/* File Upload Section */}
       <Grid item xs={12}>
         <Paper sx={{ p: 3, mb: 3 }}>
