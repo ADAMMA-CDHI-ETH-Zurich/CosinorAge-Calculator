@@ -1015,15 +1015,14 @@ const SingleIndividualLabSubTab = ({
           {dataSource === "other" && (
             <Box
               sx={{
-                mt: 2,
-                mb: 3,
+                mt: 0,
+                mb: 0,
                 p: 3,
                 bgcolor: "background.paper",
                 borderRadius: 2,
                 border: "1px solid",
                 borderColor: "success.main",
-                maxWidth: 1200,
-                mx: "auto",
+                width: "100%",
               }}
             >
               <Box
@@ -1045,7 +1044,7 @@ const SingleIndividualLabSubTab = ({
                   Wearable Fitness Devices
                 </Typography>
               </Box>
-              <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+              <Typography variant="body2" paragraph sx={{ mb: -1 }}>
                 This option is designed for data exported from any kinds of
                 wearable fitness devices, such as Apple Watch or Garmin.
               </Typography>
@@ -1079,8 +1078,8 @@ const SingleIndividualLabSubTab = ({
               {fileType === "binary" && dataSource === "samsung_galaxy" && (
                 <Box
                   sx={{
-                    mt: 2,
-                    mb: 3,
+                    mt: 0,
+                    mb: 0,
                     p: 3,
                     bgcolor: "background.paper",
                     borderRadius: 2,
@@ -1100,7 +1099,7 @@ const SingleIndividualLabSubTab = ({
                   >
                     Data Format Requirements
                   </Typography>
-                  <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                  <Typography variant="body2" paragraph sx={{ mb: -1 }}>
                     The uploaded ZIP file is expected to follow a specific
                     structure: it should contain a single top-level parent
                     directory, within which there are subdirectories organized
@@ -1138,8 +1137,8 @@ const SingleIndividualLabSubTab = ({
               {fileType === "csv" && dataSource === "samsung_galaxy" && (
                 <Box
                   sx={{
-                    mt: 2,
-                    mb: 3,
+                    mt: 0,
+                    mb: 0,
                     p: 3,
                     bgcolor: "background.paper",
                     borderRadius: 2,
@@ -1159,7 +1158,7 @@ const SingleIndividualLabSubTab = ({
                   >
                     Data Format Requirements
                   </Typography>
-                  <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                  <Typography variant="body2" paragraph sx={{ mb: -1 }}>
                     {dataType === "accelerometer" && (
                       <span
                         dangerouslySetInnerHTML={{
@@ -1227,8 +1226,8 @@ const SingleIndividualLabSubTab = ({
                   {/* Validation Notice in Red Box */}
                   <Box
                     sx={{
-                      mt: 2,
-                      mb: 3,
+                      mt: 0,
+                      mb: 0,
                       p: 3,
                       bgcolor: "background.paper",
                       borderRadius: 2,
@@ -1257,7 +1256,7 @@ const SingleIndividualLabSubTab = ({
                         Validation Notice
                       </Typography>
                     </Box>
-                    <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                    <Typography variant="body2" paragraph sx={{ mb: -1 }}>
                       The data preprocessing and biological age estimation
                       pipeline has been validated using data (raw accelerometer
                       and/or ENMO data) from the UK Biobank, NHANES, and Samsung
@@ -1267,11 +1266,11 @@ const SingleIndividualLabSubTab = ({
                   </Box>
 
                   {/* Data Format Requirements in Blue Box */}
-                  {dataType !== "alternative_count" && (
+                  {dataType && (
                     <Box
                       sx={{
-                        mt: 2,
-                        mb: 3,
+                        mt: 0,
+                        mb: 0,
                         p: 3,
                         bgcolor: "background.paper",
                         borderRadius: 2,
@@ -1291,15 +1290,25 @@ const SingleIndividualLabSubTab = ({
                       >
                         Data Format Requirements
                       </Typography>
-                      <Typography variant="body2" paragraph sx={{ mb: 2 }}>
+                      <Typography variant="body2" paragraph sx={{ mb: -1 }}>
                         {dataSource === "other" ? (
-                          <span>
-                            The uploaded CSV file must contain ENMO or
-                            accelerometer data collected from a smartwatch or
-                            wearable device. Please ensure your file is
-                            formatted as time series data with appropriate
-                            timestamp and measurement columns.
-                          </span>
+                          dataType === "accelerometer" ? (
+                            <span>
+                              The uploaded CSV file must contain raw accelerometer data collected from a smartwatch or wearable device. It should include a column containing timestamps and three data columns representing acceleration values along the x, y, and z axes in {dataUnit} units.
+                            </span>
+                          ) : dataType === "enmo" ? (
+                            <span>
+                              The uploaded CSV file must contain ENMO (Euclidean Norm Minus One) data collected from a smartwatch or wearable device. It should include a column containing timestamps and a data column with ENMO values.
+                            </span>
+                          ) : dataType === "alternative_count" ? (
+                            <span>
+                              The uploaded CSV file must contain alternative count data collected from a smartwatch or wearable device. It should include a column containing timestamps and a data column with count values representing activity counts or step counts over the specified time intervals.
+                            </span>
+                          ) : (
+                            <span>
+                              The uploaded CSV file must contain time series data collected from a smartwatch or wearable device. Please ensure your file is formatted as time series data with appropriate timestamp and measurement columns.
+                            </span>
+                          )
                         ) : dataType === "accelerometer" ? (
                           <span
                             dangerouslySetInnerHTML={{
