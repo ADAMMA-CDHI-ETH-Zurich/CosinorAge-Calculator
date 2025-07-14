@@ -1221,10 +1221,13 @@ const MultiIndividualTab = ({
                               const validContinents = [
                                 "Africa",
                                 "Antarctica",
+                                "Arctic",
                                 "Asia",
+                                "Atlantic",
                                 "Europe",
                                 "America",
                                 "Australia",
+                                "Pacific",
                               ];
                               return (
                                 validContinents.includes(continent) &&

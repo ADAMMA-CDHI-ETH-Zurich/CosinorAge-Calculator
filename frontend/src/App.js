@@ -924,8 +924,9 @@ function App() {
                   • Data Source: <strong>Other</strong>
                   <br />• File Type: <strong>CSV</strong>
                   <br />• Data Type: <strong>Accelerometer</strong>
-                  <br />• Timestamp Format: <strong>Unix - milliseconds</strong>
-                  <br />• Data Unit: <strong>g</strong>
+                  <br />• Timestamp Format: <strong>Unix - seconds</strong>
+                  <br />• Data Unit: <strong>mg</strong>
+                  <br />• Timezone: <strong>Pacific/Auckland</strong>
                   <br />• Time Column: <strong>timestamp</strong>
                   <br />• Data Columns: <strong>x,y,z</strong>
                   <br />
@@ -962,6 +963,7 @@ function App() {
                   • Data Type: <strong>Accelerometer</strong>
                   <br />• Data Unit: <strong>mg</strong>
                   <br />• Timestamp Format: <strong>Unix - seconds</strong>
+                  <br />• Timezone: <strong>Pacific/Auckland</strong>
                   <br />• Time Column: <strong>timestamp</strong>
                   <br />• X Column: <strong>x</strong>
                   <br />• Y Column: <strong>y</strong>
