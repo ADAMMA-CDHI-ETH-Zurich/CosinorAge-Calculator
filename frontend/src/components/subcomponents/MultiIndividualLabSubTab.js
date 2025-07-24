@@ -75,7 +75,7 @@ const cleanFeatureName = (featureName) => {
     return "Cosinorage";
   }
   if (featureName === "cosinorage_advance") {
-    return "Cosinorage\nAdvance";
+    return "Cosinorage Advance";
   }
 
   // Remove category prefixes from feature names
@@ -98,7 +98,7 @@ const cleanFeatureName = (featureName) => {
     cleanedName.toLowerCase().includes("acrophase") &&
     cleanedName.toLowerCase().includes("time")
   ) {
-    return "Acrophase\nTime";
+    return "Acrophase Time";
   }
   // Preserve original capitalization, only apply title case to all-lowercase words
   return cleanedName
@@ -2268,6 +2268,8 @@ const MultiIndividualTab = ({
                           pb: 8,
                           alignSelf: "flex-end",
                           justifyContent: "flex-start",
+                          whiteSpace: "nowrap", // Prevent line breaks
+                          wordBreak: "keep-all", // Prevent word breaking
                         }}
                       >
                         {cleanFeatureName(feature)}

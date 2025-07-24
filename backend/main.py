@@ -1495,12 +1495,17 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
             
             logger.info(f"Prepared {len(cosinor_age_inputs)} cosinorage inputs for {len(handlers)} handlers")
 
-        # Use BulkWearableFeatures to process all handlers
-        bulk_features = BulkWearableFeatures(
-            handlers=handlers,
-            features_args=request.features_args,
-            cosinor_age_inputs=cosinor_age_inputs
-        )
+        if request.enable_cosinorage:
+            bulk_features = BulkWearableFeatures(
+                handlers=handlers,
+                features_args=request.features_args,
+                cosinor_age_inputs=cosinor_age_inputs
+            )
+        else:
+            bulk_features = BulkWearableFeatures(
+                handlers=handlers,
+                features_args=request.features_args
+            )
 
         # Get distribution statistics
         distribution_stats = bulk_features.get_distribution_stats()
