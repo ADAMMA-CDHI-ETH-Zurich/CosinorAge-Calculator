@@ -2245,7 +2245,6 @@ const MultiIndividualTab = ({
                         color: "text.secondary",
                       }}
                     >
-                      Features
                     </Box>
                     {Object.keys(bulkData.correlation_matrix).map((feature) => (
                       <Box
