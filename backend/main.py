@@ -1499,6 +1499,7 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
         bulk_features = BulkWearableFeatures(
             handlers=handlers,
             features_args=request.features_args,
+            cosinor_age_inputs=cosinor_age_inputs
         )
 
         # Get distribution statistics
@@ -1516,167 +1517,15 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
         # Get correlation matrix
         correlation_matrix = bulk_features.get_feature_correlation_matrix()
 
-        # Add cosinorage predictions to summary statistics and correlation matrix if enabled
-        if request.enable_cosinorage and cosinor_age_inputs:
-            logger.info("Adding cosinorage predictions to summary statistics and correlation matrix")
-            
-            # Collect cosinorage predictions and advance for successful handlers
-            cosinorage_predictions = []
-            cosinorage_advance_values = []
-            
-            for i, features in enumerate(individual_features):
-                if features is not None and i < len(cosinor_age_inputs):
-                    try:
-                        age_input = cosinor_age_inputs[i]
-                        record = [{
-                            'handler': handlers[i],
-                            'age': age_input['age'],
-                            'gender': age_input['gender']
-                        }]
-                        
-                        cosinor_age = CosinorAge(record)
-                        predictions = cosinor_age.get_predictions()
-                        
-                        if predictions and len(predictions) > 0:
-                            prediction = predictions[0]
-                            if 'cosinorage' in prediction:
-                                cosinorage_prediction = prediction['cosinorage']
-                                chronological_age = age_input['age']
-                                cosinorage_advance = cosinorage_prediction - chronological_age
-                                
-                                cosinorage_predictions.append(cosinorage_prediction)
-                                cosinorage_advance_values.append(cosinorage_advance)
-                                
-                                logger.info(f"Handler {i}: cosinorage={cosinorage_prediction}, chronological={chronological_age}, advance={cosinorage_advance}")
-                            else:
-                                cosinorage_predictions.append(None)
-                                cosinorage_advance_values.append(None)
-                        else:
-                            cosinorage_predictions.append(None)
-                            cosinorage_advance_values.append(None)
-                    except Exception as e:
-                        logger.warning(f"Error getting cosinorage prediction for summary stats handler {i}: {e}")
-                        cosinorage_predictions.append(None)
-                        cosinorage_advance_values.append(None)
-                else:
-                    cosinorage_predictions.append(None)
-                    cosinorage_advance_values.append(None)
-            
-            # Add cosinorage and advance to distribution stats
-            valid_predictions = [p for p in cosinorage_predictions if p is not None]
-            valid_advance_values = [a for a in cosinorage_advance_values if a is not None]
-            
-            if valid_predictions:
-                distribution_stats['cosinorage'] = {
-                    'count': float(len(valid_predictions)),
-                    'mean': float(np.mean(valid_predictions)),
-                    'std': float(np.std(valid_predictions)),
-                    'min': float(np.min(valid_predictions)),
-                    'max': float(np.max(valid_predictions)),
-                    'median': float(np.median(valid_predictions))
-                }
-                logger.info(f"Added cosinorage to distribution stats: {distribution_stats['cosinorage']}")
-                
-                # Add cosinorage advance to distribution stats
-                if valid_advance_values:
-                    distribution_stats['cosinorage_advance'] = {
-                        'count': float(len(valid_advance_values)),
-                        'mean': float(np.mean(valid_advance_values)),
-                        'std': float(np.std(valid_advance_values)),
-                        'min': float(np.min(valid_advance_values)),
-                        'max': float(np.max(valid_advance_values)),
-                        'median': float(np.median(valid_advance_values))
-                    }
-                    logger.info(f"Added cosinorage_advance to distribution stats: {distribution_stats['cosinorage_advance']}")
-            
-            # Add cosinorage and advance to summary dataframe
-            if valid_predictions and not summary_df.empty:
-                # Create rows for cosinorage and advance
-                cosinorage_rows = []
-                
-                # Add cosinorage row
-                cosinorage_rows.append({
-                    'feature': 'cosinorage',
-                    'count': len(valid_predictions),
-                    'mean': np.mean(valid_predictions),
-                    'std': np.std(valid_predictions),
-                    'min': np.min(valid_predictions),
-                    'max': np.max(valid_predictions),
-                    'median': np.median(valid_predictions)
-                })
-                
-                # Add cosinorage advance row
-                if valid_advance_values:
-                    cosinorage_rows.append({
-                        'feature': 'cosinorage_advance',
-                        'count': len(valid_advance_values),
-                        'mean': np.mean(valid_advance_values),
-                        'std': np.std(valid_advance_values),
-                        'min': np.min(valid_advance_values),
-                        'max': np.max(valid_advance_values),
-                        'median': np.median(valid_advance_values)
-                    })
-                
-                # Add all rows to summary dataframe
-                cosinorage_df = pd.DataFrame(cosinorage_rows)
-                summary_df = pd.concat([summary_df, cosinorage_df], ignore_index=True)
-                logger.info(f"Added {len(cosinorage_rows)} cosinorage rows to summary dataframe")
-            
-            # Add cosinorage and advance to correlation matrix if we have other features
-            if valid_predictions and not correlation_matrix.empty:
-                # Get all available features for correlation
-                all_features = []
-                for features in individual_features:
-                    if features is not None:
-                        # Flatten nested features
-                        flat_features = {}
-                        for category, cat_features in features.items():
-                            if isinstance(cat_features, dict):
-                                for key, value in cat_features.items():
-                                    if isinstance(value, (int, float)) and not np.isnan(value) and not np.isinf(value):
-                                        flat_features[f"{category}_{key}"] = value
-                        all_features.append(flat_features)
-                
-                if all_features and len(all_features) == len(valid_predictions):
-                    # Calculate correlations for cosinorage and advance
-                    cosinorage_features = ['cosinorage', 'cosinorage_advance']
-                    
-                    for cosinorage_feature in cosinorage_features:
-                        if cosinorage_feature == 'cosinorage':
-                            feature_values = valid_predictions
-                        else:  # cosinorage_advance
-                            feature_values = valid_advance_values
-                        
-                        # Calculate correlations with this cosinorage feature
-                        cosinorage_correlations = {}
-                        feature_names = list(all_features[0].keys())
-                        
-                        for feature_name in feature_names:
-                            other_feature_values = [f.get(feature_name) for f in all_features]
-                            # Filter out None values and calculate correlation
-                            valid_pairs = [(c, f) for c, f in zip(feature_values, other_feature_values) 
-                                          if c is not None and f is not None and not np.isnan(f) and not np.isinf(f)]
-                            
-                            if len(valid_pairs) > 1:
-                                cosinorage_vals, other_vals = zip(*valid_pairs)
-                                try:
-                                    correlation = np.corrcoef(cosinorage_vals, other_vals)[0, 1]
-                                    if not np.isnan(correlation):
-                                        cosinorage_correlations[feature_name] = correlation
-                                except:
-                                    pass
-                        
-                        # Add cosinorage feature correlations to the matrix
-                        if cosinorage_correlations:
-                            correlation_matrix[cosinorage_feature] = cosinorage_correlations
-                            # Also add cosinorage feature as a row (symmetric matrix)
-                            for feature_name in correlation_matrix.index:
-                                if feature_name in cosinorage_correlations:
-                                    correlation_matrix.loc[cosinorage_feature, feature_name] = cosinorage_correlations[feature_name]
-                                else:
-                                    correlation_matrix.loc[cosinorage_feature, feature_name] = None
-                            
-                            logger.info(f"Added {cosinorage_feature} correlations to matrix with {len(cosinorage_correlations)} features")
+        # log the correlation matrix
+        logger.info("=== CORRELATION MATRIX ===")
+        logger.info(correlation_matrix)
+        logger.info("=== END CORRELATION MATRIX ===")
+
+        # Note: cosinorage predictions, summary statistics, and correlations are all handled
+        # by the BulkWearableFeatures class when cosinorage is enabled
+        if request.enable_cosinorage:
+            logger.info("Cosinorage is enabled - all cosinorage processing is handled by BulkWearableFeatures class")
 
         # Extract ENMO data from each handler before processing
         # This is similar to how single individual processing works
