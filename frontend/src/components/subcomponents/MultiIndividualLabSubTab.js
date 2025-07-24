@@ -717,7 +717,7 @@ const MultiIndividualTab = ({
     const newInputs = files.map((file) => ({
       file_id: file.file_id,
       filename: file.filename,
-      age: "50",
+      age: "24",
       gender: "unknown",
     }));
     setBulkCosinorAgeInputs(newInputs);
@@ -2375,13 +2375,7 @@ const MultiIndividualTab = ({
                               return (
                                 <Tooltip
                                   key={colFeature}
-                                  title={`${cleanFeatureName(
-                                    rowFeature
-                                  )} vs ${cleanFeatureName(colFeature)}: ${
-                                    typeof value === "number"
-                                      ? value.toFixed(3)
-                                      : "N/A"
-                                  }`}
+                                  title={`${cleanFeatureName(rowFeature)} vs ${cleanFeatureName(colFeature)}`}
                                   arrow
                                   placement="top"
                                 >
@@ -2392,13 +2386,25 @@ const MultiIndividualTab = ({
                                       border: "1px solid #e0e0e0",
                                       cursor: "pointer",
                                       transition: "all 0.2s ease-in-out",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      fontSize: "0.6rem",
+                                      fontWeight: "bold",
+                                      color: Math.abs(numValue) > 0.5 ? "white" : "black",
                                       "&:hover": {
                                         transform: "scale(1.05)",
                                         zIndex: 1,
                                         boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
                                       },
                                     }}
-                                  />
+                                  >
+                                    {typeof value === "number" && !isNaN(value)
+                                      ? value.toFixed(2)
+                                      : value === null || value === undefined
+                                      ? "N/A"
+                                      : "N/A"}
+                                  </Box>
                                 </Tooltip>
                               );
                             }
@@ -2408,65 +2414,7 @@ const MultiIndividualTab = ({
                     )}
                   </Box>
 
-                  {/* Legend */}
-                  <Box
-                    sx={{
-                      mt: 2,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1,
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                      Correlation Scale
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-start",
-                        gap: 0.5,
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: "50%",
-                          height: 20,
-                          background:
-                            "linear-gradient(to right, #dc3545, rgb(255, 255, 255), #0034f0)",
-                          borderRadius: 1,
-                          border: "1px solid #ccc",
-                          position: "relative",
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          width: "50%",
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          sx={{ fontSize: "0.6rem" }}
-                        >
-                          -1.0
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ fontSize: "0.6rem" }}
-                        >
-                          0.0
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ fontSize: "0.6rem" }}
-                        >
-                          1.0
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
+
                 </Box>
               )}
 
