@@ -30,21 +30,21 @@ A web application for analyzing accelerometer and ENMO data with drag-and-drop f
 
 </div>
 
-## 🚀 Quick Start (Docker - Recommended)
+## Quick Start (Docker - Recommended)
 
 The easiest way to run the application is using Docker:
 
-### 🔧 Development Environment (with hot reloading)
+### Development Environment (with hot reloading)
 ```bash
 ./cosinorlab.sh deploy-dev
 ```
 
-### 🏭 Production Environment
+### Production Environment
 ```bash
 ./cosinorlab.sh deploy-prod
 ```
 
-### 🛠️ Other Commands
+### Other Commands
 ```bash
 ./cosinorlab.sh restart-dev      # 🔄 Restart development containers and open browser
 ./cosinorlab.sh restart-prod     # 🔄 Restart production containers and open browser
@@ -53,9 +53,9 @@ The easiest way to run the application is using Docker:
 ./cosinorlab.sh open             # 🌐 Open frontend in browser
 ```
 
-## 🛠️ Manual Setup
+## Manual Setup
 
-### 🔧 Backend Setup
+### Backend Setup
 
 1. **Create a virtual environment** (recommended):
 ```bash
@@ -74,9 +74,9 @@ cd backend
 uvicorn main:app --reload
 ```
 
-🌐 **Backend URL**: http://localhost:8000
+**Backend URL**: http://localhost:8000
 
-### 🎨 Frontend Setup
+### Frontend Setup
 
 1. **Install dependencies**:
 ```bash
@@ -89,20 +89,20 @@ npm install
 npm start
 ```
 
-🌐 **Frontend URL**: http://localhost:3000
+**Frontend URL**: http://localhost:3000
 
-## 📖 Usage
+## Usage
 
-1. **🌐 Open your browser** and navigate to http://localhost (Docker) or http://localhost:3000 (manual setup)
-2. **📁 Drag and drop** your accelerometer data file (CSV or JSON) onto the upload area
-3. **📊 View the processed data** and visualizations
-4. **🔍 Interact with the charts** to explore your data
+1. **Open your browser** and navigate to http://localhost (Docker) or http://localhost:3000 (manual setup)
+2. **Drag and drop** your accelerometer data file (CSV or JSON) onto the upload area
+3. **View the processed data** and visualizations
+4. **Interact with the charts** to explore your data
 
 ## 📋 File Format
 
 The application expects accelerometer data in CSV or JSON format. The data should contain columns for the accelerometer readings (typically x, y, z axes).
 
-## 🏗️ Development
+## Development
 
 | Component | Technology |
 |-----------|------------|
