@@ -173,6 +173,38 @@ const SingleIndividualLabSubTab = ({
   const [timezoneSearchResults, setTimezoneSearchResults] = useState([]);
   const [timezoneSearchOpen, setTimezoneSearchOpen] = useState(false);
 
+  // Helper function to validate numeric input
+  const isValidNumericInput = (value) => {
+    // Allow empty string, single decimal point, and valid numbers
+    if (value === "" || value === "." || value === "-" || value === "-.") {
+      return true;
+    }
+    
+    // Check for valid number format (including scientific notation)
+    const numberRegex = /^-?\d*\.?\d*([eE][-+]?\d*)?$/;
+    return numberRegex.test(value);
+  };
+
+  // Track input strings for numeric fields to handle intermediate states
+  const [preprocessInputStrings, setPreprocessInputStrings] = useState({
+    autocalib_sd_criter: "0.00013",
+    autocalib_sphere_crit: "0.02",
+    filter_cutoff: "2",
+    wear_sd_crit: "0.00013",
+    wear_range_crit: "0.00067",
+    wear_window_length: "45",
+    wear_window_skip: "7",
+    required_daily_coverage: "0.5",
+  });
+
+  // Track input strings for feature parameter fields
+  const [featureInputStrings, setFeatureInputStrings] = useState({
+    sleep_ck_sf: "0.0025",
+    pa_cutpoint_sl: "15",
+    pa_cutpoint_lm: "35",
+    pa_cutpoint_mv: "70",
+  });
+
   // Load timezones on component mount
   useEffect(() => {
     const loadTimezones = async () => {
@@ -754,10 +786,13 @@ const SingleIndividualLabSubTab = ({
 
   // Add handler for parameter changes
   const handlePreprocessParamChange = (param, value) => {
-    // Convert numeric parameters to numbers, keep strings for non-numeric parameters
-    let processedValue = value;
+    // Update the input string state
+    setPreprocessInputStrings((prev) => ({
+      ...prev,
+      [param]: value,
+    }));
 
-    // List of numeric parameters
+    let processedValue = value;
     const numericParams = [
       "autocalib_sd_criter",
       "autocalib_sphere_crit",
@@ -769,18 +804,18 @@ const SingleIndividualLabSubTab = ({
       "required_daily_coverage",
     ];
 
-    // Convert to number if it's a numeric parameter and the value is not empty
+    // Only convert to number if it's a complete valid number
     if (
       numericParams.includes(param) &&
       value !== "" &&
       value !== null &&
-      value !== undefined
+      value !== undefined &&
+      value !== "." &&
+      value !== "-" &&
+      value !== "-." &&
+      !isNaN(parseFloat(value))
     ) {
       processedValue = parseFloat(value);
-      // If conversion fails, keep the original value
-      if (isNaN(processedValue)) {
-        processedValue = value;
-      }
     }
 
     setPreprocessParams((prev) => ({
@@ -790,42 +825,45 @@ const SingleIndividualLabSubTab = ({
   };
 
   const handleFeatureParamChange = (param, value) => {
-    // Convert numeric parameters to numbers, keep booleans for boolean parameters
-    let processedValue = value;
-
-    // List of numeric parameters
     const numericParams = [
       "sleep_ck_sf",
       "pa_cutpoint_sl",
       "pa_cutpoint_lm",
       "pa_cutpoint_mv",
     ];
-
-    // List of boolean parameters
     const booleanParams = ["sleep_rescore"];
 
-    // Convert to number if it's a numeric parameter and the value is not empty
-    if (
-      numericParams.includes(param) &&
-      value !== "" &&
-      value !== null &&
-      value !== undefined
-    ) {
-      processedValue = parseFloat(value);
-      // If conversion fails, keep the original value
-      if (isNaN(processedValue)) {
-        processedValue = value;
-      }
-    }
-    // Keep boolean values as is for boolean parameters
-    else if (booleanParams.includes(param)) {
-      processedValue = value; // This should already be a boolean from the Switch component
-    }
+    if (numericParams.includes(param)) {
+      // Update the input string state
+      setFeatureInputStrings((prev) => ({
+        ...prev,
+        [param]: value,
+      }));
 
-    setFeatureParams((prev) => ({
-      ...prev,
-      [param]: processedValue,
-    }));
+      let processedValue = value;
+      // Only convert to number if it's a complete valid number
+      if (
+        value !== "" &&
+        value !== null &&
+        value !== undefined &&
+        value !== "." &&
+        value !== "-" &&
+        value !== "-." &&
+        !isNaN(parseFloat(value))
+      ) {
+        processedValue = parseFloat(value);
+      }
+
+      setFeatureParams((prev) => ({
+        ...prev,
+        [param]: processedValue,
+      }));
+    } else if (booleanParams.includes(param)) {
+      setFeatureParams((prev) => ({
+        ...prev,
+        [param]: value,
+      }));
+    }
   };
 
   // Timezone handling functions
@@ -2035,19 +2073,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="Auto-calibration SD Criterion"
                                   type="text"
-                                  value={preprocessParams.autocalib_sd_criter}
+                                  value={preprocessInputStrings.autocalib_sd_criter}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handlePreprocessParamChange(
                                         "autocalib_sd_criter",
                                         value
@@ -2065,19 +2097,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="Auto-calibration Sphere Criterion"
                                   type="text"
-                                  value={preprocessParams.autocalib_sphere_crit}
+                                  value={preprocessInputStrings.autocalib_sphere_crit}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handlePreprocessParamChange(
                                         "autocalib_sphere_crit",
                                         value
@@ -2118,19 +2144,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="Filter Cutoff"
                                   type="text"
-                                  value={preprocessParams.filter_cutoff}
+                                  value={preprocessInputStrings.filter_cutoff}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handlePreprocessParamChange(
                                         "filter_cutoff",
                                         value
@@ -2148,19 +2168,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="Wear SD Criterion"
                                   type="text"
-                                  value={preprocessParams.wear_sd_crit}
+                                  value={preprocessInputStrings.wear_sd_crit}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handlePreprocessParamChange(
                                         "wear_sd_crit",
                                         value
@@ -2178,19 +2192,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="Wear Range Criterion"
                                   type="text"
-                                  value={preprocessParams.wear_range_crit}
+                                  value={preprocessInputStrings.wear_range_crit}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handlePreprocessParamChange(
                                         "wear_range_crit",
                                         value
@@ -2208,19 +2216,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="Wear Window Length"
                                   type="text"
-                                  value={preprocessParams.wear_window_length}
+                                  value={preprocessInputStrings.wear_window_length}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handlePreprocessParamChange(
                                         "wear_window_length",
                                         value
@@ -2238,19 +2240,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="Wear Window Skip"
                                   type="text"
-                                  value={preprocessParams.wear_window_skip}
+                                  value={preprocessInputStrings.wear_window_skip}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handlePreprocessParamChange(
                                         "wear_window_skip",
                                         value
@@ -2290,20 +2286,14 @@ const SingleIndividualLabSubTab = ({
                                   label="Required Daily Coverage (0-1)"
                                   type="text"
                                   value={
-                                    preprocessParams.required_daily_coverage
+                                    preprocessInputStrings.required_daily_coverage
                                   }
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handlePreprocessParamChange(
                                         "required_daily_coverage",
                                         value
@@ -2355,19 +2345,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="Sleep CK SF"
                                   type="text"
-                                  value={featureParams.sleep_ck_sf}
+                                  value={featureInputStrings.sleep_ck_sf}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handleFeatureParamChange(
                                         "sleep_ck_sf",
                                         value
@@ -2385,19 +2369,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="PA Cutpoint Sedentary-Light"
                                   type="text"
-                                  value={featureParams.pa_cutpoint_sl}
+                                  value={featureInputStrings.pa_cutpoint_sl}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handleFeatureParamChange(
                                         "pa_cutpoint_sl",
                                         value
@@ -2415,19 +2393,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="PA Cutpoint Light-Moderate"
                                   type="text"
-                                  value={featureParams.pa_cutpoint_lm}
+                                  value={featureInputStrings.pa_cutpoint_lm}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handleFeatureParamChange(
                                         "pa_cutpoint_lm",
                                         value
@@ -2445,19 +2417,13 @@ const SingleIndividualLabSubTab = ({
                                   fullWidth
                                   label="PA Cutpoint Moderate-Vigorous"
                                   type="text"
-                                  value={featureParams.pa_cutpoint_mv}
+                                  value={featureInputStrings.pa_cutpoint_mv}
                                   onChange={(e) => {
                                     let value = e.target.value.replace(
                                       /,/g,
                                       "."
                                     );
-                                    if (
-                                      /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                        value
-                                      ) ||
-                                      value === "" ||
-                                      value === "."
-                                    ) {
+                                    if (isValidNumericInput(value)) {
                                       handleFeatureParamChange(
                                         "pa_cutpoint_mv",
                                         value

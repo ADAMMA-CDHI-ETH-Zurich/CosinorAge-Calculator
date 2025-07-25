@@ -169,11 +169,23 @@ const MultiIndividualTab = ({
     autocalib_sphere_crit: 0.02,
     filter_type: "lowpass",
     filter_cutoff: 2,
-    wear_sd_criter: 0.00013,
+    wear_sd_crit: 0.00013,
     wear_range_crit: 0.00067,
     wear_window_length: 45,
     wear_window_skip: 7,
     required_daily_coverage: 0.5,
+  });
+
+  // Track input strings for numeric fields to handle intermediate states
+  const [bulkPreprocessInputStrings, setBulkPreprocessInputStrings] = useState({
+    autocalib_sd_criter: "0.00013",
+    autocalib_sphere_crit: "0.02",
+    filter_cutoff: "2",
+    wear_sd_crit: "0.00013",
+    wear_range_crit: "0.00067",
+    wear_window_length: "45",
+    wear_window_skip: "7",
+    required_daily_coverage: "0.5",
   });
   const [bulkFeatureParams, setBulkFeatureParams] = useState({
     sleep_rescore: true,
@@ -181,6 +193,14 @@ const MultiIndividualTab = ({
     pa_cutpoint_sl: 15,
     pa_cutpoint_lm: 35,
     pa_cutpoint_mv: 70,
+  });
+
+  // Track input strings for feature parameter fields
+  const [bulkFeatureInputStrings, setBulkFeatureInputStrings] = useState({
+    sleep_ck_sf: "0.0025",
+    pa_cutpoint_sl: "15",
+    pa_cutpoint_lm: "35",
+    pa_cutpoint_mv: "70",
   });
 
   // Cosinorage parameters for each file
@@ -191,6 +211,18 @@ const MultiIndividualTab = ({
   const [timezones, setTimezones] = useState({});
   const [timezoneSearchResults, setTimezoneSearchResults] = useState([]);
   const [timezoneSearchOpen, setTimezoneSearchOpen] = useState(false);
+
+  // Helper function to validate numeric input
+  const isValidNumericInput = (value) => {
+    // Allow empty string, single decimal point, and valid numbers
+    if (value === "" || value === "." || value === "-" || value === "-.") {
+      return true;
+    }
+    
+    // Check for valid number format (including scientific notation)
+    const numberRegex = /^-?\d*\.?\d*([eE][-+]?\d*)?$/;
+    return numberRegex.test(value);
+  };
 
   // Load timezones on component mount
   useEffect(() => {
@@ -653,28 +685,36 @@ const MultiIndividualTab = ({
   };
 
   const handleBulkPreprocessParamChange = (param, value) => {
+    // Update the input string state
+    setBulkPreprocessInputStrings((prev) => ({
+      ...prev,
+      [param]: value,
+    }));
+
     let processedValue = value;
     const numericParams = [
       "autocalib_sd_criter",
       "autocalib_sphere_crit",
       "filter_cutoff",
-      "wear_sd_criter",
+      "wear_sd_crit",
       "wear_range_crit",
       "wear_window_length",
       "wear_window_skip",
       "required_daily_coverage",
     ];
 
+    // Only convert to number if it's a complete valid number
     if (
       numericParams.includes(param) &&
       value !== "" &&
       value !== null &&
-      value !== undefined
+      value !== undefined &&
+      value !== "." &&
+      value !== "-" &&
+      value !== "-." &&
+      !isNaN(parseFloat(value))
     ) {
       processedValue = parseFloat(value);
-      if (isNaN(processedValue)) {
-        processedValue = value;
-      }
     }
 
     setBulkPreprocessParams((prev) => ({
@@ -684,7 +724,6 @@ const MultiIndividualTab = ({
   };
 
   const handleBulkFeatureParamChange = (param, value) => {
-    let processedValue = value;
     const numericParams = [
       "sleep_ck_sf",
       "pa_cutpoint_sl",
@@ -693,24 +732,37 @@ const MultiIndividualTab = ({
     ];
     const booleanParams = ["sleep_rescore"];
 
-    if (
-      numericParams.includes(param) &&
-      value !== "" &&
-      value !== null &&
-      value !== undefined
-    ) {
-      processedValue = parseFloat(value);
-      if (isNaN(processedValue)) {
-        processedValue = value;
-      }
-    } else if (booleanParams.includes(param)) {
-      processedValue = value;
-    }
+    if (numericParams.includes(param)) {
+      // Update the input string state
+      setBulkFeatureInputStrings((prev) => ({
+        ...prev,
+        [param]: value,
+      }));
 
-    setBulkFeatureParams((prev) => ({
-      ...prev,
-      [param]: processedValue,
-    }));
+      let processedValue = value;
+      // Only convert to number if it's a complete valid number
+      if (
+        value !== "" &&
+        value !== null &&
+        value !== undefined &&
+        value !== "." &&
+        value !== "-" &&
+        value !== "-." &&
+        !isNaN(parseFloat(value))
+      ) {
+        processedValue = parseFloat(value);
+      }
+
+      setBulkFeatureParams((prev) => ({
+        ...prev,
+        [param]: processedValue,
+      }));
+    } else if (booleanParams.includes(param)) {
+      setBulkFeatureParams((prev) => ({
+        ...prev,
+        [param]: value,
+      }));
+    }
   };
 
   const updateBulkCosinorAgeInputs = (files) => {
@@ -814,7 +866,7 @@ const MultiIndividualTab = ({
       autocalib_sphere_crit: 0.02,
       filter_type: "lowpass",
       filter_cutoff: 2,
-      wear_sd_criter: 0.00013,
+      wear_sd_crit: 0.00013,
       wear_range_crit: 0.00067,
       wear_window_length: 45,
       wear_window_skip: 7,
@@ -826,6 +878,24 @@ const MultiIndividualTab = ({
       pa_cutpoint_sl: 15,
       pa_cutpoint_lm: 35,
       pa_cutpoint_mv: 70,
+    });
+
+    // Reset input strings to defaults
+    setBulkPreprocessInputStrings({
+      autocalib_sd_criter: "0.00013",
+      autocalib_sphere_crit: "0.02",
+      filter_cutoff: "2",
+      wear_sd_crit: "0.00013",
+      wear_range_crit: "0.00067",
+      wear_window_length: "45",
+      wear_window_skip: "7",
+      required_daily_coverage: "0.5",
+    });
+    setBulkFeatureInputStrings({
+      sleep_ck_sf: "0.0025",
+      pa_cutpoint_sl: "15",
+      pa_cutpoint_lm: "35",
+      pa_cutpoint_mv: "70",
     });
 
     // Clear file input
@@ -1474,16 +1544,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="Auto-calibration SD Criterion"
                               type="text"
-                              value={bulkPreprocessParams.autocalib_sd_criter}
+                              value={bulkPreprocessInputStrings.autocalib_sd_criter}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkPreprocessParamChange(
                                     "autocalib_sd_criter",
                                     value
@@ -1501,16 +1565,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="Auto-calibration Sphere Criterion"
                               type="text"
-                              value={bulkPreprocessParams.autocalib_sphere_crit}
+                              value={bulkPreprocessInputStrings.autocalib_sphere_crit}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkPreprocessParamChange(
                                     "autocalib_sphere_crit",
                                     value
@@ -1547,16 +1605,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="Filter Cutoff"
                               type="text"
-                              value={bulkPreprocessParams.filter_cutoff}
+                              value={bulkPreprocessInputStrings.filter_cutoff}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkPreprocessParamChange(
                                     "filter_cutoff",
                                     value
@@ -1574,16 +1626,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="Wear SD Criterion"
                               type="text"
-                              value={bulkPreprocessParams.wear_sd_crit}
+                              value={bulkPreprocessInputStrings.wear_sd_crit}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkPreprocessParamChange(
                                     "wear_sd_crit",
                                     value
@@ -1601,16 +1647,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="Wear Range Criterion"
                               type="text"
-                              value={bulkPreprocessParams.wear_range_crit}
+                              value={bulkPreprocessInputStrings.wear_range_crit}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkPreprocessParamChange(
                                     "wear_range_crit",
                                     value
@@ -1628,16 +1668,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="Wear Window Length"
                               type="text"
-                              value={bulkPreprocessParams.wear_window_length}
+                              value={bulkPreprocessInputStrings.wear_window_length}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkPreprocessParamChange(
                                     "wear_window_length",
                                     value
@@ -1655,16 +1689,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="Wear Window Skip"
                               type="text"
-                              value={bulkPreprocessParams.wear_window_skip}
+                              value={bulkPreprocessInputStrings.wear_window_skip}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkPreprocessParamChange(
                                     "wear_window_skip",
                                     value
@@ -1704,17 +1732,11 @@ const MultiIndividualTab = ({
                               label="Required Daily Coverage (0-1)"
                               type="text"
                               value={
-                                bulkPreprocessParams.required_daily_coverage
+                                bulkPreprocessInputStrings.required_daily_coverage
                               }
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkPreprocessParamChange(
                                     "required_daily_coverage",
                                     value
@@ -1767,16 +1789,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="Sleep CK SF"
                               type="text"
-                              value={bulkFeatureParams.sleep_ck_sf}
+                              value={bulkFeatureInputStrings.sleep_ck_sf}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkFeatureParamChange(
                                     "sleep_ck_sf",
                                     value
@@ -1794,16 +1810,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="PA Cutpoint Sedentary-Light"
                               type="text"
-                              value={bulkFeatureParams.pa_cutpoint_sl}
+                              value={bulkFeatureInputStrings.pa_cutpoint_sl}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkFeatureParamChange(
                                     "pa_cutpoint_sl",
                                     value
@@ -1821,16 +1831,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="PA Cutpoint Light-Moderate"
                               type="text"
-                              value={bulkFeatureParams.pa_cutpoint_lm}
+                              value={bulkFeatureInputStrings.pa_cutpoint_lm}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkFeatureParamChange(
                                     "pa_cutpoint_lm",
                                     value
@@ -1848,16 +1852,10 @@ const MultiIndividualTab = ({
                               fullWidth
                               label="PA Cutpoint Moderate-Vigorous"
                               type="text"
-                              value={bulkFeatureParams.pa_cutpoint_mv}
+                              value={bulkFeatureInputStrings.pa_cutpoint_mv}
                               onChange={(e) => {
                                 let value = e.target.value.replace(/,/g, ".");
-                                if (
-                                  /^(\d*\.?\d*|\d+\.?\d*)([eE][-+]?\d+)?$/.test(
-                                    value
-                                  ) ||
-                                  value === "" ||
-                                  value === "."
-                                ) {
+                                if (isValidNumericInput(value)) {
                                   handleBulkFeatureParamChange(
                                     "pa_cutpoint_mv",
                                     value
