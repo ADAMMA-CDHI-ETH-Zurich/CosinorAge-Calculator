@@ -12,7 +12,7 @@
 
 A web application for analyzing accelerometer and ENMO data with drag-and-drop functionality and interactive visualizations.
 
-## ✨ Features
+## Features
 
 - 📁 Drag and drop interface for file upload
 - 📊 Support for CSV and JSON files
@@ -20,7 +20,7 @@ A web application for analyzing accelerometer and ENMO data with drag-and-drop f
 - ⚡ Real-time data processing
 - 🎨 Modern, responsive UI
 
-## 🎥 Demo Video
+## Demo Video
 
 <div align="center">
 
@@ -46,11 +46,11 @@ The easiest way to run the application is using Docker:
 
 ### Other Commands
 ```bash
-./cosinorlab.sh restart-dev      # 🔄 Restart development containers and open browser
-./cosinorlab.sh restart-prod     # 🔄 Restart production containers and open browser
-./cosinorlab.sh stop             # ⏹️ Stop all containers
-./cosinorlab.sh status           # 📊 Show container status
-./cosinorlab.sh open             # 🌐 Open frontend in browser
+./cosinorlab.sh restart-dev      # Restart development containers and open browser
+./cosinorlab.sh restart-prod     # Restart production containers and open browser
+./cosinorlab.sh stop             # Stop all containers
+./cosinorlab.sh status           # Show container status
+./cosinorlab.sh open             # Open frontend in browser
 ```
 
 ## Manual Setup
@@ -98,7 +98,7 @@ npm start
 3. **View the processed data** and visualizations
 4. **Interact with the charts** to explore your data
 
-## 📋 File Format
+## File Format
 
 The application expects accelerometer data in CSV or JSON format. The data should contain columns for the accelerometer readings (typically x, y, z axes).
 
