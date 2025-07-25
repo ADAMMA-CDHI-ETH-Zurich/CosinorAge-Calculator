@@ -11,11 +11,7 @@ A web application for analyzing accelerometer data with drag-and-drop functional
 - Modern, responsive UI
 
 ## Demo Video
-
-<video width="100%" controls>
-  <source src="media/CosinorLab_Demo_v1.0.mov" type="video/quicktime">
-  Your browser does not support the video tag.
-</video>
+<video src="media/CosinorLab_Demo_v1.0.mov" controls="controls">Your browser does not support playing this video!</video>
 
 ## Quick Start (Docker - Recommended)
 
