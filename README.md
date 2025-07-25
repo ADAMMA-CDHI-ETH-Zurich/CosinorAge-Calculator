@@ -10,7 +10,7 @@
 
 </div>
 
-A web application for analyzing accelerometer data with drag-and-drop functionality and interactive visualizations.
+A web application for analyzing accelerometer and ENMO data with drag-and-drop functionality and interactive visualizations.
 
 ## ✨ Features
 
