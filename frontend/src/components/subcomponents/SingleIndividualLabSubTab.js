@@ -3049,7 +3049,7 @@ const SingleIndividualLabSubTab = ({
                                       >
                                         {new Date(label).toLocaleString()}
                                       </p>
-                                      {payload.map((entry, index) => {
+                                      {payload.map((entry, index) => (
                                         <p
                                           key={index}
                                           style={{
@@ -3060,8 +3060,8 @@ const SingleIndividualLabSubTab = ({
                                           {`${
                                             entry.name
                                           }: ${entry.value.toFixed(2)} mg`}
-                                        </p>;
-                                      })}
+                                        </p>
+                                      ))}
                                     </div>
                                   );
                                 }
