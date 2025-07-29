@@ -2811,11 +2811,6 @@ const SingleIndividualLabSubTab = ({
                                   >
                                     <XAxis
                                       dataKey="TIMESTAMP"
-                                      label={{
-                                        value: "Time",
-                                        position: "insideBottom",
-                                        offset: -5,
-                                      }}
                                       tickFormatter={(timestamp) => {
                                         const date = new Date(timestamp);
                                         return date.toLocaleDateString();
@@ -3002,11 +2997,6 @@ const SingleIndividualLabSubTab = ({
                           >
                             <XAxis
                               dataKey="TIMESTAMP"
-                              label={{
-                                value: "Time",
-                                position: "insideBottom",
-                                offset: -5,
-                              }}
                               tickFormatter={(timestamp) => {
                                 const date = new Date(timestamp);
                                 return date.toLocaleDateString();
@@ -3084,6 +3074,13 @@ const SingleIndividualLabSubTab = ({
                               dataKey="ENMO"
                               stroke="#0034f0"
                               dot={false}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="cosinor_fitted"
+                              stroke={CLColors.error}
+                              dot={false}
+                              name="Cosinor Fit"
                             />
                             {/* Shaded background for wear/non-wear segments */}
                             {(() => {

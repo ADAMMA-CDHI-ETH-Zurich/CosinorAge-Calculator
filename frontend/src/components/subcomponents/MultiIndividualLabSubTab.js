@@ -742,21 +742,21 @@ const MultiIndividualTab = ({
       let processedValue = value;
       // Only convert to number if it's a complete valid number
       if (
-        value !== "" &&
-        value !== null &&
+      value !== "" &&
+      value !== null &&
         value !== undefined &&
         value !== "." &&
         value !== "-" &&
         value !== "-." &&
         !isNaN(parseFloat(value))
-      ) {
-        processedValue = parseFloat(value);
-      }
+    ) {
+      processedValue = parseFloat(value);
+    }
 
-      setBulkFeatureParams((prev) => ({
-        ...prev,
-        [param]: processedValue,
-      }));
+    setBulkFeatureParams((prev) => ({
+      ...prev,
+      [param]: processedValue,
+    }));
     } else if (booleanParams.includes(param)) {
       setBulkFeatureParams((prev) => ({
         ...prev,
