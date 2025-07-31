@@ -1,6 +1,6 @@
 # CL Plot Theme Implementation Guide
 
-This guide explains how to implement the CL-inspired plot theme across your CosinorLab application.
+This guide explains how to implement the CL-inspired plot theme across your CosinorAge.LAB application.
 
 ## Overview
 
@@ -319,4 +319,4 @@ def generate_analysis_plot():
 - [ ] Test on different screen sizes
 - [ ] Validate with design team
 
-This implementation ensures all plots in your CosinorLab application maintain the professional, consistent appearance that aligns with CL's design standards. 
+This implementation ensures all plots in your CosinorAge.LAB application maintain the professional, consistent appearance that aligns with CL's design standards. 

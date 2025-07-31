@@ -34,7 +34,7 @@ const HomeTab = ({ setCurrentTab }) => {
               gutterBottom
               sx={{ fontWeight: 600, color: "primary.main" }}
             >
-              Welcome to CosinorLab
+              Welcome to CosinorAge.LAB
             </Typography>
             <Typography
               variant="h5"
@@ -52,7 +52,7 @@ const HomeTab = ({ setCurrentTab }) => {
                 paragraph
                 sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
               >
-                CosinorLab is a research platform that introduces{" "}
+                CosinorAge.LAB is a research platform that introduces{" "}
                 <strong>CosinorAge</strong> - a novel aging biomarker calculated
                 from accelerometer data. While CosinorAge is our main feature,
                 we also provide comprehensive analysis of sleep patterns,
@@ -308,7 +308,7 @@ const HomeTab = ({ setCurrentTab }) => {
                   gutterBottom
                   sx={{ color: "primary.main", fontWeight: 700 }}
                 >
-                  Interactive Lab Analysis
+                  Interactive LAB Analysis
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
                   Turn your smartwatch data into insight — process, analyze, and
@@ -345,7 +345,7 @@ const HomeTab = ({ setCurrentTab }) => {
                   },
                 }}
               >
-                Launch Lab
+                Launch LAB
               </Button>
             </Box>
 
@@ -488,7 +488,7 @@ const HomeTab = ({ setCurrentTab }) => {
                   sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
                 >
                   For researchers and developers who need programmatic access to
-                  our aging biomarker analysis tools, CosinorLab provides a
+                  our aging biomarker analysis tools, CosinorAge.LAB provides a
                   comprehensive Python API. This allows you to integrate our
                   CosinorAge aging biomarker calculation, circadian rhythm
                   analysis, and activity classification into your own research

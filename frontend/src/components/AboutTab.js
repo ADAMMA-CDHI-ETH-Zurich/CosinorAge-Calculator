@@ -14,7 +14,7 @@ const AboutTab = () => {
             <ScienceIcon sx={{ fontSize: 40, color: "primary.main", mr: 2 }} />
             <Box>
               <Typography variant="h4" gutterBottom>
-                About CosinorLab
+                About CosinorAge.LAB
               </Typography>
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 Pioneering CosinorAge & Comprehensive Accelerometer Analysis at
@@ -29,7 +29,7 @@ const AboutTab = () => {
               paragraph
               sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
             >
-              CosinorLab is a research platform developed at ADAMMA (Core for AI
+              CosinorAge.LAB is a research platform developed at ADAMMA (Core for AI
               & Digital Biomarker Research) at ETH Zurich. Our mission is to
               advance health monitoring by pioneering{" "}
               <strong>CosinorAge</strong> - a novel aging biomarker calculated

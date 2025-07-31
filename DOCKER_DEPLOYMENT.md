@@ -1,6 +1,6 @@
-# CosinorLab Docker Deployment Guide
+# CosinorAge.LAB Docker Deployment Guide
 
-This guide explains how to deploy CosinorLab using Docker containers. The application is split into two containers:
+This guide explains how to deploy CosinorAge.LAB using Docker containers. The application is split into two containers:
 - **Backend**: FastAPI service running on port 8000
 - **Frontend**: React app served by Nginx on port 80
 
@@ -16,7 +16,7 @@ This guide explains how to deploy CosinorLab using Docker containers. The applic
 1. **Clone the repository** (if not already done):
    ```bash
    git clone <repository-url>
-   cd CosinorLab
+   cd CosinorAge.LAB
    ```
 
 2. **Run the deployment script**:
@@ -182,7 +182,7 @@ services:
   database:
     image: postgres:13
     environment:
-      POSTGRES_DB: cosinorlab
+      POSTGRES_DB: CosinorAge.LAB
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     volumes:
@@ -292,13 +292,13 @@ docker-compose logs --tail=100 backend
 ### Backup Data
 ```bash
 # Backup extracted files
-docker run --rm -v cosinorlab_backend_data:/data -v $(pwd):/backup alpine tar czf /backup/backend_data_backup.tar.gz -C /data .
+docker run --rm -v CosinorAge.LAB_backend_data:/data -v $(pwd):/backup alpine tar czf /backup/backend_data_backup.tar.gz -C /data .
 ```
 
 ### Restore Data
 ```bash
 # Restore extracted files
-docker run --rm -v cosinorlab_backend_data:/data -v $(pwd):/backup alpine tar xzf /backup/backend_data_backup.tar.gz -C /data
+docker run --rm -v CosinorAge.LAB_backend_data:/data -v $(pwd):/backup alpine tar xzf /backup/backend_data_backup.tar.gz -C /data
 ```
 
 ## Support
@@ -311,4 +311,4 @@ For issues and questions:
 
 ## License
 
-This deployment configuration is part of the CosinorLab project and follows the same license terms. 
+This deployment configuration is part of the CosinorAge.LAB project and follows the same license terms. 

@@ -720,7 +720,7 @@ function App() {
                 lineHeight: 1.1,
               }}
             >
-              CosinorLab
+              CosinorAge.LAB
             </Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -785,7 +785,7 @@ function App() {
               iconPosition="start"
             />
             <Tab
-              label="Lab"
+              label="LAB"
               icon={<ScienceIcon sx={{ fontSize: "1.2rem" }} />}
               iconPosition="start"
             />
@@ -891,11 +891,11 @@ function App() {
         fullWidth
       >
         <DialogTitle>
-          Getting Started with CosinorLab - {currentLabSubTab === "single" ? "Single Individual" : "Multi Individual"}
+          Getting Started with CosinorAge.LAB - {currentLabSubTab === "single" ? "Single Individual" : "Multi Individual"}
         </DialogTitle>
         <DialogContent>
           <Typography variant="body1" paragraph>
-            Welcome to CosinorLab! To help you explore the {currentLabSubTab === "single" ? "single individual" : "multi-individual"} interface, we've
+            Welcome to CosinorAge.LAB! To help you explore the {currentLabSubTab === "single" ? "single individual" : "multi-individual"} interface, we've
             provided a sample file containing mock accelerometer data.
           </Typography>
 

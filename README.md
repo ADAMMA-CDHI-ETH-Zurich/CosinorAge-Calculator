@@ -36,21 +36,21 @@ The easiest way to run the application is using Docker:
 
 ### Development Environment (with hot reloading)
 ```bash
-./cosinorlab.sh deploy-dev
+./CosinorAge.LAB.sh deploy-dev
 ```
 
 ### Production Environment
 ```bash
-./cosinorlab.sh deploy-prod
+./CosinorAge.LAB.sh deploy-prod
 ```
 
 ### Other Commands
 ```bash
-./cosinorlab.sh restart-dev      # Restart development containers and open browser
-./cosinorlab.sh restart-prod     # Restart production containers and open browser
-./cosinorlab.sh stop             # Stop all containers
-./cosinorlab.sh status           # Show container status
-./cosinorlab.sh open             # Open frontend in browser
+./CosinorAge.LAB.sh restart-dev      # Restart development containers and open browser
+./CosinorAge.LAB.sh restart-prod     # Restart production containers and open browser
+./CosinorAge.LAB.sh stop             # Stop all containers
+./CosinorAge.LAB.sh status           # Show container status
+./CosinorAge.LAB.sh open             # Open frontend in browser
 ```
 
 ## Manual Setup

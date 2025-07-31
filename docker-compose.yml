@@ -3,7 +3,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: cosinorlab-backend
+    container_name: CosinorAge.LAB-backend
     ports:
       - "8000:8000"
     environment:
@@ -11,7 +11,7 @@ services:
     volumes:
       - backend_data:/app/extracted_files
     networks:
-      - cosinorlab-network
+      - CosinorAge.LAB-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -24,14 +24,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: cosinorlab-frontend
+    container_name: CosinorAge.LAB-frontend
     ports:
       - "80:80"
     depends_on:
       backend:
         condition: service_healthy
     networks:
-      - cosinorlab-network
+      - CosinorAge.LAB-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
@@ -45,5 +45,5 @@ volumes:
     driver: local
 
 networks:
-  cosinorlab-network:
+  CosinorAge.LAB-network:
     driver: bridge 

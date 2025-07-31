@@ -3,7 +3,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: cosinorlab-backend-dev
+    container_name: CosinorAge.LAB-backend-dev
     environment:
       - PYTHONUNBUFFERED=1
       - LOG_LEVEL=DEBUG
@@ -25,14 +25,14 @@ services:
           memory: 4G
           cpus: '2.0'
     networks:
-      - cosinorlab-network
+      - CosinorAge.LAB-network
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: cosinorlab-frontend-dev
+    container_name: CosinorAge.LAB-frontend-dev
     # Development: mount source code for hot reloading
     volumes:
       - ./frontend:/app
@@ -50,7 +50,7 @@ services:
           memory: 2G
           cpus: '1.0'
     networks:
-      - cosinorlab-network
+      - CosinorAge.LAB-network
     restart: unless-stopped
     depends_on:
       - backend
@@ -61,5 +61,5 @@ volumes:
     driver: local
 
 networks:
-  cosinorlab-network:
+  CosinorAge.LAB-network:
     driver: bridge 
