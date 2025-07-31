@@ -42,7 +42,7 @@ function EnhancedDocumentationTab() {
               },
             }}
           >
-            <Tab label="Lab Documentation" value="lab" />
+            <Tab label="LAB Documentation" value="lab" />
             <Tab label="API Documentation" value="api" />
           </Tabs>
         </Box>
