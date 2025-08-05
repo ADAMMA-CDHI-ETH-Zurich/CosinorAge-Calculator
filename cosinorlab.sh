@@ -3,7 +3,7 @@
 set -e
 
 usage() {
-  echo "Usage: $0 {deploy-prod|deploy-dev|restart-prod|restart-dev|stop|status|open}"
+  echo "Usage: $0 {deploy-prod|deploy-dev|deploy-web|restart-prod|restart-dev|stop|status|open}"
   exit 1
 }
 
@@ -25,6 +25,13 @@ case "$1" in
     echo "✅ Development environment deployed!"
     echo "📱 Frontend: http://localhost (with hot reloading)"
     echo "🔧 Backend API: http://localhost:8000 (with auto-reload)"
+    ;;
+  deploy-web)
+    echo "🚀 Deploying web environment using docker-compose..."
+    docker-compose down
+    docker-compose build --no-cache
+    docker-compose up -d
+    echo "✅ Web environment deployed!"
     ;;
   restart-prod)
     echo "🔄 Restarting production containers..."
