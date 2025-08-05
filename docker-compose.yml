@@ -27,6 +27,9 @@ services:
     container_name: CosinorAge.LAB-frontend
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro  # Mount SSL certificates
     depends_on:
       backend:
         condition: service_healthy
