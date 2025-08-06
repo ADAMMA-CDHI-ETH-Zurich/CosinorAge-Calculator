@@ -3171,7 +3171,7 @@ const SingleIndividualLabSubTab = ({
                                 color="text.secondary"
                                 noWrap
                               >
-                                {key
+                                {key === "mesor" ? "MESOR" : key
                                   .replace(/_/g, " ")
                                   .replace(/\b\w/g, (l) => l.toUpperCase())}
                               </Typography>
