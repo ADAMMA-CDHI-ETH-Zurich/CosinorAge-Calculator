@@ -10,7 +10,8 @@ import shutil
 import tempfile
 import logging
 import zipfile
-from datetime import datetime
+from datetime import datetime, timedelta
+import asyncio
 from cosinorage.features.features import WearableFeatures
 from cosinorage.features.bulk_features import BulkWearableFeatures
 from pydantic import BaseModel
@@ -52,16 +53,111 @@ setup_docs_routes(app)
 # Store uploaded data in memory (in a real app, you'd want to use a proper database)
 uploaded_data = {}
 temp_dirs = {}  # Store temporary directories
+file_upload_times = {}  # Track when files were uploaded
+
+# Cleanup configuration
+CLEANUP_INTERVAL_MINUTES = 10  # Run cleanup every 10 minutes
+FILE_AGE_LIMIT_MINUTES = 10    # Delete files older than 30 minutes
+CLEANUP_TASK_RUNNING = False
+
+
+async def scheduled_cleanup():
+    """
+    Background task that runs every 10 minutes to clean up old files
+    """
+    global CLEANUP_TASK_RUNNING
+    
+    while True:
+        try:
+            if not CLEANUP_TASK_RUNNING:
+                CLEANUP_TASK_RUNNING = True
+                logger.info("Starting scheduled cleanup task")
+                
+                # Calculate cutoff time
+                cutoff_time = datetime.now() - timedelta(minutes=FILE_AGE_LIMIT_MINUTES)
+                
+                # Clean up old files from uploaded_data
+                files_to_remove = []
+                for file_id, upload_time in file_upload_times.items():
+                    if upload_time < cutoff_time:
+                        files_to_remove.append(file_id)
+                
+                for file_id in files_to_remove:
+                    try:
+                        if file_id in uploaded_data:
+                            file_data = uploaded_data[file_id]
+                            
+                            # Clean up temporary directory
+                            if "temp_dir" in file_data and os.path.exists(file_data["temp_dir"]):
+                                shutil.rmtree(file_data["temp_dir"])
+                                logger.info(f"Cleaned up old temp directory: {file_data['temp_dir']}")
+                            
+                            # Clean up permanent directory
+                            if "permanent_dir" in file_data and os.path.exists(file_data["permanent_dir"]):
+                                shutil.rmtree(file_data["permanent_dir"])
+                                logger.info(f"Cleaned up old permanent directory: {file_data['permanent_dir']}")
+                            
+                            # Remove from memory
+                            del uploaded_data[file_id]
+                            if file_id in temp_dirs:
+                                del temp_dirs[file_id]
+                            del file_upload_times[file_id]
+                            
+                            logger.info(f"Cleaned up old file: {file_id}")
+                    except Exception as e:
+                        logger.warning(f"Failed to clean up file {file_id}: {str(e)}")
+                
+                # Clean up old temporary directories that might not be tracked
+                for temp_dir in list(temp_dirs.values()):
+                    try:
+                        if os.path.exists(temp_dir):
+                            # Check if directory is old enough to be cleaned up
+                            dir_time = datetime.fromtimestamp(os.path.getctime(temp_dir))
+                            if dir_time < cutoff_time:
+                                shutil.rmtree(temp_dir)
+                                logger.info(f"Cleaned up old untracked temp directory: {temp_dir}")
+                    except Exception as e:
+                        logger.warning(f"Failed to clean up temp directory {temp_dir}: {str(e)}")
+                
+                # Clean up old files in extracted_files directory
+                if os.path.exists(EXTRACTED_FILES_DIR):
+                    try:
+                        for item in os.listdir(EXTRACTED_FILES_DIR):
+                            item_path = os.path.join(EXTRACTED_FILES_DIR, item)
+                            if os.path.exists(item_path):
+                                item_time = datetime.fromtimestamp(os.path.getctime(item_path))
+                                if item_time < cutoff_time:
+                                    if os.path.isdir(item_path):
+                                        shutil.rmtree(item_path)
+                                    else:
+                                        os.remove(item_path)
+                                    logger.info(f"Cleaned up old extracted file: {item_path}")
+                    except Exception as e:
+                        logger.warning(f"Failed to clean up extracted files directory: {str(e)}")
+                
+                logger.info(f"Scheduled cleanup completed. Removed {len(files_to_remove)} old files.")
+                
+            else:
+                logger.info("Cleanup task already running, skipping this iteration")
+                
+        except Exception as e:
+            logger.error(f"Error in scheduled cleanup: {str(e)}", exc_info=True)
+        finally:
+            CLEANUP_TASK_RUNNING = False
+        
+        # Wait for next cleanup cycle (10 minutes)
+        await asyncio.sleep(CLEANUP_INTERVAL_MINUTES * 60)
 
 
 @app.on_event("startup")
 async def startup_event():
     """
-    Clear all state when the server starts
+    Clear all state when the server starts and start the cleanup task
     """
     # Clear in-memory state
     uploaded_data.clear()
     temp_dirs.clear()
+    file_upload_times.clear()
 
     # Clean up extracted files directory (handle volume mount)
     if os.path.exists(EXTRACTED_FILES_DIR):
@@ -81,7 +177,10 @@ async def startup_event():
     else:
         os.makedirs(EXTRACTED_FILES_DIR, exist_ok=True)
 
-    logger.info("Server started - all state cleared")
+    # Start the scheduled cleanup task
+    asyncio.create_task(scheduled_cleanup())
+    
+    logger.info("Server started - all state cleared and cleanup task started (runs every 10 minutes)")
 
 
 def create_directory_tree(path: str) -> Dict[str, Any]:
@@ -221,6 +320,9 @@ async def upload_file(
                 f"File saved successfully. File size on disk: {len(contents)} bytes")
 
         file_id = str(len(uploaded_data))
+        
+        # Track upload time for cleanup
+        file_upload_times[file_id] = datetime.now()
 
         # Handle based on data source
         if data_source == "samsung_galaxy_binary":
@@ -891,6 +993,8 @@ async def clear_state(file_id: str):
             del uploaded_data[file_id]
             if file_id in temp_dirs:
                 del temp_dirs[file_id]
+            if file_id in file_upload_times:
+                del file_upload_times[file_id]
 
             return {"message": f"State cleared for file {file_id}"}
         else:
@@ -948,6 +1052,7 @@ async def clear_all_state():
         # Clear in-memory state
         uploaded_data.clear()
         temp_dirs.clear()
+        file_upload_times.clear()
 
         logger.info("All state cleared successfully")
         return {"message": "All uploaded data and directories cleared successfully"}
@@ -1124,6 +1229,9 @@ async def bulk_upload_files(files: List[UploadFile] = File(...)) -> Dict[str, An
                 buffer.write(contents)
 
             file_id = str(len(uploaded_data))
+            
+            # Track upload time for cleanup
+            file_upload_times[file_id] = datetime.now()
 
             # Store file info
             uploaded_data[file_id] = {
@@ -1709,6 +1817,126 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
         logger.error(f"Error processing bulk data: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500, detail=f"Error processing bulk data: {str(e)}")
+
+
+class CleanupConfig(BaseModel):
+    cleanup_interval_minutes: Optional[int] = None
+    file_age_limit_minutes: Optional[int] = None
+
+
+@app.get("/cleanup/config")
+async def get_cleanup_config():
+    """
+    Get current cleanup configuration
+    """
+    return {
+        "cleanup_interval_minutes": CLEANUP_INTERVAL_MINUTES,
+        "file_age_limit_minutes": FILE_AGE_LIMIT_MINUTES,
+        "files_tracked": len(file_upload_times),
+        "temp_dirs_tracked": len(temp_dirs),
+        "next_cleanup_in_minutes": CLEANUP_INTERVAL_MINUTES if not CLEANUP_TASK_RUNNING else 0
+    }
+
+
+@app.post("/cleanup/config")
+async def update_cleanup_config(config: CleanupConfig):
+    """
+    Update cleanup configuration
+    """
+    global CLEANUP_INTERVAL_MINUTES, FILE_AGE_LIMIT_MINUTES
+    
+    if config.cleanup_interval_minutes is not None:
+        if config.cleanup_interval_minutes < 1:
+            raise HTTPException(status_code=400, detail="Cleanup interval must be at least 1 minute")
+        CLEANUP_INTERVAL_MINUTES = config.cleanup_interval_minutes
+        logger.info(f"Updated cleanup interval to {CLEANUP_INTERVAL_MINUTES} minutes")
+    
+    if config.file_age_limit_minutes is not None:
+        if config.file_age_limit_minutes < 1:
+            raise HTTPException(status_code=400, detail="File age limit must be at least 1 minute")
+        FILE_AGE_LIMIT_MINUTES = config.file_age_limit_minutes
+        logger.info(f"Updated file age limit to {FILE_AGE_LIMIT_MINUTES} minutes")
+    
+    return {
+        "message": "Cleanup configuration updated successfully",
+        "cleanup_interval_minutes": CLEANUP_INTERVAL_MINUTES,
+        "file_age_limit_minutes": FILE_AGE_LIMIT_MINUTES
+    }
+
+
+@app.post("/cleanup/trigger")
+async def trigger_cleanup():
+    """
+    Manually trigger cleanup
+    """
+    try:
+        logger.info("Manual cleanup triggered")
+        
+        # Calculate cutoff time
+        cutoff_time = datetime.now() - timedelta(minutes=FILE_AGE_LIMIT_MINUTES)
+        
+        # Clean up old files from uploaded_data
+        files_to_remove = []
+        for file_id, upload_time in file_upload_times.items():
+            if upload_time < cutoff_time:
+                files_to_remove.append(file_id)
+        
+        for file_id in files_to_remove:
+            try:
+                if file_id in uploaded_data:
+                    file_data = uploaded_data[file_id]
+                    
+                    # Clean up temporary directory
+                    if "temp_dir" in file_data and os.path.exists(file_data["temp_dir"]):
+                        shutil.rmtree(file_data["temp_dir"])
+                    
+                    # Clean up permanent directory
+                    if "permanent_dir" in file_data and os.path.exists(file_data["permanent_dir"]):
+                        shutil.rmtree(file_data["permanent_dir"])
+                    
+                    # Remove from memory
+                    del uploaded_data[file_id]
+                    if file_id in temp_dirs:
+                        del temp_dirs[file_id]
+                    del file_upload_times[file_id]
+                    
+            except Exception as e:
+                logger.warning(f"Failed to clean up file {file_id}: {str(e)}")
+        
+        # Clean up old temporary directories
+        for temp_dir in list(temp_dirs.values()):
+            try:
+                if os.path.exists(temp_dir):
+                    dir_time = datetime.fromtimestamp(os.path.getctime(temp_dir))
+                    if dir_time < cutoff_time:
+                        shutil.rmtree(temp_dir)
+            except Exception as e:
+                logger.warning(f"Failed to clean up temp directory {temp_dir}: {str(e)}")
+        
+        # Clean up old files in extracted_files directory
+        if os.path.exists(EXTRACTED_FILES_DIR):
+            try:
+                for item in os.listdir(EXTRACTED_FILES_DIR):
+                    item_path = os.path.join(EXTRACTED_FILES_DIR, item)
+                    if os.path.exists(item_path):
+                        item_time = datetime.fromtimestamp(os.path.getctime(item_path))
+                        if item_time < cutoff_time:
+                            if os.path.isdir(item_path):
+                                shutil.rmtree(item_path)
+                            else:
+                                os.remove(item_path)
+            except Exception as e:
+                logger.warning(f"Failed to clean up extracted files directory: {str(e)}")
+        
+        return {
+            "message": f"Manual cleanup completed. Removed {len(files_to_remove)} old files.",
+            "files_removed": len(files_to_remove)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in manual cleanup: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
