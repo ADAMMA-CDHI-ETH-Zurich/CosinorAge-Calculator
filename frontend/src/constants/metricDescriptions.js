@@ -3,7 +3,7 @@ export const metricDescriptions = {
   // Section descriptions
   cosinor: {
     title: "Cosinor Analysis",
-    description: "Cosinor analysis is a mathematical method used to analyze circadian rhythms (24-hour biological cycles). It fits a cosine curve to your activity data to identify patterns in your daily activity cycles. This analysis provides three key parameters: Mesor (average activity level), Amplitude (strength of the rhythm), and Acrophase (timing of peak activity). These metrics help researchers understand how well your body follows natural 24-hour cycles and can indicate overall health and sleep quality.",
+    description: "Cosinor analysis is a mathematical method used to analyze circadian rhythms (24-hour biological cycles). It fits a cosine curve to your activity data to identify patterns in your daily activity cycles. This analysis provides three key parameters: MESOR (average activity level), Amplitude (strength of the rhythm), and Acrophase (timing of peak activity). These metrics help researchers understand how well your body follows natural 24-hour cycles and can indicate overall health and sleep quality.",
   },
   nonparam: {
     title: "Non-parametric Features",
@@ -21,7 +21,7 @@ export const metricDescriptions = {
   // Individual metric descriptions
   // Cosinor
   mesor: {
-    title: "Mesor",
+    title: "MESOR",
     description:
       "The mean value of the fitted cosine curve, representing the average activity level over 24 hours (in mg).",
   },
