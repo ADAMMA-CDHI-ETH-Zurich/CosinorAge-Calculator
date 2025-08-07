@@ -446,6 +446,19 @@ const MultiIndividualTab = ({
     const files = Array.from(event.target.files);
     if (files.length === 0) return;
 
+    // Check file size limits if enabled
+    if (config.ENABLE_FILE_SIZE_LIMIT) {
+      const maxSizeMB = config.getFileSizeLimitMB();
+      for (const file of files) {
+        if (file.size > config.MAX_FILE_SIZE_BYTES) {
+          const fileSizeMB = file.size / (1024 * 1024);
+          setBulkError(`File '${file.name}' is too large. Maximum allowed size is ${maxSizeMB}MB. Your file is ${fileSizeMB.toFixed(1)}MB.`);
+          setBulkUploadProgress(0);
+          return;
+        }
+      }
+    }
+
     setBulkError(null);
     setBulkSuccess(null);
     setBulkUploadProgress(0);

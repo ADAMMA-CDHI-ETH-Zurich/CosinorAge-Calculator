@@ -60,6 +60,10 @@ CLEANUP_INTERVAL_MINUTES = 10  # Run cleanup every 10 minutes
 FILE_AGE_LIMIT_MINUTES = 10    # Delete files older than 30 minutes
 CLEANUP_TASK_RUNNING = False
 
+# File upload configuration
+ENABLE_FILE_SIZE_LIMIT = True  # Global switch to enable/disable file size limit
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB in bytes
+
 
 async def scheduled_cleanup():
     """
@@ -303,6 +307,24 @@ async def upload_file(
         logger.info(
             f"File size: {file.size if hasattr(file, 'size') else 'Unknown'}")
 
+        # Check file size limit if enabled
+        if ENABLE_FILE_SIZE_LIMIT:
+            # Read file content to get actual size
+            file_content = await file.read()
+            file_size = len(file_content)
+            
+            if file_size > MAX_FILE_SIZE_BYTES:
+                max_size_mb = MAX_FILE_SIZE_BYTES / (1024 * 1024)
+                file_size_mb = file_size / (1024 * 1024)
+                raise HTTPException(
+                    status_code=413, 
+                    detail=f"File size ({file_size_mb:.1f}MB) exceeds the maximum allowed size of {max_size_mb}MB"
+                )
+            
+            # Reset file position for later reading
+            await file.seek(0)
+            logger.info(f"File size check passed: {file_size} bytes")
+
         # Create a temporary directory to store the uploaded files
         # Create a temporary directory that won't be automatically deleted
         temp_dir = tempfile.mkdtemp()
@@ -314,10 +336,17 @@ async def upload_file(
         logger.info(f"Saving file to temporary directory: {file_path}")
 
         with open(file_path, "wb") as buffer:
-            contents = await file.read()
-            buffer.write(contents)
-            logger.info(
-                f"File saved successfully. File size on disk: {len(contents)} bytes")
+            if ENABLE_FILE_SIZE_LIMIT:
+                # Use the content we already read for size checking
+                buffer.write(file_content)
+                logger.info(
+                    f"File saved successfully. File size on disk: {len(file_content)} bytes")
+            else:
+                # Read file content normally
+                contents = await file.read()
+                buffer.write(contents)
+                logger.info(
+                    f"File saved successfully. File size on disk: {len(contents)} bytes")
 
         file_id = str(len(uploaded_data))
         
@@ -764,6 +793,18 @@ async def health_check():
     Health check endpoint
     """
     return {"status": "healthy"}
+
+
+@app.get("/config")
+async def get_config():
+    """
+    Get application configuration
+    """
+    return {
+        "enable_file_size_limit": ENABLE_FILE_SIZE_LIMIT,
+        "max_file_size_bytes": MAX_FILE_SIZE_BYTES,
+        "max_file_size_mb": MAX_FILE_SIZE_BYTES / (1024 * 1024)
+    }
 
 
 @app.get("/timezones")
@@ -1217,6 +1258,24 @@ async def bulk_upload_files(files: List[UploadFile] = File(...)) -> Dict[str, An
         for i, file in enumerate(files):
             logger.info(f"Processing file {i+1}: {file.filename}")
 
+            # Check file size limit if enabled
+            if ENABLE_FILE_SIZE_LIMIT:
+                # Read file content to get actual size
+                file_content = await file.read()
+                file_size = len(file_content)
+                
+                if file_size > MAX_FILE_SIZE_BYTES:
+                    max_size_mb = MAX_FILE_SIZE_BYTES / (1024 * 1024)
+                    file_size_mb = file_size / (1024 * 1024)
+                    raise HTTPException(
+                        status_code=413, 
+                        detail=f"File '{file.filename}' size ({file_size_mb:.1f}MB) exceeds the maximum allowed size of {max_size_mb}MB"
+                    )
+                
+                # Reset file position for later reading
+                await file.seek(0)
+                logger.info(f"File size check passed for {file.filename}: {file_size} bytes")
+
             # Create a temporary directory for each file
             temp_dir = tempfile.mkdtemp()
             temp_dirs[str(len(uploaded_data))] = temp_dir
@@ -1225,8 +1284,13 @@ async def bulk_upload_files(files: List[UploadFile] = File(...)) -> Dict[str, An
             file_path = os.path.join(temp_dir, file.filename)
 
             with open(file_path, "wb") as buffer:
-                contents = await file.read()
-                buffer.write(contents)
+                if ENABLE_FILE_SIZE_LIMIT:
+                    # Use the content we already read for size checking
+                    buffer.write(file_content)
+                else:
+                    # Read file content normally
+                    contents = await file.read()
+                    buffer.write(contents)
 
             file_id = str(len(uploaded_data))
             

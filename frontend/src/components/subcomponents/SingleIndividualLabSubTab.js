@@ -500,10 +500,11 @@ const SingleIndividualLabSubTab = ({
     const file = event.target.files[0];
     if (!file) return;
 
-    // File size limit: 2GB
-    const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2GB in bytes
-    if (file.size > MAX_SIZE) {
-      setError("File is too large. Maximum allowed size is 2GB.");
+    // File size limit check
+    if (config.ENABLE_FILE_SIZE_LIMIT && file.size > config.MAX_FILE_SIZE_BYTES) {
+      const maxSizeMB = config.getFileSizeLimitMB();
+      const fileSizeMB = file.size / (1024 * 1024);
+      setError(`File is too large. Maximum allowed size is ${maxSizeMB}MB. Your file is ${fileSizeMB.toFixed(1)}MB.`);
       setUploadProgress(0);
       return;
     }
