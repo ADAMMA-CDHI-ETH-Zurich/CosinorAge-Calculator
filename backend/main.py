@@ -56,8 +56,8 @@ temp_dirs = {}  # Store temporary directories
 file_upload_times = {}  # Track when files were uploaded
 
 # Cleanup configuration
-CLEANUP_INTERVAL_MINUTES = 10  # Run cleanup every 10 minutes
-FILE_AGE_LIMIT_MINUTES = 10    # Delete files older than 30 minutes
+CLEANUP_INTERVAL_MINUTES = 60 * 24 # Run cleanup every day
+FILE_AGE_LIMIT_MINUTES = 60 # Delete files older than 1 hour
 CLEANUP_TASK_RUNNING = False
 
 # File upload configuration

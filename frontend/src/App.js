@@ -649,7 +649,16 @@ function App() {
     localStorage.setItem("currentTab", currentTab.toString());
   }, [currentTab]);
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    try {
+      // Clear all uploaded files and directories from the server
+      await fetch(config.getApiUrl("clear_all_state"), {
+        method: "POST",
+      });
+    } catch (error) {
+      console.warn("Failed to clear server state:", error);
+    }
+
     setData(null);
     setDataSource("");
     setFileType("");

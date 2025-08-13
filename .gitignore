@@ -65,6 +65,7 @@ temp/
 tmp/
 
 media/
+media/*
 
 data/test/GalaxyWatch_Case1_long.zip
 data/test/GalaxyWatch_Case1.zip
