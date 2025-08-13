@@ -64,6 +64,8 @@ logs/
 temp/
 tmp/
 
+media/
+
 data/test/GalaxyWatch_Case1_long.zip
 data/test/GalaxyWatch_Case1.zip
 redeploy-cosinorage.lab.sh
