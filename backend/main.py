@@ -698,7 +698,42 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
         # Keep all columns as they are, just ensure TIMESTAMP is the index name
         df = df.rename(columns={'index': 'TIMESTAMP'})
 
-        df_json = df.to_dict(orient='records')
+        # Clean the data to handle NaN and infinity values for JSON serialization
+        def clean_for_json(obj):
+            if isinstance(obj, dict):
+                return {k: clean_for_json(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [clean_for_json(v) for v in obj]
+            elif isinstance(obj, float):
+                if pd.isna(obj) or np.isinf(obj):
+                    return None
+                return obj
+            elif isinstance(obj, (int, str, bool)) or obj is None:
+                return obj
+            else:
+                return str(obj)
+
+        def safe_isinf(value):
+            """Safely check if a value is infinite, handling non-numeric types"""
+            try:
+                if isinstance(value, (int, float, np.number)):
+                    return np.isinf(value)
+                return False
+            except:
+                return False
+
+        # Clean the DataFrame before converting to JSON
+        cleaned_df = []
+        for _, row in df.iterrows():
+            cleaned_row = {}
+            for col, value in row.items():
+                if pd.isna(value) or safe_isinf(value):
+                    cleaned_row[col] = None
+                else:
+                    cleaned_row[col] = value
+            cleaned_df.append(cleaned_row)
+
+        df_json = cleaned_df
 
         # Extract ENMO timeseries data (similar to bulk processing)
         enmo_timeseries = []
@@ -747,10 +782,10 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
             'handler': handler,
             'data': df_json,
             'features': {
-                'cosinor': cosinor_features,
-                'nonparam': non_parametric_features,
-                'physical_activity': physical_activity_features,
-                'sleep': sleep_features
+                'cosinor': clean_for_json(cosinor_features),
+                'nonparam': clean_for_json(non_parametric_features),
+                'physical_activity': clean_for_json(physical_activity_features),
+                'sleep': clean_for_json(sleep_features)
             },
             'metadata': {
                 'raw_data_frequency': metadata.get('raw_data_frequency'),
@@ -766,10 +801,10 @@ async def process_data(file_id: str, request: ProcessRequest) -> Dict[str, Any]:
             "message": "Data processed successfully",
             "data": df_json,
             "features": {
-                "cosinor": cosinor_features,
-                "nonparam": non_parametric_features,
-                "physical_activity": physical_activity_features,
-                "sleep": sleep_features
+                "cosinor": clean_for_json(cosinor_features),
+                "nonparam": clean_for_json(non_parametric_features),
+                "physical_activity": clean_for_json(physical_activity_features),
+                "sleep": clean_for_json(sleep_features)
             },
             "metadata": {
                 "raw_data_frequency": metadata.get('raw_data_frequency'),
@@ -1434,6 +1469,43 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
             logger.info(f"Number of cosinorage age inputs: {len(request.cosinor_age_inputs)}")
             logger.info(f"Cosinorage age inputs: {request.cosinor_age_inputs}")
         
+        # Detailed logging of all parameters passed from frontend
+        logger.info("=== DETAILED FRONTEND PARAMETERS ===")
+        logger.info(f"Full request object: {request}")
+        logger.info(f"Request model fields: {request.__fields__}")
+        logger.info(f"Request dict: {request.dict()}")
+        
+        # Log each file configuration in detail
+        for i, file_config in enumerate(request.files):
+            logger.info(f"=== FILE {i} CONFIGURATION ===")
+            logger.info(f"File {i} - Full config: {file_config}")
+            logger.info(f"File {i} - File ID: {file_config.get('file_id', 'NOT_SET')}")
+            logger.info(f"File {i} - Data type: {file_config.get('data_type', 'NOT_SET')}")
+            logger.info(f"File {i} - Data unit: {file_config.get('data_unit', 'NOT_SET')}")
+            logger.info(f"File {i} - Timestamp format: {file_config.get('timestamp_format', 'NOT_SET')}")
+            logger.info(f"File {i} - Time column: {file_config.get('time_column', 'NOT_SET')}")
+            logger.info(f"File {i} - Data columns: {file_config.get('data_columns', 'NOT_SET')}")
+            logger.info(f"File {i} - Timezone: {file_config.get('time_zone', 'NOT_SET')}")
+            logger.info(f"File {i} - Timezone type: {type(file_config.get('time_zone')) if file_config.get('time_zone') else 'None'}")
+        
+        # Log preprocessing parameters in detail
+        logger.info("=== PREPROCESSING PARAMETERS ===")
+        for key, value in request.preprocess_args.items():
+            logger.info(f"Preprocess {key}: {value} (type: {type(value)})")
+        
+        # Log feature parameters in detail
+        logger.info("=== FEATURE PARAMETERS ===")
+        for key, value in request.features_args.items():
+            logger.info(f"Feature {key}: {value} (type: {type(value)})")
+        
+        # Log cosinorage parameters if enabled
+        if request.enable_cosinorage:
+            logger.info("=== COSINORAGE PARAMETERS ===")
+            for i, cosinor_input in enumerate(request.cosinor_age_inputs):
+                logger.info(f"Cosinorage input {i}: {cosinor_input}")
+        
+        logger.info("=== END DETAILED FRONTEND PARAMETERS ===")
+        
         # Log file configurations to debug timezone issue
         for i, file_config in enumerate(request.files):
             logger.info(f"File {i} config: {file_config}")
@@ -1581,6 +1653,18 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
                     logger.info(f"Using timezone=None for {timestamp_format} format to avoid timezone-aware data conflicts")
                     time_zone = None
                 
+                # Log all parameters being passed to GenericDataHandler
+                logger.info(f"=== GENERIC DATA HANDLER PARAMETERS FOR FILE {file_id} ===")
+                logger.info(f"File path: {file_data['file_path']}")
+                logger.info(f"Data format: csv")
+                logger.info(f"Data type: {data_type}")
+                logger.info(f"Time format: {timestamp_format}")
+                logger.info(f"Time column: {time_column}")
+                logger.info(f"Time zone: {time_zone} (type: {type(time_zone)})")
+                logger.info(f"Data columns: {data_columns}")
+                logger.info(f"Preprocess args: {request.preprocess_args}")
+                logger.info(f"Verbose: True")
+                
                 # Create GenericDataHandler for each file
                 handler = GenericDataHandler(
                     file_path=file_data["file_path"],
@@ -1667,6 +1751,14 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
             
             logger.info(f"Prepared {len(cosinor_age_inputs)} cosinorage inputs for {len(handlers)} handlers")
 
+        # Log BulkWearableFeatures parameters
+        logger.info("=== BULK WEARABLE FEATURES PARAMETERS ===")
+        logger.info(f"Number of handlers: {len(handlers)}")
+        logger.info(f"Features args: {request.features_args}")
+        logger.info(f"Cosinorage enabled: {request.enable_cosinorage}")
+        if request.enable_cosinorage:
+            logger.info(f"Cosinorage age inputs: {cosinor_age_inputs}")
+        
         if request.enable_cosinorage:
             bulk_features = BulkWearableFeatures(
                 handlers=handlers,
@@ -1684,6 +1776,27 @@ async def bulk_process_data(request: BulkProcessRequest) -> Dict[str, Any]:
 
         # Get individual features
         individual_features = bulk_features.get_individual_features()
+        
+        # Log individual features, especially M10 values
+        logger.info("=== INDIVIDUAL FEATURES ANALYSIS ===")
+        logger.info(f"Number of individual features: {len(individual_features) if individual_features else 0}")
+        for i, features in enumerate(individual_features):
+            logger.info(f"=== FEATURES FOR HANDLER {i} ===")
+            if features and 'nonparam' in features:
+                nonparam = features['nonparam']
+                logger.info(f"Handler {i} - Non-parametric features: {nonparam}")
+                if 'M10' in nonparam:
+                    m10_value = nonparam['M10']
+                    logger.info(f"Handler {i} - M10 value: {m10_value} (type: {type(m10_value)})")
+                    if isinstance(m10_value, list):
+                        logger.info(f"Handler {i} - M10 list length: {len(m10_value)}")
+                        logger.info(f"Handler {i} - M10 list values: {m10_value}")
+                    elif isinstance(m10_value, (int, float)):
+                        logger.info(f"Handler {i} - M10 scalar value: {m10_value}")
+                else:
+                    logger.info(f"Handler {i} - M10 not found in non-parametric features")
+            else:
+                logger.info(f"Handler {i} - No non-parametric features found")
 
         # Get failed handlers
         failed_handlers = bulk_features.get_failed_handlers()
