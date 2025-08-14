@@ -27,12 +27,15 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import InfoIcon from "@mui/icons-material/Info";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import logo from "./assets/eth_logo.png";
+import harvardLogo from "./assets/harvard_logo.png";
 import singleDemoVideo from "./assets/CL_Single_Demo.mp4";
 import multiDemoVideo from "./assets/CL_Multi_Demo.mp4";
 import HomeTab from "./components/HomeTab";
 import DocumentationTab from "./components/DocumentationTab";
 import LabTab from "./components/LabTab";
 import AboutTab from "./components/AboutTab";
+import ParallaxBackground from "./components/ParallaxBackground";
+import ModernLoadingSpinner from "./components/ModernLoadingSpinner";
 import config from "./config";
 import { appTheme } from "./theme";
 import { useTimer } from "./hooks/useTimer";
@@ -214,7 +217,7 @@ function EnhancedAppBar({ currentTab, handleTabChange }) {
         </Box>
         
         <Fade in timeout={1000}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <a
               href="https://ethz.ch"
               target="_blank"
@@ -225,8 +228,7 @@ function EnhancedAppBar({ currentTab, handleTabChange }) {
                 src={logo}
                 alt="ETH Logo"
                 style={{
-                  height: "30px",
-                  marginLeft: "16px",
+                  height: "28px",
                   filter: "brightness(0) invert(1)",
                   transition: 'all 0.2s ease',
                   cursor: 'pointer',
@@ -238,6 +240,52 @@ function EnhancedAppBar({ currentTab, handleTabChange }) {
                   e.target.style.opacity = '1';
                 }}
               />
+            </a>
+            <a
+              href="https://www.harvard.edu"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none' }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                <img
+                  src={harvardLogo}
+                  alt="Harvard Logo"
+                  style={{
+                    height: "32px",
+                    backgroundColor: "transparent",
+                    transition: 'all 0.2s ease',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.opacity = '0.8';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.opacity = '1';
+                  }}
+                />
+                <img
+                  src={harvardLogo}
+                  alt="Harvard Logo Text"
+                  style={{
+                    height: "32px",
+                    filter: "brightness(0) invert(1)",
+                    backgroundColor: "transparent",
+                    transition: 'all 0.2s ease',
+                    cursor: 'pointer',
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    clipPath: 'polygon(27% 0%, 100% 0%, 100% 100%, 27% 100%)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.opacity = '0.8';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.opacity = '1';
+                  }}
+                />
+              </Box>
             </a>
           </Box>
         </Fade>
@@ -331,6 +379,7 @@ function App() {
   const [timezone, setTimezone] = useState("UTC");
   const [timezoneContinent, setTimezoneContinent] = useState("");
   const [timezoneCity, setTimezoneCity] = useState("");
+  const videoRef = useRef(null);
 
   // Update dataType when fileType changes
   useEffect(() => {
@@ -924,102 +973,120 @@ function App() {
     window.scrollTo(0, 0);
   }, [currentTab]);
 
+  // Auto-play video when getting started dialog opens
+  useEffect(() => {
+    if (gettingStartedOpen && videoRef.current) {
+      // Small delay to ensure video is loaded
+      const timer = setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.play().catch(error => {
+            console.log('Auto-play prevented by browser:', error);
+          });
+        }
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [gettingStartedOpen, currentLabSubTab]);
+
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
-      <Box
-        sx={{ flexGrow: 1, minHeight: "100vh", bgcolor: "background.default" }}
-      >
-        <EnhancedAppBar currentTab={currentTab} handleTabChange={handleTabChange} />
+      <ParallaxBackground>
+        <Box
+          sx={{ flexGrow: 1, minHeight: "100vh" }}
+        >
+          <EnhancedAppBar currentTab={currentTab} handleTabChange={handleTabChange} />
 
-        {/* Back to top anchor */}
-        <Box id="back-to-top-anchor" />
-        
-        <Container maxWidth="lg" sx={{ mt: 20, mb: 4 }}>
-          {currentTab === 0 && <HomeTab setCurrentTab={setCurrentTab} />}
-          {currentTab === 1 && <DocumentationTab />}
-          {currentTab === 2 && (
-            <LabTab
-              data={data}
-              setData={setData}
-              dataSource={dataSource}
-              setDataSource={setDataSource}
-              predictedAge={predictedAge}
-              setPredictedAge={setPredictedAge}
-              chronologicalAge={chronologicalAge}
-              setChronologicalAge={setChronologicalAge}
-              gender={gender}
-              setGender={setGender}
-              error={error}
-              setError={setError}
-              success={success}
-              setSuccess={setSuccess}
-              processing={processing}
-              setProcessing={setProcessing}
-              processingTime={processingTime}
-              setProcessingTime={setProcessingTime}
-              timerInterval={timerInterval}
-              setTimerInterval={setTimerInterval}
-              dragActive={dragActive}
-              setDragActive={setDragActive}
-              uploadProgress={uploadProgress}
-              setUploadProgress={setUploadProgress}
-              fileInputRef={fileInputRef}
-              preprocessDialogOpen={preprocessDialogOpen}
-              setPreprocessDialogOpen={setPreprocessDialogOpen}
-              preprocessParams={preprocessParams}
-              setPreprocessParams={setPreprocessParams}
-              featureParams={featureParams}
-              setFeatureParams={setFeatureParams}
-              gettingStartedOpen={gettingStartedOpen}
-              setGettingStartedOpen={setGettingStartedOpen}
-              fileType={fileType}
-              setFileType={setFileType}
-              dataType={dataType}
-              setDataType={setDataType}
-              dataUnit={dataUnit}
-              setDataUnit={setDataUnit}
-              timestampFormat={timestampFormat}
-              setTimestampFormat={setTimestampFormat}
-              isGeneric={isGeneric}
-              setIsGeneric={setIsGeneric}
-              genericDataType={genericDataType}
-              setGenericDataType={setGenericDataType}
-              genericTimeFormat={genericTimeFormat}
-              setGenericTimeFormat={setGenericTimeFormat}
-              genericTimeColumn={genericTimeColumn}
-              setGenericTimeColumn={setGenericTimeColumn}
-              genericDataColumns={genericDataColumns}
-              setGenericDataColumns={setGenericDataColumns}
-              setCurrentLabSubTab={setCurrentLabSubTab}
-              csvColumns={csvColumns}
-              setCsvColumns={setCsvColumns}
-              csvPreview={csvPreview}
-              setCsvPreview={setCsvPreview}
-              showColumnSelection={showColumnSelection}
-              setShowColumnSelection={setShowColumnSelection}
-              selectedTimeColumn={selectedTimeColumn}
-              setSelectedTimeColumn={setSelectedTimeColumn}
-              selectedDataColumns={selectedDataColumns}
-              setSelectedDataColumns={setSelectedDataColumns}
-              columnSelectionComplete={columnSelectionComplete}
-              setColumnSelectionComplete={setColumnSelectionComplete}
-              timezone={timezone}
-              setTimezone={setTimezone}
-              timezoneContinent={timezoneContinent}
-              setTimezoneContinent={setTimezoneContinent}
-              timezoneCity={timezoneCity}
-              setTimezoneCity={setTimezoneCity}
-              handleFileUpload={handleFileUploadWithParams}
-              handleDrag={handleDragWithParams}
-              handleDrop={handleDropWithParams}
-              handleReset={handleReset}
-            />
-          )}
+          {/* Back to top anchor */}
+          <Box id="back-to-top-anchor" />
+          
+          <Container maxWidth="lg" sx={{ mt: 20, mb: 4 }}>
+            {currentTab === 0 && <HomeTab setCurrentTab={setCurrentTab} />}
+            {currentTab === 1 && <DocumentationTab />}
+            {currentTab === 2 && (
+              <LabTab
+                data={data}
+                setData={setData}
+                dataSource={dataSource}
+                setDataSource={setDataSource}
+                predictedAge={predictedAge}
+                setPredictedAge={setPredictedAge}
+                chronologicalAge={chronologicalAge}
+                setChronologicalAge={setChronologicalAge}
+                gender={gender}
+                setGender={setGender}
+                error={error}
+                setError={setError}
+                success={success}
+                setSuccess={setSuccess}
+                processing={processing}
+                setProcessing={setProcessing}
+                processingTime={processingTime}
+                setProcessingTime={setProcessingTime}
+                timerInterval={timerInterval}
+                setTimerInterval={setTimerInterval}
+                dragActive={dragActive}
+                setDragActive={setDragActive}
+                uploadProgress={uploadProgress}
+                setUploadProgress={setUploadProgress}
+                fileInputRef={fileInputRef}
+                preprocessDialogOpen={preprocessDialogOpen}
+                setPreprocessDialogOpen={setPreprocessDialogOpen}
+                preprocessParams={preprocessParams}
+                setPreprocessParams={setPreprocessParams}
+                featureParams={featureParams}
+                setFeatureParams={setFeatureParams}
+                gettingStartedOpen={gettingStartedOpen}
+                setGettingStartedOpen={setGettingStartedOpen}
+                fileType={fileType}
+                setFileType={setFileType}
+                dataType={dataType}
+                setDataType={setDataType}
+                dataUnit={dataUnit}
+                setDataUnit={setDataUnit}
+                timestampFormat={timestampFormat}
+                setTimestampFormat={setTimestampFormat}
+                isGeneric={isGeneric}
+                setIsGeneric={setIsGeneric}
+                genericDataType={genericDataType}
+                setGenericDataType={setGenericDataType}
+                genericTimeFormat={genericTimeFormat}
+                setGenericTimeFormat={setGenericTimeFormat}
+                genericTimeColumn={genericTimeColumn}
+                setGenericTimeColumn={setGenericTimeColumn}
+                genericDataColumns={genericDataColumns}
+                setGenericDataColumns={setGenericDataColumns}
+                setCurrentLabSubTab={setCurrentLabSubTab}
+                csvColumns={csvColumns}
+                setCsvColumns={setCsvColumns}
+                csvPreview={csvPreview}
+                setCsvPreview={setCsvPreview}
+                showColumnSelection={showColumnSelection}
+                setShowColumnSelection={setShowColumnSelection}
+                selectedTimeColumn={selectedTimeColumn}
+                setSelectedTimeColumn={setSelectedTimeColumn}
+                selectedDataColumns={selectedDataColumns}
+                setSelectedDataColumns={setSelectedDataColumns}
+                columnSelectionComplete={columnSelectionComplete}
+                setColumnSelectionComplete={setColumnSelectionComplete}
+                timezone={timezone}
+                setTimezone={setTimezone}
+                timezoneContinent={timezoneContinent}
+                setTimezoneContinent={setTimezoneContinent}
+                timezoneCity={timezoneCity}
+                setTimezoneCity={setTimezoneCity}
+                handleFileUpload={handleFileUploadWithParams}
+                handleDrag={handleDragWithParams}
+                handleDrop={handleDropWithParams}
+                handleReset={handleReset}
+              />
+            )}
 
-          {currentTab === 3 && <AboutTab />}
-        </Container>
-      </Box>
+            {currentTab === 3 && <AboutTab />}
+          </Container>
+        </Box>
+      </ParallaxBackground>
 
       {/* Getting Started Dialog */}
       <Dialog
@@ -1160,10 +1227,15 @@ function App() {
               boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
             }}>
               <video
+                ref={videoRef}
                 controls
+                autoPlay
+                muted
+                loop
                 width="100%"
                 style={{ maxWidth: "600px" }}
                 preload="metadata"
+                playsInline
               >
                 <source 
                   src={currentLabSubTab === "single" ? singleDemoVideo : multiDemoVideo} 

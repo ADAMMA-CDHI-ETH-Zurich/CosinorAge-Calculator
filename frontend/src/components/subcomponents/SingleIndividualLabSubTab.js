@@ -2515,14 +2515,14 @@ const SingleIndividualLabSubTab = ({
         <Grid item xs={12}>
           <Paper
             sx={{
-              p: 3,
+              p: 2,
               bgcolor: "#d1d8ff",
               border: "1px solid #0034f0",
             }}
           >
             {/* Processing Summary */}
-            <Box sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: "#0034f0" }}>
+            <Box sx={{ p: 1 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: "#0034f0", mb: 1 }}>
                 Processing Complete
               </Typography>
 
@@ -2531,8 +2531,7 @@ const SingleIndividualLabSubTab = ({
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 1,
-                  mb: 2,
+                  gap: 0.5,
                 }}
               >
                 <Typography
@@ -2753,6 +2752,81 @@ const SingleIndividualLabSubTab = ({
                       </Box>
                     </Grid>
                   </Grid>
+                  
+                  {/* Chain of Thought Reasoning */}
+                  {predictedAge && chronologicalAge && (
+                    <Grid item xs={12}>
+                      <Box sx={{ textAlign: "left", p: 3, mt: 3 }}>
+                        <Typography 
+                          variant="body1" 
+                          color="text.secondary"
+                          sx={{ 
+                            fontStyle: "italic",
+                            backgroundColor: "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)",
+                            borderRadius: 2,
+                            p: 3,
+                            borderLeft: (() => {
+                              const ageDifference = predictedAge - chronologicalAge;
+                              if (ageDifference > 0) {
+                                return "6px solid #d32f2f"; // Red for accelerated aging
+                              } else if (ageDifference < 0) {
+                                return "6px solid #2e7d32"; // Green for slower aging
+                              } else {
+                                return "6px solid #1976d2"; // Blue for normal aging
+                              }
+                            })(),
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                            position: "relative",
+                            "&::before": {
+                              content: '""',
+                              position: "absolute",
+                              top: 0,
+                              right: 0,
+                              width: "100%",
+                              height: "100%",
+                              background: (() => {
+                                const ageDifference = predictedAge - chronologicalAge;
+                                if (ageDifference > 0) {
+                                  return "linear-gradient(135deg, rgba(211, 47, 47, 0.05) 0%, rgba(211, 47, 47, 0.02) 100%)"; // Red tint
+                                } else if (ageDifference < 0) {
+                                  return "linear-gradient(135deg, rgba(46, 125, 50, 0.05) 0%, rgba(46, 125, 50, 0.02) 100%)"; // Green tint
+                                } else {
+                                  return "linear-gradient(135deg, rgba(25, 118, 210, 0.05) 0%, rgba(25, 118, 210, 0.02) 100%)"; // Blue tint
+                                }
+                              })(),
+                              borderRadius: 2,
+                              zIndex: -1
+                            }
+                          }}
+                        >
+                          {(() => {
+                            const ageDifference = predictedAge - chronologicalAge;
+                            const absDifference = Math.abs(ageDifference);
+                            
+                            if (ageDifference > 0) {
+                              return (
+                                <>
+                                  The predicted biological age is <strong>{absDifference.toFixed(1)} years higher</strong> than the chronological age, suggesting <strong>accelerated biological aging</strong>. This may be influenced by factors such as <strong>irregular sleep patterns</strong>, <strong>reduced physical activity</strong>, <strong>disrupted circadian rhythms</strong>, or <strong>lifestyle factors</strong> affecting daily activity cycles.
+                                </>
+                              );
+                            } else if (ageDifference < 0) {
+                              return (
+                                <>
+                                  The predicted biological age is <strong>{absDifference.toFixed(1)} years lower</strong> than the chronological age, suggesting <strong>slower biological aging</strong>. This may be attributed to <strong>consistent sleep patterns</strong>, <strong>regular physical activity</strong>, <strong>well-regulated circadian rhythms</strong>, and <strong>healthy lifestyle habits</strong> that support optimal daily activity cycles.
+                                </>
+                              );
+                            } else {
+                              return (
+                                <>
+                                  The predicted biological age <strong>matches</strong> the chronological age, indicating <strong>normal biological aging</strong>. This suggests <strong>balanced circadian rhythm patterns</strong> with <strong>consistent sleep-wake cycles</strong> and <strong>moderate physical activity levels</strong> that align with expected age-related changes.
+                                </>
+                              );
+                            }
+                          })()}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  )}
                   <Box
                     sx={{
                       display: "flex",

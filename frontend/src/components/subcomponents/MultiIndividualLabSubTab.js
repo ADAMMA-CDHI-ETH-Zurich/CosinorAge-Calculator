@@ -2057,16 +2057,16 @@ const MultiIndividualTab = ({
       {/* Processing Complete Summary */}
       {bulkData && (
         <Grid item xs={12}>
-          <Paper sx={{ p: 3, bgcolor: "#d1d8ff", border: "1px solid #0034f0" }}>
+          <Paper sx={{ p: 2, bgcolor: "#d1d8ff", border: "1px solid #0034f0" }}>
             {/* Processing Summary */}
-            <Box sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: "#0034f0" }}>
+            <Box sx={{ p: 1 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: "#0034f0", mb: 1 }}>
                 Processing Complete
               </Typography>
 
               {/* Processing Summary */}
               <Box
-                sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}
+                sx={{ display: "flex", flexDirection: "column", gap: 0.5, mb: 1 }}
               >
                 <Typography
                   variant="body1"
@@ -2090,7 +2090,7 @@ const MultiIndividualTab = ({
                     </Typography>
                   )}
 
-                <Divider sx={{ my: 1 }} />
+                <Divider sx={{ my: 0.5 }} />
                 <Typography
                   variant="body2"
                   sx={{ fontWeight: 600, color: "#0034f0" }}
@@ -2100,7 +2100,7 @@ const MultiIndividualTab = ({
               </Box>
 
               {/* Action Buttons */}
-              <Box sx={{ mt: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
                 {/* Failed Files Button */}
                 {bulkData.failed_files && bulkData.failed_files.length > 0 && (
                   <Button

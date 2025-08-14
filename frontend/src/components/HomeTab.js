@@ -21,32 +21,59 @@ import ScienceIcon from "@mui/icons-material/Science";
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import CodeIcon from "@mui/icons-material/Code";
 import demoVideo from "../assets/demo_video.mp4";
+import pythonLogo from "../assets/python_logo.svg";
 
 const HomeTab = ({ setCurrentTab }) => {
   return (
     <>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Paper elevation={3} sx={{ p: 4, textAlign: "center" }}>
-            <Typography
-              variant="h3"
-              gutterBottom
-              sx={{ fontWeight: 600, color: "primary.main" }}
+              <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 6, 
+                textAlign: "center",
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '24px',
+                position: 'relative',
+                overflow: 'hidden',
+
+              }}
             >
-              Welcome to CosinorAge Calculator
-            </Typography>
-            <Typography
-              variant="h5"
-              color="text.secondary"
-              gutterBottom
-              sx={{ mb: 4 }}
-            >
-              Novel Aging Biomarker & Comprehensive Accelerometer Analysis
-            </Typography>
+              <Typography
+                variant="h2"
+                gutterBottom
+                sx={{ 
+                  fontWeight: 700, 
+                  color: "primary.main",
+                  background: 'linear-gradient(135deg, #1A1A1A 0%, #0066CC 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mb: 2,
+                }}
+              >
+                Welcome to CosinorAge Calculator
+              </Typography>
+              <Typography
+                variant="h5"
+                color="text.secondary"
+                gutterBottom
+                sx={{ 
+                  mb: 4,
+                  fontWeight: 500,
+                  letterSpacing: '0.02em',
+                }}
+              >
+                Novel Aging Biomarker & Comprehensive Accelerometer Analysis
+              </Typography>
 
             {/* New introduction section emphasizing CosinorAge */}
-            <Box sx={{ mb: 4, textAlign: "left", maxWidth: 800, mx: "auto" }}>
+            <Box sx={{ mb: 4, textAlign: "left", maxWidth: "100%", mx: "auto" }}>
               <Typography
                 variant="body1"
                 paragraph
@@ -194,30 +221,57 @@ const HomeTab = ({ setCurrentTab }) => {
                     flexDirection: "column",
                     position: "relative",
                     overflow: "visible",
-                    transition:
-                      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '20px',
+                    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                     "&:hover": {
-                      transform: "translateY(-4px)",
-                      boxShadow: 4,
+                      transform: "translateY(-8px) scale(1.02)",
+                      boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
+                      "& .icon-container": {
+                        transform: "translateX(-50%) scale(1.1)",
+                        boxShadow: "0 8px 25px rgba(0, 102, 204, 0.3)",
+                      },
                     },
                   }}
                 >
                   <Box
+                    className="icon-container"
                     sx={{
                       position: "absolute",
-                      top: -20,
+                      top: -35,
                       left: "50%",
                       transform: "translateX(-50%)",
-                      width: 60,
-                      height: 60,
+                      width: 70,
+                      height: 70,
                       borderRadius: "50%",
-                      bgcolor: "primary.light",
+                      background: 'linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 50%, #A0A0A0 100%)',
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                      boxShadow: "0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
+                      "&::before": {
+                        content: '""',
+                        position: 'absolute',
+                        top: -2,
+                        left: -2,
+                        right: -2,
+                        bottom: -2,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #F0F0F0, #D0D0D0, #B0B0B0, #F0F0F0)',
+                        backgroundSize: '200% 200%',
+                        animation: 'gradientRotate 3s ease-in-out infinite',
+                        zIndex: -1,
+                      },
+                      '@keyframes gradientRotate': {
+                        '0%, 100%': { backgroundPosition: '0% 50%' },
+                        '50%': { backgroundPosition: '100% 50%' },
+                      },
                     }}
                   >
-                    <AccessTimeIcon sx={{ fontSize: 30, color: "white" }} />
+                    <AccessTimeIcon sx={{ fontSize: 35, color: "#2C3E50" }} />
                   </Box>
                   <CardContent
                     sx={{
@@ -266,30 +320,57 @@ const HomeTab = ({ setCurrentTab }) => {
                     flexDirection: "column",
                     position: "relative",
                     overflow: "visible",
-                    transition:
-                      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '20px',
+                    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                     "&:hover": {
-                      transform: "translateY(-4px)",
-                      boxShadow: 4,
+                      transform: "translateY(-8px) scale(1.02)",
+                      boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
+                      "& .icon-container": {
+                        transform: "translateX(-50%) scale(1.1)",
+                        boxShadow: "0 8px 25px rgba(0, 102, 204, 0.3)",
+                      },
                     },
                   }}
                 >
                   <Box
+                    className="icon-container"
                     sx={{
                       position: "absolute",
-                      top: -20,
+                      top: -35,
                       left: "50%",
                       transform: "translateX(-50%)",
-                      width: 60,
-                      height: 60,
+                      width: 70,
+                      height: 70,
                       borderRadius: "50%",
-                      bgcolor: "primary.light",
+                      background: 'linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 50%, #A0A0A0 100%)',
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                      boxShadow: "0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
+                      "&::before": {
+                        content: '""',
+                        position: 'absolute',
+                        top: -2,
+                        left: -2,
+                        right: -2,
+                        bottom: -2,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #F0F0F0, #D0D0D0, #B0B0B0, #F0F0F0)',
+                        backgroundSize: '200% 200%',
+                        animation: 'gradientRotate 3s ease-in-out infinite',
+                        zIndex: -1,
+                      },
+                      '@keyframes gradientRotate': {
+                        '0%, 100%': { backgroundPosition: '0% 50%' },
+                        '50%': { backgroundPosition: '100% 50%' },
+                      },
                     }}
                   >
-                    <TimelineIcon sx={{ fontSize: 30, color: "white" }} />
+                    <ScienceIcon sx={{ fontSize: 35, color: "#2C3E50" }} />
                   </Box>
                   <CardContent
                     sx={{
@@ -338,30 +419,57 @@ const HomeTab = ({ setCurrentTab }) => {
                     flexDirection: "column",
                     position: "relative",
                     overflow: "visible",
-                    transition:
-                      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '20px',
+                    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                     "&:hover": {
-                      transform: "translateY(-4px)",
-                      boxShadow: 4,
+                      transform: "translateY(-8px) scale(1.02)",
+                      boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
+                      "& .icon-container": {
+                        transform: "translateX(-50%) scale(1.1)",
+                        boxShadow: "0 8px 25px rgba(123, 31, 162, 0.3)",
+                      },
                     },
                   }}
                 >
                   <Box
+                    className="icon-container"
                     sx={{
                       position: "absolute",
-                      top: -20,
+                      top: -35,
                       left: "50%",
                       transform: "translateX(-50%)",
-                      width: 60,
-                      height: 60,
+                      width: 70,
+                      height: 70,
                       borderRadius: "50%",
-                      bgcolor: "primary.light",
+                      background: 'linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 50%, #A0A0A0 100%)',
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                      boxShadow: "0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
+                      "&::before": {
+                        content: '""',
+                        position: 'absolute',
+                        top: -2,
+                        left: -2,
+                        right: -2,
+                        bottom: -2,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #F0F0F0, #D0D0D0, #B0B0B0, #F0F0F0)',
+                        backgroundSize: '200% 200%',
+                        animation: 'gradientRotate 3s ease-in-out infinite',
+                        zIndex: -1,
+                      },
+                      '@keyframes gradientRotate': {
+                        '0%, 100%': { backgroundPosition: '0% 50%' },
+                        '50%': { backgroundPosition: '100% 50%' },
+                      },
                     }}
                   >
-                    <ShowChartIcon sx={{ fontSize: 30, color: "white" }} />
+                    <ShowChartIcon sx={{ fontSize: 35, color: "#2C3E50" }} />
                   </Box>
                   <CardContent
                     sx={{
@@ -522,7 +630,7 @@ const HomeTab = ({ setCurrentTab }) => {
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <HealthAndSafetyIcon
+                    <CodeIcon
                       sx={{ fontSize: 40, color: "primary.main", mr: 2 }}
                     />
                     <Box>
