@@ -15,11 +15,17 @@ import {
   DialogContentText,
   Button,
   DialogActions,
+  Fade,
+  Slide,
+  useScrollTrigger,
+  Fab,
+  Zoom,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import ScienceIcon from "@mui/icons-material/Science";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import InfoIcon from "@mui/icons-material/Info";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import logo from "./assets/logo.png";
 import singleDemoVideo from "./assets/CL_Single_Demo.mp4";
 import multiDemoVideo from "./assets/CL_Multi_Demo.mp4";
@@ -31,6 +37,207 @@ import config from "./config";
 import { appTheme } from "./theme";
 import { useTimer } from "./hooks/useTimer";
 import { useFileUpload } from "./hooks/useFileUpload";
+
+// Scroll to top component
+function ScrollTop(props) {
+  const { children, window } = props;
+  const trigger = useScrollTrigger({
+    target: window ? window() : undefined,
+    disableHysteresis: true,
+    threshold: 100,
+  });
+
+  const handleClick = (event) => {
+    const anchor = (event.target.ownerDocument || document).querySelector(
+      '#back-to-top-anchor',
+    );
+
+    if (anchor) {
+      anchor.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  };
+
+  return (
+    <Zoom in={trigger}>
+      <Box
+        onClick={handleClick}
+        role="presentation"
+        sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1000 }}
+      >
+        {children}
+      </Box>
+    </Zoom>
+  );
+}
+
+// Enhanced AppBar component
+function EnhancedAppBar({ currentTab, handleTabChange }) {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <AppBar 
+      position="fixed" 
+      sx={{ 
+        bgcolor: 'primary.main',
+        backdropFilter: 'blur(10px)',
+        backgroundColor: scrollY > 50 ? 'rgba(26, 26, 26, 0.9)' : 'rgba(26, 26, 26, 0.95)',
+        transition: 'all 0.3s ease-in-out',
+        boxShadow: scrollY > 50 
+          ? '0 4px 20px rgba(0,0,0,0.15)' 
+          : '0 2px 10px rgba(0,0,0,0.1)',
+        zIndex: 1200,
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+      }}
+    >
+      {/* Horizontal scrolling progress bar */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '3px',
+          background: 'linear-gradient(90deg, rgba(255,255,255,0.8), rgba(255,255,255,0.6))',
+          transform: `scaleX(${Math.min(scrollY / (document.documentElement.scrollHeight - window.innerHeight), 1)})`,
+          transformOrigin: 'left',
+          transition: 'transform 0.1s ease-out',
+          zIndex: 1201,
+          boxShadow: '0 1px 3px rgba(255,255,255,0.2)',
+        }}
+      />
+      
+      <Toolbar sx={{ minHeight: '64px !important', py: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <Fade in timeout={800}>
+            <Typography
+              variant="h4"
+              component="div"
+              sx={{
+                flexGrow: 0,
+                fontWeight: 700,
+                letterSpacing: 0.5,
+                pl: 0,
+                ml: 0,
+                color: "white",
+                lineHeight: 1.1,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  opacity: 0.9,
+                }
+              }}
+            >
+              CosinorAge Calculator
+            </Typography>
+          </Fade>
+          
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            sx={{
+              bgcolor: 'transparent',
+              borderBottom: 'none',
+              minHeight: 48,
+              "& .MuiTabs-indicator": {
+                backgroundColor: "white",
+                height: 2,
+                borderRadius: '1px',
+              },
+              "& .MuiTabs-flexContainer": {
+                justifyContent: "flex-start",
+                gap: 1,
+              },
+              "& .MuiTab-root": {
+                textTransform: "none",
+                fontWeight: 500,
+                fontSize: "0.9rem",
+                minWidth: 100,
+                padding: "8px 16px",
+                color: "rgba(255,255,255,0.7)",
+                minHeight: 48,
+                borderRadius: '4px',
+                transition: 'all 0.2s ease',
+                position: 'relative',
+                "&.Mui-selected": {
+                  color: "white",
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  "& .MuiSvgIcon-root": {
+                    color: "white",
+                  }
+                },
+                "&:hover": {
+                  color: "white",
+                  backgroundColor: "rgba(255,255,255,0.08)",
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "currentColor",
+                  transition: 'all 0.2s ease',
+                  marginRight: '6px',
+                  fontSize: '1.1rem',
+                },
+              },
+            }}
+          >
+            <Tab
+              label="Home"
+              icon={<HomeIcon sx={{ fontSize: "1.3rem" }} />}
+              iconPosition="start"
+            />
+            <Tab
+              label="Documentation"
+              icon={<MenuBookIcon sx={{ fontSize: "1.3rem" }} />}
+              iconPosition="start"
+            />
+            <Tab
+              label="Calculator"
+              icon={<ScienceIcon sx={{ fontSize: "1.3rem" }} />}
+              iconPosition="start"
+            />
+            <Tab
+              label="About"
+              icon={<InfoIcon sx={{ fontSize: "1.3rem" }} />}
+              iconPosition="start"
+            />
+          </Tabs>
+        </Box>
+        
+        <Fade in timeout={1000}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <img
+              src={logo}
+              alt="Logo"
+              style={{
+                height: "40px",
+                marginLeft: "16px",
+                filter: "brightness(0) invert(1)",
+                transition: 'all 0.2s ease',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.opacity = '0.8';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.opacity = '1';
+              }}
+            />
+          </Box>
+        </Fade>
+      </Toolbar>
+    </AppBar>
+  );
+}
 
 function App() {
   // Use custom hooks for timer and file upload functionality
@@ -716,99 +923,12 @@ function App() {
       <Box
         sx={{ flexGrow: 1, minHeight: "100vh", bgcolor: "background.default" }}
       >
-        <AppBar position="static" sx={{ bgcolor: "primary.main" }}>
-          <Toolbar>
-            <Typography
-              variant="h4"
-              component="div"
-              sx={{
-                flexGrow: 0,
-                fontWeight: 800,
-                letterSpacing: 1,
-                pl: 0,
-                ml: 0,
-                color: "white",
-                lineHeight: 1.1,
-              }}
-            >
-              CosinorAge Calculator
-            </Typography>
-            <Box sx={{ flexGrow: 1 }} />
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <img
-                src={logo}
-                alt="Logo"
-                style={{
-                  height: "40px",
-                  marginLeft: "16px",
-                  filter: "brightness(0) invert(1)", // This makes the logo white
-                }}
-              />
-            </Box>
-          </Toolbar>
-          <Tabs
-            value={currentTab}
-            onChange={handleTabChange}
-            sx={{
-              bgcolor: "primary.main",
-              borderBottom: 1,
-              borderColor: "primary.dark",
-              maxWidth: 600,
-              mx: "auto",
-              minHeight: 48,
-              "& .MuiTabs-indicator": {
-                backgroundColor: "white",
-                height: 2,
-              },
-              "& .MuiTabs-flexContainer": {
-                justifyContent: "center",
-              },
-              "& .MuiTab-root": {
-                textTransform: "none",
-                fontWeight: 500,
-                fontSize: "0.9rem",
-                minWidth: 100,
-                padding: "8px 12px",
-                color: "white",
-                minHeight: 48,
-                "&.Mui-selected": {
-                  color: "white",
-                  fontWeight: 600,
-                },
-                "&:hover": {
-                  color: "white",
-                  backgroundColor: "primary.dark",
-                },
-                "& .MuiSvgIcon-root": {
-                  color: "white",
-                },
-              },
-            }}
-          >
-            <Tab
-              label="Home"
-              icon={<HomeIcon sx={{ fontSize: "1.2rem" }} />}
-              iconPosition="start"
-            />
-            <Tab
-              label="Documentation"
-              icon={<MenuBookIcon sx={{ fontSize: "1.2rem" }} />}
-              iconPosition="start"
-            />
-            <Tab
-              label="Calculator"
-              icon={<ScienceIcon sx={{ fontSize: "1.2rem" }} />}
-              iconPosition="start"
-            />
-            <Tab
-              label="About"
-              icon={<InfoIcon sx={{ fontSize: "1.2rem" }} />}
-              iconPosition="start"
-            />
-          </Tabs>
-        </AppBar>
+        <EnhancedAppBar currentTab={currentTab} handleTabChange={handleTabChange} />
 
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        {/* Back to top anchor */}
+        <Box id="back-to-top-anchor" />
+        
+        <Container maxWidth="lg" sx={{ mt: 20, mb: 4 }}>
           {currentTab === 0 && <HomeTab setCurrentTab={setCurrentTab} />}
           {currentTab === 1 && <DocumentationTab />}
           {currentTab === 2 && (
@@ -1086,6 +1206,27 @@ function App() {
           <Button onClick={() => setGettingStartedOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
+
+             <ScrollTop>
+         <Fab 
+           color="primary" 
+           size="small" 
+           aria-label="scroll back to top"
+           sx={{
+             backgroundColor: 'rgba(255,255,255,0.9)',
+             color: '#1A1A1A',
+             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+             transition: 'all 0.2s ease',
+             '&:hover': {
+               backgroundColor: 'rgba(255,255,255,1)',
+               transform: 'translateY(-1px)',
+               boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+             }
+           }}
+         >
+           <KeyboardArrowUpIcon />
+         </Fab>
+       </ScrollTop>
     </ThemeProvider>
   );
 }

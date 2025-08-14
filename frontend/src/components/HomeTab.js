@@ -91,7 +91,7 @@ const HomeTab = ({ setCurrentTab }) => {
                     height: 0,
                     borderStyle: "solid",
                     borderWidth: "0 20px 20px 0",
-                    borderColor: "transparent primary.main transparent transparent"
+                    borderColor: "transparent #2D2D2D transparent transparent"
                   }}
                 />
                 <Typography

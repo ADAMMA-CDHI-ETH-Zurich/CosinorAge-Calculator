@@ -113,6 +113,11 @@ export const appTheme = createTheme({
     },
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        // Clean, minimal styling
+      },
+    },
     MuiPaper: {
       styleOverrides: {
         root: {
