@@ -241,52 +241,6 @@ function EnhancedAppBar({ currentTab, handleTabChange }) {
                 }}
               />
             </a>
-            <a
-              href="https://www.harvard.edu"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ textDecoration: 'none' }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                <img
-                  src={harvardLogo}
-                  alt="Harvard Logo"
-                  style={{
-                    height: "32px",
-                    backgroundColor: "transparent",
-                    transition: 'all 0.2s ease',
-                    cursor: 'pointer',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.opacity = '0.8';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.opacity = '1';
-                  }}
-                />
-                <img
-                  src={harvardLogo}
-                  alt="Harvard Logo Text"
-                  style={{
-                    height: "32px",
-                    filter: "brightness(0) invert(1)",
-                    backgroundColor: "transparent",
-                    transition: 'all 0.2s ease',
-                    cursor: 'pointer',
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    clipPath: 'polygon(27% 0%, 100% 0%, 100% 100%, 27% 100%)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.opacity = '0.8';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.opacity = '1';
-                  }}
-                />
-              </Box>
-            </a>
           </Box>
         </Fade>
       </Toolbar>
@@ -1001,7 +955,7 @@ function App() {
           {/* Back to top anchor */}
           <Box id="back-to-top-anchor" />
           
-          <Container maxWidth="lg" sx={{ mt: 20, mb: 4 }}>
+          <Container maxWidth="lg" sx={{ mt: 13, mb: 4 }}>
             {currentTab === 0 && <HomeTab setCurrentTab={setCurrentTab} />}
             {currentTab === 1 && <DocumentationTab />}
             {currentTab === 2 && (

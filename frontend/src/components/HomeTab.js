@@ -93,9 +93,7 @@ const HomeTab = ({ setCurrentTab }) => {
               >
                 <strong>CosinorAge</strong> provides researchers and healthcare
                 professionals with a non-invasive, objective measure of
-                biological aging based on daily activity patterns. This
-                innovative biomarker works alongside our other analysis tools to
-                offer a complete picture of health and activity patterns.
+                biological aging based on daily activity patterns. This validated biomarker (<a href="https://www.nature.com/articles/s41746-024-01111-x" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>see publication</a>) can be computed through the available Python package (<a href="https://github.com/ADAMMA-CDHI-ETH-Zurich/CosinorAge" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>see GitHub</a>) and through this plug-and-play web interface for instant calculations.
               </Typography>
               <Box
                 sx={{
@@ -330,7 +328,7 @@ const HomeTab = ({ setCurrentTab }) => {
                       boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
                       "& .icon-container": {
                         transform: "translateX(-50%) scale(1.1)",
-                        boxShadow: "0 8px 25px rgba(0, 102, 204, 0.3)",
+                        boxShadow: "0 8px 25px rgba(123, 31, 162, 0.3)",
                       },
                     },
                   }}
@@ -429,7 +427,7 @@ const HomeTab = ({ setCurrentTab }) => {
                       boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
                       "& .icon-container": {
                         transform: "translateX(-50%) scale(1.1)",
-                        boxShadow: "0 8px 25px rgba(123, 31, 162, 0.3)",
+                        boxShadow: "0 8px 25px rgba(0, 150, 136, 0.3)",
                       },
                     },
                   }}

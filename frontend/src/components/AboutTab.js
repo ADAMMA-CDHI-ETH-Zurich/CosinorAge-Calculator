@@ -45,7 +45,7 @@ const AboutTab = () => {
               professionals with a non-invasive, objective measure of biological
               aging based on daily activity patterns. This innovative biomarker
               works alongside our other analysis tools to provide a complete
-              picture of health and activity patterns.
+              picture of health and activity patterns. It's a validated biomarker (<a href="https://www.nature.com/articles/s41746-024-01111-x" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>see publication</a>), it's a Python package (<a href="https://github.com/ADAMMA-CDHI-ETH-Zurich/CosinorAge" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>see GitHub</a>), and it's this web interface for plug in and play calculations.
             </Typography>
             <Typography
               variant="body1"
