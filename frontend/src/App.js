@@ -26,7 +26,7 @@ import ScienceIcon from "@mui/icons-material/Science";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import InfoIcon from "@mui/icons-material/Info";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import logo from "./assets/logo.png";
+import logo from "./assets/eth_logo.png";
 import singleDemoVideo from "./assets/CL_Single_Demo.mp4";
 import multiDemoVideo from "./assets/CL_Multi_Demo.mp4";
 import HomeTab from "./components/HomeTab";
@@ -215,23 +215,30 @@ function EnhancedAppBar({ currentTab, handleTabChange }) {
         
         <Fade in timeout={1000}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <img
-              src={logo}
-              alt="Logo"
-              style={{
-                height: "40px",
-                marginLeft: "16px",
-                filter: "brightness(0) invert(1)",
-                transition: 'all 0.2s ease',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.opacity = '0.8';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.opacity = '1';
-              }}
-            />
+            <a
+              href="https://ethz.ch"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none' }}
+            >
+              <img
+                src={logo}
+                alt="ETH Logo"
+                style={{
+                  height: "30px",
+                  marginLeft: "16px",
+                  filter: "brightness(0) invert(1)",
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.opacity = '0.8';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.opacity = '1';
+                }}
+              />
+            </a>
           </Box>
         </Fade>
       </Toolbar>
