@@ -69,4 +69,8 @@ media/*
 
 data/test/GalaxyWatch_Case1_long.zip
 data/test/GalaxyWatch_Case1.zip
-redeploy-cosinorage.lab.sh
+redeploy-cosinorage-calculator.sh
+
+DOCKER_DEPLOYMENT.md
+PLOT_THEME_USAGE.md
+

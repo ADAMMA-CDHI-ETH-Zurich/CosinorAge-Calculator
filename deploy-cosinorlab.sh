@@ -92,8 +92,8 @@ fix_deployment_script() {
     print_status "Fixing deployment script..."
     
     # Fix the script to use the correct Docker Compose path
-    sed -i "s|docker compose|$DOCKER_COMPOSE|g" cosinorlab.sh
-    chmod +x cosinorlab.sh
+    sed -i "s|docker compose|$DOCKER_COMPOSE|g" cosinorage-calculator.sh
+    chmod +x cosinorage-calculator.sh
     
     print_success "Deployment script fixed"
 }

@@ -16,7 +16,7 @@ function LabDocumentationSubTab() {
           gutterBottom
           sx={{ color: "primary.main", mb: 0 }}
         >
-          LAB Documentation
+          Calculator Documentation
         </Typography>
       </Box>
 
@@ -25,8 +25,8 @@ function LabDocumentationSubTab() {
         paragraph
         sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
       >
-        Welcome to the LAB Documentation section. This comprehensive guide
-        provides detailed information about using the CosinorAge.LAB interactive
+        Welcome to the Calculator Documentation section. This comprehensive guide
+        provides detailed information about using the CosinorAge Calculator interactive
         interface for analyzing accelerometer data and extracting meaningful
         health insights.
       </Typography>
@@ -45,7 +45,7 @@ function LabDocumentationSubTab() {
         }}
       >
         <Typography variant="body2">
-          <strong>Quick Start:</strong> If you're new to CosinorAge.LAB, we
+          <strong>Quick Start:</strong> If you're new to CosinorAge Calculator, we
           recommend starting with the "Getting Started" section below. For
           experienced users, you can jump directly to the specific sections that
           interest you.
@@ -66,7 +66,7 @@ function LabDocumentationSubTab() {
         paragraph
         sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
       >
-        The LAB interface provides an intuitive web-based platform for
+        The Calculator interface provides an intuitive web-based platform for
         uploading, processing, and analyzing accelerometer data. Our
         step-by-step workflow ensures that even users new to circadian rhythm
         analysis can achieve meaningful results.
@@ -152,7 +152,7 @@ function LabDocumentationSubTab() {
         paragraph
         sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
       >
-        CosinorAge.LAB supports multiple data formats to accommodate different
+        CosinorAge Calculator supports multiple data formats to accommodate different
         research needs and device types. Our flexible input system ensures
         compatibility with various accelerometer data sources.
       </Typography>
@@ -291,7 +291,7 @@ function LabDocumentationSubTab() {
         paragraph
         sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
       >
-        While CosinorAge.LAB is designed to be user-friendly, you may occasionally
+        While CosinorAge Calculator is designed to be user-friendly, you may occasionally
         encounter issues. This section provides solutions to common problems and
         guidance for optimal results.
       </Typography>
@@ -372,7 +372,7 @@ function LabDocumentationSubTab() {
         paragraph
         sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
       >
-        For experienced users and researchers, CosinorAge.LAB offers advanced
+        For experienced users and researchers, CosinorAge Calculator offers advanced
         functionality that enables sophisticated analysis and customization of
         the processing pipeline.
       </Typography>

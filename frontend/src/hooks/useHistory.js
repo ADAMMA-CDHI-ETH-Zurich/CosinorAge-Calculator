@@ -8,7 +8,7 @@ export const useHistory = (tabType) => {
 
   // Load history from localStorage on mount
   useEffect(() => {
-    const savedHistory = localStorage.getItem(`CosinorAge.LAB_history_${tabType}`);
+    const savedHistory = localStorage.getItem(`CosinorAge Calculator_history_${tabType}`);
     if (savedHistory) {
       try {
         const parsedHistory = JSON.parse(savedHistory);
@@ -22,7 +22,7 @@ export const useHistory = (tabType) => {
 
   // Save history to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem(`CosinorAge.LAB_history_${tabType}`, JSON.stringify({
+    localStorage.setItem(`CosinorAge Calculator_history_${tabType}`, JSON.stringify({
       history,
       currentIndex
     }));

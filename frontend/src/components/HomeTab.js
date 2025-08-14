@@ -34,7 +34,7 @@ const HomeTab = ({ setCurrentTab }) => {
               gutterBottom
               sx={{ fontWeight: 600, color: "primary.main" }}
             >
-              Welcome to CosinorAge.LAB
+              Welcome to CosinorAge Calculator
             </Typography>
             <Typography
               variant="h5"
@@ -52,7 +52,7 @@ const HomeTab = ({ setCurrentTab }) => {
                 paragraph
                 sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
               >
-                CosinorAge.LAB is a research platform that introduces{" "}
+                CosinorAge Calculator is a research platform that introduces{" "}
                 <strong>CosinorAge</strong> - a novel aging biomarker calculated
                 from accelerometer data. While CosinorAge is our main feature,
                 we also provide comprehensive analysis of sleep patterns,
@@ -70,6 +70,119 @@ const HomeTab = ({ setCurrentTab }) => {
                 innovative biomarker works alongside our other analysis tools to
                 offer a complete picture of health and activity patterns.
               </Typography>
+              <Box
+                sx={{
+                  mt: 3,
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: "primary.light",
+                  border: "1px solid",
+                  borderColor: "primary.main",
+                  position: "relative",
+                  overflow: "hidden"
+                }}
+              >
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    width: 0,
+                    height: 0,
+                    borderStyle: "solid",
+                    borderWidth: "0 20px 20px 0",
+                    borderColor: "transparent primary.main transparent transparent"
+                  }}
+                />
+                <Typography
+                  variant="body2"
+                  sx={{ 
+                    fontSize: "0.9rem",
+                    lineHeight: 1.5,
+                    color: "primary.contrastText",
+                    fontWeight: 500,
+                    mb: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 16,
+                      height: 16,
+                      border: "2px solid currentColor",
+                      borderRadius: "2px",
+                      position: "relative",
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        top: "2px",
+                        left: "2px",
+                        right: "2px",
+                        height: "1px",
+                        backgroundColor: "currentColor"
+                      },
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        top: "6px",
+                        left: "2px",
+                        right: "2px",
+                        height: "1px",
+                        backgroundColor: "currentColor"
+                      }
+                    }}
+                  />
+                  Scientific Publication
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ 
+                    fontSize: "0.875rem",
+                    lineHeight: 1.6,
+                    color: "primary.contrastText",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2
+                  }}
+                >
+                  <span>
+                    "Circadian rhythm analysis using wearable-based accelerometry as a digital biomarker of aging and healthspan" by Jinjoo Shim, Elgar Fleisch & Filipe Barata, published in Nature Digital Medicine (June 2024).
+                  </span>
+                  <a
+                    href="https://www.nature.com/articles/s41746-024-01111-x"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ 
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      padding: "4px 8px",
+                      backgroundColor: "white",
+                      color: "black",
+                      textDecoration: "none",
+                      borderRadius: "3px",
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                      border: "1px solid rgba(0, 0, 0, 0.2)",
+                      transition: "all 0.2s ease",
+                      flexShrink: 0
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = "#f5f5f5";
+                      e.target.style.transform = "translateY(-1px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = "white";
+                      e.target.style.transform = "translateY(0)";
+                    }}
+                  >
+                    Access
+                    <span style={{ fontSize: "0.7rem" }}>→</span>
+                  </a>
+                </Typography>
+              </Box>
             </Box>
 
             <Grid container spacing={4} sx={{ mt: 2 }}>
@@ -308,7 +421,7 @@ const HomeTab = ({ setCurrentTab }) => {
                   gutterBottom
                   sx={{ color: "primary.main", fontWeight: 700 }}
                 >
-                  Interactive LAB Analysis
+                  Interactive Analysis
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
                   Turn your smartwatch data into insight — process, analyze, and
@@ -345,7 +458,7 @@ const HomeTab = ({ setCurrentTab }) => {
                   },
                 }}
               >
-                Launch LAB
+                Launch Calculator
               </Button>
             </Box>
 
@@ -418,7 +531,7 @@ const HomeTab = ({ setCurrentTab }) => {
                         gutterBottom
                         sx={{ color: "primary.main", fontWeight: 700 }}
                       >
-                        Programmatic Access
+                        CosinorAge Python Package
                       </Typography>
                       <Typography variant="body1" color="text.secondary">
                         Integrate CosinorAge aging biomarker analysis into your
@@ -488,7 +601,7 @@ const HomeTab = ({ setCurrentTab }) => {
                   sx={{ fontSize: "1.1rem", lineHeight: 1.6 }}
                 >
                   For researchers and developers who need programmatic access to
-                  our aging biomarker analysis tools, CosinorAge.LAB provides a
+                  our aging biomarker analysis tools, CosinorAge Calculator provides a
                   comprehensive Python API. This allows you to integrate our
                   CosinorAge aging biomarker calculation, circadian rhythm
                   analysis, and activity classification into your own research

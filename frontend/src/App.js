@@ -21,6 +21,8 @@ import ScienceIcon from "@mui/icons-material/Science";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import InfoIcon from "@mui/icons-material/Info";
 import logo from "./assets/logo.png";
+import singleDemoVideo from "./assets/CL_Single_Demo.mp4";
+import multiDemoVideo from "./assets/CL_Multi_Demo.mp4";
 import HomeTab from "./components/HomeTab";
 import DocumentationTab from "./components/DocumentationTab";
 import LabTab from "./components/LabTab";
@@ -729,7 +731,7 @@ function App() {
                 lineHeight: 1.1,
               }}
             >
-              CosinorAge.LAB
+              CosinorAge Calculator
             </Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -794,7 +796,7 @@ function App() {
               iconPosition="start"
             />
             <Tab
-              label="LAB"
+              label="Calculator"
               icon={<ScienceIcon sx={{ fontSize: "1.2rem" }} />}
               iconPosition="start"
             />
@@ -900,11 +902,11 @@ function App() {
         fullWidth
       >
         <DialogTitle>
-          Getting Started with CosinorAge.LAB - {currentLabSubTab === "single" ? "Single Individual" : "Multi Individual"}
+          Getting Started with CosinorAge Calculator - {currentLabSubTab === "single" ? "Single Individual" : "Multi Individual"}
         </DialogTitle>
         <DialogContent>
           <Typography variant="body1" paragraph>
-            Welcome to CosinorAge.LAB! To help you explore the {currentLabSubTab === "single" ? "single individual" : "multi-individual"} interface, we've
+            Welcome to CosinorAge Calculator! To help you explore the {currentLabSubTab === "single" ? "single individual" : "multi-individual"} interface, we've
             provided a sample file containing mock accelerometer data.
           </Typography>
 
@@ -1013,6 +1015,36 @@ function App() {
             >
               {currentLabSubTab === "single" ? "Download Sample CSV File" : "Download Sample Multi-Individual ZIP"}
             </Button>
+          </Box>
+
+          {/* Demo Video Section */}
+          <Box sx={{ mt: 3, mb: 2 }}>
+            <Typography variant="h6" gutterBottom align="center">
+              Demo Video
+            </Typography>
+            <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+              Watch this demo to see how to use the {currentLabSubTab === "single" ? "single individual" : "multi-individual"} analysis interface.
+            </Typography>
+            <Box sx={{ 
+              display: "flex", 
+              justifyContent: "center",
+              borderRadius: 2,
+              overflow: "hidden",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+            }}>
+              <video
+                controls
+                width="100%"
+                style={{ maxWidth: "600px" }}
+                preload="metadata"
+              >
+                <source 
+                  src={currentLabSubTab === "single" ? singleDemoVideo : multiDemoVideo} 
+                  type="video/mp4" 
+                />
+                Your browser does not support the video tag.
+              </video>
+            </Box>
           </Box>
 
           {/* Multi-individual specific note and resample notebook */}
