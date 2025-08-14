@@ -73,4 +73,9 @@ redeploy-cosinorage-calculator.sh
 
 DOCKER_DEPLOYMENT.md
 PLOT_THEME_USAGE.md
+FILE_SIZE_LIMIT.md
+
+env.example
+
+
 
