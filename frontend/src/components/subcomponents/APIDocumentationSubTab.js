@@ -101,9 +101,16 @@ function APIDocumentationSubTab() {
           const h1 = container.querySelector("h1");
           const firstP = container.querySelector("p");
           
+          // Check if a header already exists to prevent duplicates
+          const existingHeader = container.querySelector("[data-metallic-header]");
+          if (existingHeader) {
+            existingHeader.remove();
+          }
+          
           if (h1 && firstP) {
             // Create the header container with dark grey background and white text
             const headerContainer = document.createElement("div");
+            headerContainer.setAttribute("data-metallic-header", "true");
             headerContainer.style.cssText = `
               background: #2D2D2D;
               border: 1px solid #1A1A1A;
