@@ -1175,10 +1175,7 @@ function App() {
             </Typography>
             <Box sx={{ 
               display: "flex", 
-              justifyContent: "center",
-              borderRadius: 2,
-              overflow: "hidden",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+              justifyContent: "center"
             }}>
               <video
                 ref={videoRef}
@@ -1187,7 +1184,12 @@ function App() {
                 muted
                 loop
                 width="100%"
-                style={{ maxWidth: "600px" }}
+                maxWidth="600px"
+                style={{
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                  border: "3px solid #666666",
+                }}
                 preload="metadata"
                 playsInline
               >
