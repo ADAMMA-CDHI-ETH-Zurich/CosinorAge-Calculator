@@ -7,7 +7,7 @@ const config = {
 
   // File upload configuration
   ENABLE_FILE_SIZE_LIMIT: true,  // Global switch to enable/disable file size limit
-  MAX_FILE_SIZE_BYTES: 10 * 1024 * 1024,  // 10MB in bytes
+  MAX_FILE_SIZE_BYTES: 150 * 1024 * 1024,  // 150MB in bytes
 
   // Get full API URL for a given endpoint
   getApiUrl: (endpoint) => {

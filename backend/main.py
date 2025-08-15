@@ -62,7 +62,7 @@ CLEANUP_TASK_RUNNING = False
 
 # File upload configuration
 ENABLE_FILE_SIZE_LIMIT = True  # Global switch to enable/disable file size limit
-MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB in bytes
+MAX_FILE_SIZE_BYTES = 150 * 1024 * 1024  # 150MB in bytes
 
 
 async def scheduled_cleanup():
