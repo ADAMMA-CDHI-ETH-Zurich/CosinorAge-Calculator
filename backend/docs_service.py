@@ -6,9 +6,9 @@ import re
 
 # URLs for documentation (using ReadTheDocs URLs)
 DOCS_URLS = {
-    'dataloaders': 'https://cosinorage-deployed.readthedocs.io/en/latest/cosinorage.datahandlers.html',
-    'features': 'https://cosinorage-deployed.readthedocs.io/en/latest/cosinorage.features.html',
-    'bioages': 'https://cosinorage-deployed.readthedocs.io/en/latest/cosinorage.bioages.html'
+    'dataloaders': 'https://cosinorage.readthedocs.io/en/latest/cosinorage.datahandlers.html',
+    'features': 'https://cosinorage.readthedocs.io/en/latest/cosinorage.features.html',
+    'bioages': 'https://cosinorage.readthedocs.io/en/latest/cosinorage.bioages.html'
 }
 
 # Fallback static content if live fetching fails

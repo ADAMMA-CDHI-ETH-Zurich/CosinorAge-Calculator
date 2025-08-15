@@ -6,7 +6,9 @@ import {
   Alert,
   Tabs,
   Tab,
+  Paper,
 } from "@mui/material";
+import { Code as CodeIcon } from "@mui/icons-material";
 import config from "../../config";
 
 function APIDocumentationSubTab() {
@@ -60,6 +62,121 @@ function APIDocumentationSubTab() {
           "[data-api-documentation-content]"
         );
         if (container) {
+          // Hide Module Contents section
+          const moduleContentsHeading = Array.from(container.querySelectorAll("h2")).find(h2 => 
+            h2.textContent.includes("Module Contents")
+          );
+          if (moduleContentsHeading) {
+            moduleContentsHeading.style.display = "none";
+            
+            // Also hide the paragraph that follows the Module Contents heading
+            const nextParagraph = moduleContentsHeading.nextElementSibling;
+            if (nextParagraph && nextParagraph.tagName === "P") {
+              nextParagraph.style.display = "none";
+            }
+          }
+          
+          // Style h3 elements in Utility Functions section to look like smaller headings with dashed lines
+          const utilityFunctionsHeading = Array.from(container.querySelectorAll("h2")).find(h2 => 
+            h2.textContent.includes("Utility Functions")
+          );
+          if (utilityFunctionsHeading) {
+            const utilitySection = utilityFunctionsHeading.parentElement;
+            const h3Elements = utilitySection.querySelectorAll("h3");
+            
+            h3Elements.forEach(h3 => {
+              h3.style.cssText = `
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: #2c3e50;
+                margin: 24px 0 12px 0;
+                padding-bottom: 8px;
+                border-bottom: 2px dashed #bdc3c7;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              `;
+            });
+          }
+          
+          // Create metallic header for module title and description
+          const h1 = container.querySelector("h1");
+          const firstP = container.querySelector("p");
+          
+          if (h1 && firstP) {
+            // Create the header container with dark grey background and white text
+            const headerContainer = document.createElement("div");
+            headerContainer.style.cssText = `
+              background: #2D2D2D;
+              border: 1px solid #1A1A1A;
+              border-radius: 12px;
+              padding: 24px;
+              margin-bottom: 24px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+              position: relative;
+              overflow: hidden;
+            `;
+            
+            // Create the header line with icon and title
+            const headerLine = document.createElement("div");
+            headerLine.style.cssText = `
+              display: flex;
+              align-items: center;
+              margin-bottom: 16px;
+              gap: 12px;
+            `;
+            
+            // Create the code icon
+            const iconContainer = document.createElement("div");
+            iconContainer.style.cssText = `
+              width: 24px;
+              height: 24px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+            `;
+            
+            // Add the code icon SVG
+            iconContainer.innerHTML = `
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9.4 16.6L4.8 12L9.4 7.4L8 6L2 12L8 18L9.4 16.6ZM14.6 16.6L19.2 12L14.6 7.4L16 6L22 12L16 18L14.6 16.6Z" fill="white"/>
+              </svg>
+            `;
+            
+            // Style the title
+            const title = h1.cloneNode(true);
+            title.style.cssText = `
+              font-size: 1.5rem;
+              font-weight: 700;
+              margin: 0;
+              color: white;
+              line-height: 1.2;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            `;
+            
+            // Style the description
+            const description = firstP.cloneNode(true);
+            description.style.cssText = `
+              font-size: 1rem;
+              line-height: 1.6;
+              margin: 0;
+              color: rgba(255, 255, 255, 0.9);
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            `;
+            
+            // Assemble the header
+            headerLine.appendChild(iconContainer);
+            headerLine.appendChild(title);
+            headerContainer.appendChild(headerLine);
+            headerContainer.appendChild(description);
+            
+            // Insert the header before the original content
+            container.insertBefore(headerContainer, container.firstChild);
+            
+            // Hide the original h1 and p
+            h1.style.display = "none";
+            firstP.style.display = "none";
+          }
+          
           const sourceLinks = container.querySelectorAll("a");
           console.log(
             `Found ${sourceLinks.length} total links in API documentation`
@@ -154,6 +271,11 @@ function APIDocumentationSubTab() {
           sx={{
             "& .section": {
               mb: 4,
+              backgroundColor: "#ffffff",
+              borderRadius: 2,
+              padding: 3,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              border: "1px solid #e0e0e0",
             },
             "& h1": {
               fontSize: "2rem",
@@ -167,13 +289,21 @@ function APIDocumentationSubTab() {
               color: "text.primary",
               mt: 4,
               mb: 2,
+              borderBottom: "2px solid",
+              borderColor: "primary.main",
+              paddingBottom: "0.5rem",
             },
             "& h3": {
               fontSize: "1.25rem",
               fontWeight: 600,
-              color: "text.primary",
+              color: "primary.main",
               mt: 3,
               mb: 2,
+              backgroundColor: "transparent",
+              color: "#2c3e50",
+              padding: "0",
+              borderRadius: "0",
+              display: "block",
             },
             "& h4": {
               fontSize: "1.1rem",
@@ -185,10 +315,15 @@ function APIDocumentationSubTab() {
             "& p": {
               mb: 2,
               lineHeight: 1.6,
+              fontSize: "1rem",
             },
             "& ul, & ol": {
               pl: 3,
               mb: 2,
+              "& li": {
+                mb: 0.5,
+                lineHeight: 1.5,
+              },
             },
             "& li": {
               mb: 1,
@@ -198,126 +333,136 @@ function APIDocumentationSubTab() {
               color: "text.primary",
             },
             "& code": {
-              backgroundColor: "grey.100",
-              padding: "2px 4px",
-              borderRadius: 1,
-              fontFamily: "monospace",
+              backgroundColor: "#f8f9fa",
+              padding: "3px 6px",
+              borderRadius: 4,
+              fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace",
               fontSize: "0.9em",
-              color: "#d63384",
+              color: "#e74c3c",
+              border: "1px solid #e9ecef",
+              fontWeight: "500",
             },
             "& .highlight": {
-              backgroundColor: "#f8f9fa",
-              padding: "1rem",
-              borderRadius: 1,
+              backgroundColor: "#2d3748",
+              padding: "1.5rem",
+              borderRadius: 4,
               mb: 2,
               overflowX: "auto",
-              border: "1px solid #e9ecef",
+              border: "1px solid #4a5568",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
             },
             "& .highlight pre": {
               margin: 0,
-              fontFamily: "monospace",
+              fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace",
               fontSize: "0.9em",
-              lineHeight: 1.4,
+              lineHeight: 1.5,
+              color: "#e2e8f0",
             },
-            "& .highlight .hll": { backgroundColor: "#ffffcc" },
-            "& .highlight .c": { color: "#999988", fontStyle: "italic" }, // Comment
+            "& .highlight .hll": { backgroundColor: "#744210" },
+            "& .highlight .c": { color: "#68d391", fontStyle: "italic" }, // Comment
             "& .highlight .err": {
-              color: "#a61717",
-              backgroundColor: "#e3d2d2",
+              color: "#fed7d7",
+              backgroundColor: "#c53030",
             }, // Error
-            "& .highlight .k": { color: "#000000", fontWeight: "bold" }, // Keyword
-            "& .highlight .o": { color: "#000000", fontWeight: "bold" }, // Operator
-            "& .highlight .ch": { color: "#999988", fontStyle: "italic" }, // Comment.Hashbang
-            "& .highlight .cm": { color: "#999988", fontStyle: "italic" }, // Comment.Multiline
+            "& .highlight .k": { color: "#90cdf4", fontWeight: "bold" }, // Keyword
+            "& .highlight .o": { color: "#90cdf4", fontWeight: "bold" }, // Operator
+            "& .highlight .ch": { color: "#68d391", fontStyle: "italic" }, // Comment.Hashbang
+            "& .highlight .cm": { color: "#68d391", fontStyle: "italic" }, // Comment.Multiline
             "& .highlight .cp": {
-              color: "#999999",
+              color: "#f6ad55",
               fontWeight: "bold",
               fontStyle: "italic",
             }, // Comment.Preproc
             "& .highlight .cpf": {
-              color: "#999988",
+              color: "#68d391",
               fontStyle: "italic",
             }, // Comment.PreprocFile
-            "& .highlight .c1": { color: "#999988", fontStyle: "italic" }, // Comment.Single
+            "& .highlight .c1": { color: "#68d391", fontStyle: "italic" }, // Comment.Single
             "& .highlight .cs": {
-              color: "#999999",
+              color: "#f6ad55",
               fontWeight: "bold",
               fontStyle: "italic",
             }, // Comment.Special
             "& .highlight .gd": {
-              color: "#000000",
-              backgroundColor: "#ffdddd",
+              color: "#fed7d7",
+              backgroundColor: "#742a2a",
             }, // Generic.Deleted
-            "& .highlight .ge": { color: "#000000", fontStyle: "italic" }, // Generic.Emph
-            "& .highlight .gr": { color: "#aa0000" }, // Generic.Error
-            "& .highlight .gh": { color: "#999999" }, // Generic.Heading
+            "& .highlight .ge": { color: "#fed7d7", fontStyle: "italic" }, // Generic.Emph
+            "& .highlight .gr": { color: "#fed7d7" }, // Generic.Error
+            "& .highlight .gh": { color: "#a0aec0" }, // Generic.Heading
             "& .highlight .gi": {
-              color: "#000000",
-              backgroundColor: "#ddffdd",
+              color: "#c6f6d5",
+              backgroundColor: "#22543d",
             }, // Generic.Inserted
-            "& .highlight .go": { color: "#888888" }, // Generic.Output
-            "& .highlight .gp": { color: "#555555" }, // Generic.Prompt
+            "& .highlight .go": { color: "#a0aec0" }, // Generic.Output
+            "& .highlight .gp": { color: "#a0aec0" }, // Generic.Prompt
             "& .highlight .gs": { fontWeight: "bold" }, // Generic.Strong
-            "& .highlight .gu": { color: "#aaaaaa" }, // Generic.Subheading
-            "& .highlight .gt": { color: "#aa0000" }, // Generic.Traceback
-            "& .highlight .kc": { color: "#000000", fontWeight: "bold" }, // Keyword.Constant
-            "& .highlight .kd": { color: "#000000", fontWeight: "bold" }, // Keyword.Declaration
-            "& .highlight .kn": { color: "#000000", fontWeight: "bold" }, // Keyword.Namespace
-            "& .highlight .kp": { color: "#000000", fontWeight: "bold" }, // Keyword.Pseudo
-            "& .highlight .kr": { color: "#000000", fontWeight: "bold" }, // Keyword.Reserved
-            "& .highlight .kt": { color: "#445588", fontWeight: "bold" }, // Keyword.Type
-            "& .highlight .m": { color: "#009999" }, // Literal.Number
-            "& .highlight .s": { color: "#d01040" }, // Literal.String
-            "& .highlight .na": { color: "#008080" }, // Name.Attribute
-            "& .highlight .nb": { color: "#0086B3" }, // Name.Builtin
-            "& .highlight .nc": { color: "#445588", fontWeight: "bold" }, // Name.Class
-            "& .highlight .no": { color: "#008080" }, // Name.Constant
-            "& .highlight .nd": { color: "#3c5d5d", fontWeight: "bold" }, // Name.Decorator
-            "& .highlight .ni": { color: "#800080" }, // Name.Entity
-            "& .highlight .ne": { color: "#990000", fontWeight: "bold" }, // Name.Exception
-            "& .highlight .nf": { color: "#990000", fontWeight: "bold" }, // Name.Function
-            "& .highlight .nl": { color: "#990000", fontWeight: "bold" }, // Name.Label
-            "& .highlight .nn": { color: "#555555" }, // Name.Namespace
-            "& .highlight .nt": { color: "#000080" }, // Name.Tag
-            "& .highlight .nv": { color: "#008080" }, // Name.Variable
-            "& .highlight .ow": { color: "#000000", fontWeight: "bold" }, // Operator.Word
-            "& .highlight .w": { color: "#bbbbbb" }, // Text.Whitespace
-            "& .highlight .mb": { color: "#009999" }, // Literal.Number.Bin
-            "& .highlight .mf": { color: "#009999" }, // Literal.Number.Float
-            "& .highlight .mh": { color: "#009999" }, // Literal.Number.Hex
-            "& .highlight .mi": { color: "#009999" }, // Literal.Number.Integer
-            "& .highlight .mo": { color: "#009999" }, // Literal.Number.Oct
-            "& .highlight .sa": { color: "#d01040" }, // Literal.String.Affix
-            "& .highlight .sb": { color: "#d01040" }, // Literal.String.Backtick
-            "& .highlight .sc": { color: "#d01040" }, // Literal.String.Char
-            "& .highlight .dl": { color: "#d01040" }, // Literal.String.Delimiter
-            "& .highlight .sd": { color: "#d01040" }, // Literal.String.Doc
-            "& .highlight .s2": { color: "#d01040" }, // Literal.String.Double
-            "& .highlight .se": { color: "#d01040" }, // Literal.String.Escape
-            "& .highlight .sh": { color: "#d01040" }, // Literal.String.Heredoc
-            "& .highlight .si": { color: "#d01040" }, // Literal.String.Interpol
-            "& .highlight .sx": { color: "#d01040" }, // Literal.String.Other
-            "& .highlight .sr": { color: "#009926" }, // Literal.String.Regex
-            "& .highlight .s1": { color: "#d01040" }, // Literal.String.Single
-            "& .highlight .ss": { color: "#990073" }, // Literal.String.Symbol
-            "& .highlight .bp": { color: "#999999" }, // Name.Builtin.Pseudo
-            "& .highlight .fm": { color: "#990000", fontWeight: "bold" }, // Name.Function.Magic
-            "& .highlight .vc": { color: "#008080" }, // Name.Variable.Class
-            "& .highlight .vg": { color: "#008080" }, // Name.Variable.Global
-            "& .highlight .vi": { color: "#008080" }, // Name.Variable.Instance
-            "& .highlight .vm": { color: "#008080" }, // Name.Variable.Magic
-            "& .highlight .il": { color: "#009999" }, // Literal.Number.Integer.Long
+            "& .highlight .gu": { color: "#a0aec0" }, // Generic.Subheading
+            "& .highlight .gt": { color: "#fed7d7" }, // Generic.Traceback
+            "& .highlight .kc": { color: "#90cdf4", fontWeight: "bold" }, // Keyword.Constant
+            "& .highlight .kd": { color: "#90cdf4", fontWeight: "bold" }, // Keyword.Declaration
+            "& .highlight .kn": { color: "#90cdf4", fontWeight: "bold" }, // Keyword.Namespace
+            "& .highlight .kp": { color: "#90cdf4", fontWeight: "bold" }, // Keyword.Pseudo
+            "& .highlight .kr": { color: "#90cdf4", fontWeight: "bold" }, // Keyword.Reserved
+            "& .highlight .kt": { color: "#f6ad55", fontWeight: "bold" }, // Keyword.Type
+            "& .highlight .m": { color: "#81e6d9" }, // Literal.Number
+            "& .highlight .s": { color: "#feb2b2" }, // Literal.String
+            "& .highlight .na": { color: "#81e6d9" }, // Name.Attribute
+            "& .highlight .nb": { color: "#90cdf4" }, // Name.Builtin
+            "& .highlight .nc": { color: "#f6ad55", fontWeight: "bold" }, // Name.Class
+            "& .highlight .no": { color: "#81e6d9" }, // Name.Constant
+            "& .highlight .nd": { color: "#90cdf4", fontWeight: "bold" }, // Name.Decorator
+            "& .highlight .ni": { color: "#d6bcfa" }, // Name.Entity
+            "& .highlight .ne": { color: "#fed7d7", fontWeight: "bold" }, // Name.Exception
+            "& .highlight .nf": { color: "#90cdf4", fontWeight: "bold" }, // Name.Function
+            "& .highlight .nl": { color: "#90cdf4", fontWeight: "bold" }, // Name.Label
+            "& .highlight .nn": { color: "#a0aec0" }, // Name.Namespace
+            "& .highlight .nt": { color: "#90cdf4" }, // Name.Tag
+            "& .highlight .nv": { color: "#81e6d9" }, // Name.Variable
+            "& .highlight .ow": { color: "#90cdf4", fontWeight: "bold" }, // Operator.Word
+            "& .highlight .w": { color: "#a0aec0" }, // Text.Whitespace
+            "& .highlight .mb": { color: "#81e6d9" }, // Literal.Number.Bin
+            "& .highlight .mf": { color: "#81e6d9" }, // Literal.Number.Float
+            "& .highlight .mh": { color: "#81e6d9" }, // Literal.Number.Hex
+            "& .highlight .mi": { color: "#81e6d9" }, // Literal.Number.Integer
+            "& .highlight .mo": { color: "#81e6d9" }, // Literal.Number.Oct
+            "& .highlight .sa": { color: "#feb2b2" }, // Literal.String.Affix
+            "& .highlight .sb": { color: "#feb2b2" }, // Literal.String.Backtick
+            "& .highlight .sc": { color: "#feb2b2" }, // Literal.String.Char
+            "& .highlight .dl": { color: "#feb2b2" }, // Literal.String.Delimiter
+            "& .highlight .sd": { color: "#feb2b2" }, // Literal.String.Doc
+            "& .highlight .s2": { color: "#feb2b2" }, // Literal.String.Double
+            "& .highlight .se": { color: "#feb2b2" }, // Literal.String.Escape
+            "& .highlight .sh": { color: "#feb2b2" }, // Literal.String.Heredoc
+            "& .highlight .si": { color: "#feb2b2" }, // Literal.String.Interpol
+            "& .highlight .sx": { color: "#feb2b2" }, // Literal.String.Other
+            "& .highlight .sr": { color: "#68d391" }, // Literal.String.Regex
+            "& .highlight .s1": { color: "#feb2b2" }, // Literal.String.Single
+            "& .highlight .ss": { color: "#d6bcfa" }, // Literal.String.Symbol
+            "& .highlight .bp": { color: "#a0aec0" }, // Name.Builtin.Pseudo
+            "& .highlight .fm": { color: "#90cdf4", fontWeight: "bold" }, // Name.Function.Magic
+            "& .highlight .vc": { color: "#81e6d9" }, // Name.Variable.Class
+            "& .highlight .vg": { color: "#81e6d9" }, // Name.Variable.Global
+            "& .highlight .vi": { color: "#81e6d9" }, // Name.Variable.Instance
+            "& .highlight .vm": { color: "#81e6d9" }, // Name.Variable.Magic
+            "& .highlight .il": { color: "#81e6d9" }, // Literal.Number.Integer.Long
             "& dl": {
               mb: 2,
+              backgroundColor: "#f8f9fa",
+              padding: "1rem",
+              borderRadius: 1,
+              border: "1px solid #e9ecef",
             },
             "& dt": {
               fontWeight: 600,
-              color: "text.primary",
+              color: "primary.main",
               mb: 1,
+              fontSize: "1rem",
             },
             "& dd": {
               ml: 2,
               mb: 2,
+              color: "text.secondary",
             },
             "& .definition-list": {
               border: "1px solid #e0e0e0",
@@ -350,14 +495,18 @@ function APIDocumentationSubTab() {
               width: "100%",
               borderCollapse: "collapse",
               mb: 2,
+              borderRadius: 1,
+              overflow: "hidden",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
             },
             "& th, & td": {
               border: "1px solid #ddd",
-              padding: "0.5rem",
+              padding: "0.75rem",
               textAlign: "left",
             },
             "& th": {
-              backgroundColor: "grey.50",
+              backgroundColor: "primary.main",
+              color: "white",
               fontWeight: 600,
             },
             "& .table": {
