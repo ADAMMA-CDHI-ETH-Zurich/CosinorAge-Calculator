@@ -85,6 +85,12 @@ import WarningIcon from "@mui/icons-material/Warning";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ErrorIcon from "@mui/icons-material/Error";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import SpeedIcon from "@mui/icons-material/Speed";
+import GroupIcon from "@mui/icons-material/Group";
+import CategoryIcon from "@mui/icons-material/Category";
+import StraightenIcon from "@mui/icons-material/Straighten";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import DateRangeIcon from "@mui/icons-material/DateRange";
 import SGSBinaryZippedExample from "../../assets/SGS_Binary_Zipped_Example.png";
 import SGSCSVExample from "../../assets/SGS_CSV_Example.png";
 import config from "../../config";
@@ -2556,92 +2562,367 @@ const SingleIndividualLabSubTab = ({
       {data?.data && (
         <>
           <Grid item xs={12}>
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Raw Data Information
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Data Frequency
-                  </Typography>
-                  <Typography variant="body1">
-                    {data.metadata?.raw_data_frequency || "N/A"}
-                  </Typography>
+            <Paper 
+              sx={{ 
+                p: 3, 
+                mb: 3,
+                background: '#ffffff',
+                borderRadius: 2,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                border: '1px solid #f0f0f0'
+              }}
+            >
+                              <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary', mb: 3 }}>
+                  Raw Data Information
+                </Typography>
+              
+              <Grid container spacing={2} sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gridTemplateRows: 'auto auto', gap: 2, alignItems: 'stretch' }}>
+                {/* Data Frequency */}
+                <Grid item sx={{ gridColumn: 1, gridRow: 1 }}>
+                  <Card 
+                    sx={{ 
+                      background: '#ffffff',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      border: '1px solid #f0f0f0',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Box 
+                        sx={{ 
+                          mb: 0.8,
+                          p: 0.6,
+                          borderRadius: 1.5,
+                          background: '#e3f2fd',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <SpeedIcon sx={{ fontSize: 14, color: '#1976d2' }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', display: 'block', mb: 0.3 }}>
+                        Data Frequency
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                        {data.metadata?.raw_data_frequency ? 
+                          data.metadata.raw_data_frequency.replace(/(\d+)(Hz)/, '$1 $2') : 
+                          "N/A"
+                        }
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Start Time
-                  </Typography>
-                  <Typography variant="body1">
-                    {data.metadata?.raw_start_datetime || "N/A"}
-                  </Typography>
+
+                {/* Data Points */}
+                <Grid item sx={{ gridColumn: 2, gridRow: 1 }}>
+                  <Card 
+                    sx={{ 
+                      background: '#ffffff',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      border: '1px solid #f0f0f0',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Box 
+                        sx={{ 
+                          mb: 0.8,
+                          p: 0.6,
+                          borderRadius: 1.5,
+                          background: '#fce4ec',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <TimelineIcon sx={{ fontSize: 14, color: '#c2185b' }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', display: 'block', mb: 0.3 }}>
+                        Data Points
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                        {data.metadata?.raw_n_datapoints?.toLocaleString() || "N/A"}
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    End Time
-                  </Typography>
-                  <Typography variant="body1">
-                    {data.metadata?.raw_end_datetime || "N/A"}
-                  </Typography>
+
+                {/* Duration */}
+                <Grid item sx={{ gridColumn: 3, gridRow: 1 }}>
+                  <Card 
+                    sx={{ 
+                      background: '#ffffff',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      border: '1px solid #f0f0f0',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Box 
+                        sx={{ 
+                          mb: 0.8,
+                          p: 0.6,
+                          borderRadius: 1.5,
+                          background: '#e8f5e8',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <ScheduleIcon sx={{ fontSize: 14, color: '#2e7d32' }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', display: 'block', mb: 0.3 }}>
+                        Duration
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                        {data.metadata?.raw_start_datetime &&
+                        data.metadata?.raw_end_datetime
+                          ? (() => {
+                              const diff =
+                                new Date(data.metadata.raw_end_datetime) -
+                                new Date(data.metadata.raw_start_datetime);
+                              const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                              const hours = Math.floor(
+                                (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+                              );
+                              return `${days}d ${hours}h`;
+                            })()
+                          : "N/A"}
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Data Type
-                  </Typography>
-                  <Typography variant="body1">
-                    {data.metadata?.raw_data_type || "N/A"}
-                  </Typography>
+
+                {/* Cohort Size */}
+                <Grid item sx={{ gridColumn: 1, gridRow: 2 }}>
+                  <Card 
+                    sx={{ 
+                      background: '#ffffff',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      border: '1px solid #f0f0f0',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Box 
+                        sx={{ 
+                          mb: 0.8,
+                          p: 0.6,
+                          borderRadius: 1.5,
+                          background: '#fff3e0',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <GroupIcon sx={{ fontSize: 14, color: '#f57c00' }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', display: 'block', mb: 0.3 }}>
+                        Cohort Size
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                        1 Individual
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Data Unit
-                  </Typography>
-                  <Typography variant="body1">
-                    {data.metadata?.raw_data_unit || "N/A"}
-                  </Typography>
+
+                {/* Data Type */}
+                <Grid item sx={{ gridColumn: 2, gridRow: 2 }}>
+                  <Card 
+                    sx={{ 
+                      background: '#ffffff',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      border: '1px solid #f0f0f0',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Box 
+                        sx={{ 
+                          mb: 0.8,
+                          p: 0.6,
+                          borderRadius: 1.5,
+                          background: '#e1f5fe',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <CategoryIcon sx={{ fontSize: 14, color: '#0277bd' }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', display: 'block', mb: 0.3 }}>
+                        Data Type
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                        {data.metadata?.raw_data_type || "N/A"}
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Number of Data Points
-                  </Typography>
-                  <Typography variant="body1">
-                    {data.metadata?.raw_n_datapoints || "N/A"}
-                  </Typography>
+
+                {/* Data Unit */}
+                <Grid item sx={{ gridColumn: 3, gridRow: 2 }}>
+                  <Card 
+                    sx={{ 
+                      background: '#ffffff',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      border: '1px solid #f0f0f0',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Box 
+                        sx={{ 
+                          mb: 0.8,
+                          p: 0.6,
+                          borderRadius: 1.5,
+                          background: '#f1f8e9',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <StraightenIcon sx={{ fontSize: 14, color: '#558b2f' }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', display: 'block', mb: 0.3 }}>
+                        Data Unit
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                        {data.metadata?.raw_data_unit || "N/A"}
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Follow-up Time
-                  </Typography>
-                  <Typography variant="body1">
-                    {data.metadata?.raw_start_datetime &&
-                    data.metadata?.raw_end_datetime
-                      ? (() => {
-                          const diff =
-                            new Date(data.metadata.raw_end_datetime) -
-                            new Date(data.metadata.raw_start_datetime);
-                          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                          const hours = Math.floor(
-                            (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-                          );
-                          const minutes = Math.floor(
-                            (diff % (1000 * 60 * 60)) / (1000 * 60)
-                          );
-                          return `${days} ${
-                            days === 1 ? "day" : "days"
-                          } ${hours} ${
-                            hours === 1 ? "hour" : "hours"
-                          } ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
-                        })()
-                      : "N/A"}
-                  </Typography>
+
+                {/* Time Range - Spans 2 rows on the right */}
+                <Grid item sx={{ gridColumn: 4, gridRow: '1 / 3' }}>
+                  <Card 
+                    sx={{ 
+                      height: '100%',
+                      background: '#ffffff',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      border: '1px solid #f0f0f0',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ p: 1.5, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                      <Box sx={{ flex: '0 0 auto' }}>
+                        <Box 
+                          sx={{ 
+                            mb: 0.8,
+                            p: 0.6,
+                            borderRadius: 1.5,
+                            background: '#f3e5f5',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <DateRangeIcon sx={{ fontSize: 14, color: '#7b1fa2' }} />
+                        </Box>
+                        <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', display: 'block', mb: 0.3 }}>
+                          Time Range
+                        </Typography>
+                      </Box>
+                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
+                        {data.metadata?.raw_start_datetime && data.metadata?.raw_end_datetime ? (
+                          <>
+                            <Box sx={{ mb: 0.5 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                {(() => {
+                                  const startDate = new Date(data.metadata.raw_start_datetime);
+                                  return startDate.toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  });
+                                })()}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                                {(() => {
+                                  const startDate = new Date(data.metadata.raw_start_datetime);
+                                  return startDate.toLocaleTimeString('en-US', { 
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false
+                                  });
+                                })()}
+                              </Typography>
+                            </Box>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                              to
+                            </Typography>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                {(() => {
+                                  const endDate = new Date(data.metadata.raw_end_datetime);
+                                  return endDate.toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  });
+                                })()}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                                {(() => {
+                                  const endDate = new Date(data.metadata.raw_end_datetime);
+                                  return endDate.toLocaleTimeString('en-US', { 
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false
+                                  });
+                                })()}
+                              </Typography>
+                            </Box>
+                          </>
+                        ) : (
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                            N/A
+                          </Typography>
+                        )}
+                      </Box>
+                    </CardContent>
+                  </Card>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Cohort Size
-                  </Typography>
-                  <Typography variant="body1">1 individual</Typography>
-                </Grid>
+
+
               </Grid>
             </Paper>
           </Grid>
@@ -3782,7 +4063,14 @@ const SingleIndividualLabSubTab = ({
                             data.features.nonparam.M10_start?.[dayIndex];
                           const l5Start =
                             data.features.nonparam.L5_start?.[dayIndex];
-                          if (!m10Start || !l5Start) return null;
+                          // Debug: Log the M10 and L5 start times
+                          console.log(`Day ${dayStr}: M10_start = ${m10Start}, L5_start = ${l5Start}`);
+                          
+                          // Only render if we have the start times
+                          if (!m10Start || !l5Start) {
+                            console.log(`Skipping day ${dayStr} - missing M10 or L5 start times`);
+                            return null;
+                          }
                           // Add a 'timestampNum' property for numeric x-axis and align cosinor_fitted
                           const dayDataWithNum = dayData.map((item) => {
                             const globalIndex = data.data.findIndex(
@@ -3804,14 +4092,12 @@ const SingleIndividualLabSubTab = ({
                             (a, b) => a.timestampNum - b.timestampNum
                           );
                           // Check if m10StartDate and l5StartDate are valid
-                          const m10StartDate =
-                            m10Start && m10Start.includes("T")
-                              ? new Date(m10Start)
-                              : new Date(`${dayStr}T${m10Start}`);
-                          const l5StartDate =
-                            l5Start && l5Start.includes("T")
-                              ? new Date(l5Start)
-                              : new Date(`${dayStr}T${l5Start}`);
+                          const m10StartDate = new Date(m10Start);
+                          const l5StartDate = new Date(l5Start);
+                          
+                          // Debug: Log the calculated dates
+                          console.log(`Day ${dayStr}: M10 start date = ${m10StartDate}, L5 start date = ${l5StartDate}`);
+                          console.log(`Day ${dayStr}: M10 start timestamp = ${m10StartDate.getTime()}, L5 start timestamp = ${l5StartDate.getTime()}`);
                           return (
                             <Grid item xs={12} key={dayStr}>
                               <Paper sx={{ p: 3, mb: 3 }}>
@@ -3961,47 +4247,45 @@ const SingleIndividualLabSubTab = ({
                                       yAxisId="left"
                                     />
                                     {/* M10 Period Band */}
-                                    <ReferenceArea
-                                      x1={m10StartDate.getTime()}
-                                      x2={(() => {
-                                        const x2Value = new Date(
-                                          m10StartDate.getTime() +
-                                            10 * 60 * 60 * 1000
-                                        );
-                                        if (
-                                          x2Value.getHours() === 0 &&
-                                          x2Value.getMinutes() === 0
-                                        ) {
-                                          return x2Value.getTime() - 60000;
-                                        }
-                                        return x2Value.getTime();
-                                      })()}
-                                      fill="#0034f0"
-                                      fillOpacity={0.1}
-                                      label="M10"
-                                      yAxisId="left"
-                                    />
+                                    {(() => {
+                                      const m10EndTime = new Date(
+                                        m10StartDate.getTime() + 10 * 60 * 60 * 1000
+                                      );
+                                      const m10X2 = m10EndTime.getHours() === 0 && m10EndTime.getMinutes() === 0
+                                        ? m10EndTime.getTime() - 60000
+                                        : m10EndTime.getTime();
+                                      console.log(`Day ${dayStr}: M10 band x1=${m10StartDate.getTime()}, x2=${m10X2}`);
+                                      return (
+                                        <ReferenceArea
+                                          x1={m10StartDate.getTime()}
+                                          x2={m10X2}
+                                          fill="#0034f0"
+                                          fillOpacity={0.5}
+                                          label="M10"
+                                          yAxisId="left"
+                                        />
+                                      );
+                                    })()}
                                     {/* L5 Period Band */}
-                                    <ReferenceArea
-                                      x1={l5StartDate.getTime()}
-                                      x2={(() => {
-                                        const x2Value = new Date(
-                                          l5StartDate.getTime() +
-                                            5 * 60 * 60 * 1000
-                                        );
-                                        if (
-                                          x2Value.getHours() === 0 &&
-                                          x2Value.getMinutes() === 0
-                                        ) {
-                                          return x2Value.getTime() - 60000;
-                                        }
-                                        return x2Value.getTime();
-                                      })()}
-                                      fill="#7aa7ff"
-                                      fillOpacity={0.1}
-                                      label="L5"
-                                      yAxisId="left"
-                                    />
+                                    {(() => {
+                                      const l5EndTime = new Date(
+                                        l5StartDate.getTime() + 5 * 60 * 60 * 1000
+                                      );
+                                      const l5X2 = l5EndTime.getHours() === 0 && l5EndTime.getMinutes() === 0
+                                        ? l5EndTime.getTime() - 60000
+                                        : l5EndTime.getTime();
+                                      console.log(`Day ${dayStr}: L5 band x1=${l5StartDate.getTime()}, x2=${l5X2}`);
+                                      return (
+                                        <ReferenceArea
+                                          x1={l5StartDate.getTime()}
+                                          x2={l5X2}
+                                          fill="#7aa7ff"
+                                          fillOpacity={0.5}
+                                          label="L5"
+                                          yAxisId="left"
+                                        />
+                                      );
+                                    })()}
                                   </LineChart>
                                 </ResponsiveContainer>
                               </Paper>
