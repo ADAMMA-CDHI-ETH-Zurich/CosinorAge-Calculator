@@ -22,8 +22,7 @@ import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CodeIcon from "@mui/icons-material/Code";
-import demoVideo from "../assets/demo_video.mp4";
-import pythonLogo from "../assets/python_logo.svg";
+import demoVideo from "../assets/CL_Single_Demo.mp4";
 
 const HomeTab = ({ setCurrentTab }) => {
   return (
