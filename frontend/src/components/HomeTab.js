@@ -101,12 +101,9 @@ const HomeTab = ({ setCurrentTab }) => {
                   mt: 3,
                   mb: 3,
                   p: 2,
-                  borderRadius: 2,
-                  backgroundColor: "rgba(255, 193, 7, 0.1)",
-                  border: "2px solid",
-                  borderColor: "warning.main",
-                  position: "relative",
-                  overflow: "hidden"
+                  borderRadius: 1,
+                  backgroundColor: "#F3E5F5",
+                  border: "1px solid #CE93D8"
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
@@ -115,7 +112,7 @@ const HomeTab = ({ setCurrentTab }) => {
                       width: 20,
                       height: 20,
                       borderRadius: "50%",
-                      backgroundColor: "warning.main",
+                      backgroundColor: "#CE93D8",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -131,14 +128,14 @@ const HomeTab = ({ setCurrentTab }) => {
                         fontSize: "0.75rem"
                       }}
                     >
-                      ⚠
+                      ℹ
                     </Typography>
                   </Box>
                   <Box>
                     <Typography
                       variant="subtitle1"
                       sx={{
-                        color: "warning.dark",
+                        color: "#424242",
                         fontWeight: 700,
                         mb: 0.5
                       }}
@@ -148,11 +145,9 @@ const HomeTab = ({ setCurrentTab }) => {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: "warning.dark",
+                        color: "#424242",
                         lineHeight: 1.6,
-                        fontSize: "0.9rem",
-                        fontWeight: 400,
-                        letterSpacing: "0.01em"
+                        fontSize: "0.9rem"
                       }}
                     >
                       CosinorAge Package & Calculator is intended <strong>solely as a research tool</strong> for scientific study and personal exploration. It is <strong>not designed for clinical diagnosis or medical treatment</strong>. Results should be interpreted within a research context. <strong>For medical advice, please consult a qualified healthcare professional</strong>.
