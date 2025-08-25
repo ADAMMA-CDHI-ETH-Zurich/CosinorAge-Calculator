@@ -94,6 +94,73 @@ const HomeTab = ({ setCurrentTab }) => {
                 professionals with a non-invasive, objective measure of
                 biological aging based on daily activity patterns. This validated biomarker (<a href="https://www.nature.com/articles/s41746-024-01111-x" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>see publication</a>) can be computed through the available Python package (<a href="https://github.com/ADAMMA-CDHI-ETH-Zurich/CosinorAge" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>see GitHub</a>) and through this plug-and-play web interface for instant calculations.
               </Typography>
+              
+              {/* Research Disclaimer */}
+              <Box
+                sx={{
+                  mt: 3,
+                  mb: 3,
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: "rgba(255, 193, 7, 0.1)",
+                  border: "2px solid",
+                  borderColor: "warning.main",
+                  position: "relative",
+                  overflow: "hidden"
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
+                  <Box
+                    sx={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      backgroundColor: "warning.main",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      mt: 0.25
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "0.75rem"
+                      }}
+                    >
+                      ⚠
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        color: "warning.dark",
+                        fontWeight: 700,
+                        mb: 0.5
+                      }}
+                    >
+                      <strong>RESEARCH DISCLAIMER</strong>
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "warning.dark",
+                        lineHeight: 1.6,
+                        fontSize: "0.9rem",
+                        fontWeight: 400,
+                        letterSpacing: "0.01em"
+                      }}
+                    >
+                      CosinorAge Package & Calculator is intended <strong>solely as a research tool</strong> for scientific study and personal exploration. It is <strong>not designed for clinical diagnosis or medical treatment</strong>. Results should be interpreted within a research context. <strong>For medical advice, please consult a qualified healthcare professional</strong>.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+              
               <Box
                 sx={{
                   mt: 3,
