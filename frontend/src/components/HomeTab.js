@@ -731,33 +731,18 @@ const HomeTab = ({ setCurrentTab }) => {
                         style={{ height: 28, borderRadius: "16px" }}
                       />
                     </a>
-                    <Box sx={{ position: "relative" }}>
-                      <div style={{ display: "inline-block" }}>
-                        <img
-                          src="https://img.shields.io/badge/PyPI-3775A9?style=for-the-badge&logo=pypi&logoColor=white"
-                          alt="PyPI Badge"
-                          style={{ height: 28, borderRadius: "16px" }}
-                        />
-                      </div>
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          top: -8,
-                          right: -8,
-                          bgcolor: "warning.main",
-                          color: "white",
-                          px: 1,
-                          py: 0.5,
-                          borderRadius: 1,
-                          fontSize: "0.7rem",
-                          fontWeight: "bold",
-                          transform: "rotate(15deg)",
-                          zIndex: 1,
-                        }}
-                      >
-                        WIP
-                      </Box>
-                    </Box>
+                    <a
+                      href="https://pypi.org/project/cosinorage/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: "none" }}
+                    >
+                      <img
+                        src="https://img.shields.io/badge/PyPI-3775A9?style=for-the-badge&logo=pypi&logoColor=white"
+                        alt="PyPI Badge"
+                        style={{ height: 28, borderRadius: "16px" }}
+                      />
+                    </a>
                   </Box>
                 </Box>
               </AccordionSummary>
