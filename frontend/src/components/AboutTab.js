@@ -731,7 +731,7 @@ const AboutTab = () => {
           <Box
             sx={{
               mt: 4,
-              p: 3,
+              p: 2,
               bgcolor: "#f5f5f5",
               borderRadius: 2,
               boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
