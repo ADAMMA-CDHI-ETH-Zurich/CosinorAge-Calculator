@@ -720,7 +720,7 @@ const HomeTab = ({ setCurrentTab }) => {
                       />
                     </a>
                     <a
-                      href="https://cosinorage-deployed.readthedocs.io/en/latest/"
+                      href="https://cosinorage.readthedocs.io/en/latest/"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ textDecoration: "none" }}
