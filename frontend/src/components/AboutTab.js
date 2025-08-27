@@ -724,6 +724,57 @@ const AboutTab = () => {
               </Grid>
             </Grid>
           </Box>
+
+          <Divider sx={{ my: 4 }} />
+
+          {/* Contact Information */}
+          <Box
+            sx={{
+              mt: 4,
+              p: 3,
+              bgcolor: "#f5f5f5",
+              borderRadius: 2,
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+              textAlign: "left",
+              border: "2px solid",
+              borderColor: "#000000",
+            }}
+          >
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 2,
+                fontWeight: 600,
+                color: "#000000",
+              }}
+            >
+              Need Help?
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                fontSize: "1.1rem",
+                lineHeight: 1.6,
+                color: "#37474f",
+              }}
+            >
+              In case of technical issues or questions, please reach out to Jacob via{" "}
+              <a
+                href="mailto:jhunecke@student.ethz.ch"
+                style={{
+                  color: "#000000",
+                  textDecoration: "underline",
+                  fontWeight: "600",
+                  transition: "color 0.2s ease",
+                }}
+                onMouseOver={(e) => e.target.style.color = "#666666"}
+                onMouseOut={(e) => e.target.style.color = "#000000"}
+              >
+                email
+              </a>
+              .
+            </Typography>
+          </Box>
         </Paper>
       </Grid>
     </Grid>
