@@ -19,6 +19,9 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
+# Install openssl for self-signed certificate generation in entrypoint
+RUN apk add --no-cache openssl
+
 # Copy built app from build stage
 COPY --from=build /app/build /usr/share/nginx/html
 
