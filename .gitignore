@@ -79,5 +79,9 @@ env.example
 
 deploy-cosinorlab.sh
 
+# SSL certificates (keep local only; entrypoint generates on server if missing)
+ssl/
+ssl/*.pem
+
 
 

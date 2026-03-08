@@ -29,7 +29,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./ssl:/etc/nginx/ssl:ro  # Mount SSL certificates
+      - ./ssl:/etc/nginx/ssl  # Mount SSL certs (writable so entrypoint can create self-signed if missing)
     depends_on:
       backend:
         condition: service_healthy
